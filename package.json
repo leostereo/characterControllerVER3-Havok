@@ -10,10 +10,18 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint src --ext .ts --max-warnings 0",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "type-check": "tsc --noEmit",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@types/node": "^24.7.0",
+    "@typescript-eslint/eslint-plugin": "^8.57.2",
+    "@typescript-eslint/parser": "^8.57.2",
+    "eslint": "^10.1.0",
+    "husky": "^9.1.7",
     "typescript": "^5.9.3",
     "vite": "^6.2.3",
     "vite-plugin-compression": "^0.5.1",

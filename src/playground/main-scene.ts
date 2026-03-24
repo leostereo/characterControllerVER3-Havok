@@ -1,11 +1,11 @@
 import { ArcRotateCamera } from "@babylonjs/core/Cameras/arcRotateCamera";
 import { DefaultRenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/defaultRenderingPipeline";
-import { Engine } from "@babylonjs/core/Engines/engine";
+import type { Engine } from "@babylonjs/core/Engines/engine";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
-import { Scene } from "@babylonjs/core/scene";
+import type { Scene } from "@babylonjs/core/scene";
 import { Tools } from "@babylonjs/core/Misc/tools";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
-import { WebGPUEngine } from "@babylonjs/core/Engines/webgpuEngine";
+import type { WebGPUEngine } from "@babylonjs/core/Engines/webgpuEngine";
 import "@babylonjs/core/Helpers/sceneHelpers";
 // import { LoadAssetContainerAsync } from "@babylonjs/core/Loading/sceneLoader";
 import { Ground } from "./ground";
@@ -18,7 +18,7 @@ export default class MainScene {
     this._setCamera(scene);
     this._setLight(scene);
     this._setEnvironment(scene);
-    this.loadComponents();
+    void this.loadComponents();
   }
 
   _setCamera(scene: Scene): void {
@@ -32,14 +32,16 @@ export default class MainScene {
     light.intensity = 0.5;
   }
 
-  _setEnvironment(scene: Scene) {
+  _setEnvironment(scene: Scene): void {
     scene.createDefaultEnvironment({ createGround: false, createSkybox: false });
   }
 
   _setPipeLine(): void {
-    const pipeline = new DefaultRenderingPipeline("default-pipeline", false, this.scene, [this.scene.activeCamera!]);
-    pipeline.fxaaEnabled = true;
-    pipeline.samples = 4;
+    if(this.scene.activeCamera){
+      const pipeline = new DefaultRenderingPipeline("default-pipeline", false, this.scene, [this.scene.activeCamera]);
+      pipeline.fxaaEnabled = true;
+      pipeline.samples = 4;
+    } 
   }
 
   async loadComponents(): Promise<void> {

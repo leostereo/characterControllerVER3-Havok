@@ -25,7 +25,7 @@ class App {
     document.body.appendChild(this.canvas);
 
     //  this.init(); // Uncomment to use WebGL2 engine
-    this.initWebGPU(); // Comment not to use WebGPU engine
+    void this.initWebGPU(); // Comment not to use WebGPU engine
   }
 
   async init(): Promise<void> {
@@ -43,7 +43,7 @@ class App {
 
     new MainScene(this.scene, this.canvas, this.engine);
 
-    this._config();
+    await this._config();
     this._renderer();
   }
 
@@ -54,7 +54,7 @@ class App {
     }));
     await webgpu.initAsync();
     this.engine = webgpu;
-    console.log(this.engine);
+    console.warn(this.engine);
 
     this.scene = new Scene(this.engine);
     // Add physics. If not needed, you can annotate it to improve loading speed and environment performance.
@@ -62,7 +62,7 @@ class App {
 
     new MainScene(this.scene, this.canvas, this.engine);
 
-    this._config();
+    await this._config();
     this._renderer();
   }
 
@@ -92,14 +92,15 @@ class App {
     if (import.meta.env.DEV) {
       await Promise.all([import("@babylonjs/core/Debug/debugLayer"), import("@babylonjs/inspector")]);
 
-      window.addEventListener("keydown", (ev) => {
-        // Shift+Ctrl+Alt+I
+      window.addEventListener("keydown", (ev): void => {
         if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === 73) {
-          if (this.scene.debugLayer.isVisible()) {
-            this.scene.debugLayer.hide();
-          } else {
-            this.scene.debugLayer.show();
-          }
+          void (async (): Promise<void> => {
+            if (this.scene.debugLayer.isVisible()) {
+              this.scene.debugLayer.hide();
+            } else {
+              await this.scene.debugLayer.show();
+            }
+          })();
         }
       });
     } // End of IF statement
@@ -109,7 +110,7 @@ class App {
       this.engine.resize();
     });
 
-    window.onbeforeunload = () => {
+    window.onbeforeunload = (): void => {
       // I have tested it myself and the system will automatically remove this junk.
       this.scene.onBeforeRenderObservable.clear();
       this.scene.onAfterRenderObservable.clear();
@@ -118,12 +119,12 @@ class App {
   }
 
   // Auxiliary Class Configuration
-  _config(): void {
+  async _config(): Promise<void> {
     // Axes
     new AxesViewer();
 
     // Inspector and other stuff
-    this._bindEvent();
+    await this._bindEvent();
   }
 
   _renderer(): void {

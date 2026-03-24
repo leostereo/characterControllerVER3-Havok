@@ -1,4 +1,4 @@
-import { Scene } from "@babylonjs/core/scene";
+import type { Scene } from "@babylonjs/core/scene";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { PhysicsAggregate } from "@babylonjs/core/Physics/v2/physicsAggregate";
 import { PhysicsShapeType } from "@babylonjs/core/Physics/";
@@ -14,7 +14,7 @@ export class Ground {
     const mesh = MeshBuilder.CreateGround("ground", { width: 10, height: 10 }, this.scene);
     const pa = new PhysicsAggregate(mesh, PhysicsShapeType.BOX, { mass: 0 }, this.scene);
     pa.body.startAsleep = true;
-    console.log(pa);
+    console.warn(pa);
   }
 
   _createSphere(): void {
