@@ -93,7 +93,7 @@ class App {
       await Promise.all([import("@babylonjs/core/Debug/debugLayer"), import("@babylonjs/inspector")]);
 
       window.addEventListener("keydown", (ev): void => {
-        if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === 73) {
+        if (ev.shiftKey && ev.ctrlKey && ev.altKey) {
           void (async (): Promise<void> => {
             if (this.scene.debugLayer.isVisible()) {
               this.scene.debugLayer.hide();

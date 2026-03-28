@@ -30,7 +30,7 @@ export class Player {
 
     // Pasar el mesh al controller
     this.controller.setCharacterModel(mesh);
-
+    this.cameraController.setTarget(mesh);
     // Pasar las animaciones solo a PlayerAnimationController
     this.animationController.setAnimationGroups(animationGroups);
   }

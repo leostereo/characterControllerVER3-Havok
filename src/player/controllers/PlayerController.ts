@@ -6,6 +6,8 @@ import {
   PhysicsCharacterController,
   CharacterSupportedState,
   AnimationGroup,
+  Quaternion,
+  Matrix,
 } from "@babylonjs/core";
 
 const MOVE_SPEED = 5;
@@ -31,7 +33,7 @@ export class PlayerController {
     this.startPosition = startPosition.clone();
 
     // Crear cápsula visual con flecha indicadora
-    this.characterMesh = MeshBuilder.CreateCapsule("player", { height: 1.8, radius: 0.4 }, scene);
+    this.characterMesh = MeshBuilder.CreateCapsule("playerCapsule", { height: 1.8, radius: 0.4 }, scene);
     this.characterMesh.position.copyFrom(this.startPosition);
 
     // Crear flecha para indicar dirección
@@ -51,24 +53,24 @@ export class PlayerController {
     this.setupGameLoop();
   }
 
-/**
- * Establece el modelo del personaje reemplazando la cápsula.
- */
-setCharacterModel(mesh: AbstractMesh): void {
-  // Posicionar el nuevo mesh
-  mesh.position.copyFrom(this.startPosition.add(this.meshOffset));
-  mesh.rotation.copyFrom(this.characterMesh.rotation);
-  mesh.scaling.copyFrom(this.characterMesh.scaling);
+  /**
+   * Establece el modelo del personaje reemplazando la cápsula.
+   */
+  setCharacterModel(mesh: AbstractMesh): void {
+    // Posicionar el nuevo mesh
+    mesh.position.copyFrom(this.startPosition.add(this.meshOffset));
+    mesh.rotation.copyFrom(this.characterMesh.rotation);
+    mesh.scaling.copyFrom(this.characterMesh.scaling);
 
-  // Reemplazar el mesh visual
-  this.characterMesh.dispose();
-  this.characterMesh = mesh;
+    // Reemplazar el mesh visual
+    this.characterMesh.dispose();
+    this.characterMesh = mesh;
 
-  // Sincronizar la posición del controller físico
-  this.controller.setPosition(mesh.position.clone());
+    // Sincronizar la posición del controller físico
+    this.controller.setPosition(mesh.position.clone());
 
-  console.log("Character model set:", mesh.name);
-}
+    console.log("Character model set:", mesh.name);
+  }
 
   /**
    * Establece el offset Y del mesh si es necesario.
@@ -99,12 +101,27 @@ setCharacterModel(mesh: AbstractMesh): void {
       const support = this.controller.checkSupport(dt, down);
       const isGrounded = support.supportedState === CharacterSupportedState.SUPPORTED;
 
-      // Rotación con A/D
-      if (this.keys["KeyA"]) this.characterMesh.rotation.y -= ROTATE_SPEED * dt;
-      if (this.keys["KeyD"]) this.characterMesh.rotation.y += ROTATE_SPEED * dt;
+      //handle rotation
 
-      // Dirección forward basada en rotation.y
+      const turn = (this.keys["KeyD"] ? 1 : 0) - (this.keys["KeyA"] ? 1 : 0);
+      if (turn !== 0) {
+        if (!this.characterMesh.rotationQuaternion) {
+          this.characterMesh.rotationQuaternion = this.characterMesh.rotation.toQuaternion();
+        }
+        const deltaYaw = turn * ROTATE_SPEED * dt;
+        const deltaRot = Quaternion.RotationAxis(Vector3.Up(), deltaYaw);
+        this.characterMesh.rotationQuaternion = deltaRot.multiply(this.characterMesh.rotationQuaternion);
+      }
+
+      // const quat = this.characterMesh.rotationQuaternion ?? Quaternion.Identity();
+      // const rotMatrix = Matrix.Identity();
+      // Matrix.FromQuaternionToRef(quat, rotMatrix);
+      // const forward = Vector3.TransformNormal(Vector3.Forward(), rotMatrix);
+
       const forward = this.characterMesh.forward;
+
+
+
       const running = this.keys["ShiftLeft"] || this.keys["ShiftRight"];
       const speed = MOVE_SPEED * (running ? RUN_MULTIPLIER : 1);
 

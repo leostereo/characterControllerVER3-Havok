@@ -1,19 +1,30 @@
-import { FollowCamera, Vector3, Scene } from "@babylonjs/core";
+import { FollowCamera, Vector3, Scene, Mesh, AbstractMesh } from "@babylonjs/core";
 import { PlayerController } from "./PlayerController";
 
 export class PlayerCameraController {
   private readonly camera: FollowCamera;
 
   constructor(scene: Scene, player: PlayerController) {
-    this.camera = new FollowCamera("playerCam", player.position.add(new Vector3(0, 2, -6)), scene);
-    this.camera.lockedTarget = player.targetMesh;
-    this.camera.radius = 6;
-    this.camera.heightOffset = 2;
+    this.camera = new FollowCamera('FollowCam', new Vector3(0, 10, 0), scene);
+    this.camera.radius = 15;
+
+    // The goal height of camera above local oriin (centre) of target
+    this.camera.heightOffset = 5;
+
+    // The goal rotation of camera around local origin (centre) of target in x y plane
     this.camera.rotationOffset = 180;
-    this.camera.cameraAcceleration = 0.05;
-    this.camera.maxCameraSpeed = 20;
+
+    //Acceleration of camera in moving from current to goal position
+    this.camera.cameraAcceleration = 0.05
+
+    //The speed at which acceleration is halted 
+    this.camera.maxCameraSpeed = 10
 
     scene.activeCamera = this.camera;
     this.camera.attachControl(true);
+  }
+
+  public setTarget(mesh: AbstractMesh): void {
+    this.camera.lockedTarget = mesh;
   }
 }

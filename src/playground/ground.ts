@@ -11,7 +11,7 @@ export class Ground {
   }
 
   _createGround(): void {
-    const mesh = MeshBuilder.CreateGround("ground", { width: 10, height: 10 }, this.scene);
+    const mesh = MeshBuilder.CreateGround("ground", { width: 100, height: 100 }, this.scene);
     const pa = new PhysicsAggregate(mesh, PhysicsShapeType.BOX, { mass: 0 }, this.scene);
     pa.body.startAsleep = true;
     console.warn(pa);
