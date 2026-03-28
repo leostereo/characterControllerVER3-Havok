@@ -4,7 +4,6 @@ import { PlayerAnimationController } from "./controllers/PlayerAnimationControll
 import { PlayerCameraController } from "./controllers/PlayerCameraController";
 import { PlayerEffectsController } from "./controllers/PlayerEffectsController";
 
-
 export class Player {
   private controller: PlayerController;
   private animationController: PlayerAnimationController;
@@ -29,16 +28,18 @@ export class Player {
       }
     });
 
-    // Pasar el mesh y animations al controller
-    //this.controller.setCharacterModel(mesh, animationGroups);
+    // Pasar el mesh al controller
+    this.controller.setCharacterModel(mesh);
+
+    // Pasar las animaciones solo a PlayerAnimationController
+    this.animationController.setAnimationGroups(animationGroups);
   }
+
   /**
    * Establece el offset Y del mesh si es necesario.
    */
   setMeshYOffset(y: number): void {
-    console.log(y);
-    
-    //this.controller.setMeshYOffset(y);
+    this.controller.setMeshYOffset(y);
   }
 
   /**

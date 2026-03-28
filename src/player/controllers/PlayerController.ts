@@ -24,6 +24,7 @@ export class PlayerController {
   private grounded = false;
   private localVelocity = Vector3.Zero();
   public animationGroups: AnimationGroup[] = [];
+  private meshOffset = new Vector3(0, 0, 0);
 
   constructor(scene: Scene, startPosition: Vector3) {
     this.scene = scene;
@@ -48,6 +49,37 @@ export class PlayerController {
 
     this.setupInput();
     this.setupGameLoop();
+  }
+
+/**
+ * Establece el modelo del personaje reemplazando la cápsula.
+ */
+setCharacterModel(mesh: AbstractMesh): void {
+  // Posicionar el nuevo mesh
+  mesh.position.copyFrom(this.startPosition.add(this.meshOffset));
+  mesh.rotation.copyFrom(this.characterMesh.rotation);
+  mesh.scaling.copyFrom(this.characterMesh.scaling);
+
+  // Reemplazar el mesh visual
+  this.characterMesh.dispose();
+  this.characterMesh = mesh;
+
+  // Sincronizar la posición del controller físico
+  this.controller.setPosition(mesh.position.clone());
+
+  console.log("Character model set:", mesh.name);
+}
+
+  /**
+   * Establece el offset Y del mesh si es necesario.
+   */
+  setMeshYOffset(y: number): void {
+    this.meshOffset.y = y;
+    // Si el mesh ya está establecido, ajustar su posición
+    if (this.characterMesh) {
+      this.characterMesh.position.y = this.startPosition.y + y;
+      this.controller.setPosition(this.characterMesh.position.clone());
+    }
   }
 
   private setupInput(): void {
@@ -91,8 +123,9 @@ export class PlayerController {
       this.controller.setVelocity(velocity);
       this.controller.integrate(dt, support, gravity);
 
-      // Sincronizar mesh con controller
-      this.characterMesh.position.copyFrom(this.controller.getPosition());
+      // Sincronizar mesh con controller + offset
+      const physPos = this.controller.getPosition();
+      this.characterMesh.position.copyFrom(physPos.add(this.meshOffset));
 
       this.grounded = isGrounded;
       this.localVelocity.copyFrom(velocity);
