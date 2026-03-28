@@ -1,4 +1,4 @@
-import { PlayerController } from "./PlayerController";
+import type { PlayerController } from "./PlayerController";
 
 export class PlayerEffectsController {
   private wasGrounded = true;
@@ -28,17 +28,17 @@ export class PlayerEffectsController {
   }
 
   private playLandingEffect(): void {
-    console.log("Landing effect triggered");
+    console.warn("Landing effect triggered");
     // Implement particle effect or sound for landing
   }
 
   private playJumpEffect(): void {
-    console.log("Jump effect triggered");
+    console.warn("Jump effect triggered");
     // Implement particle effect or sound for jumping
   }
 
   private playFootstepSound(): void {
-    console.log("Footstep sound triggered");
+    console.warn("Footstep sound triggered");
     // Implement footstep sound based on speed
   }
 }

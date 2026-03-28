@@ -75,7 +75,7 @@ export default class MainScene {
 
   private _onAssetsLoaded(assets: LoadedAssets): void {
 
-    console.log("All assets loaded successfully:", assets);
+    console.warn("All assets loaded successfully:", assets);
 
     const characterMeshes = assets.meshes["characterTask"];
     const characterAnimations = assets.animations["characterTask"];
@@ -99,6 +99,6 @@ export default class MainScene {
 
   private _onLoadingProgress(remaining: number, total: number): void {
     const progress = ((total - remaining) / total) * 100;
-    console.log(`Loading progress: ${progress.toFixed(2)}%`);
+    console.warn(`Loading progress: ${progress.toFixed(2)}%`);
   }
 }

@@ -1,7 +1,7 @@
-import { AnimationGroup } from "@babylonjs/core";
-import { PlayerController } from "./PlayerController";
+import type { AnimationGroup } from "@babylonjs/core";
+import type { PlayerController } from "./PlayerController";
 
-type AnimState = "idle" | "walk" | "run" | "jump" | "fall";
+type AnimState = "idle" | "walk" | "run" | "jump" | "fall" | "walk_back";
 
 export class PlayerAnimationController {
   private current: AnimState = "idle";
@@ -11,23 +11,21 @@ export class PlayerAnimationController {
     run: undefined,
     jump: undefined,
     fall: undefined,
+    walk_back: undefined
   };
 
-  constructor(private player: PlayerController) {}
+  constructor(private player: PlayerController) { }
 
   /**
    * Establece los grupos de animación y los mapea por nombre.
    */
   setAnimationGroups(animationGroups: AnimationGroup[]): void {
-    for (const g of animationGroups) {
-      const n = g.name.toLowerCase();
-      if (n.includes("idle")) this.groups.idle = g;
-      else if (n.includes("walk")) this.groups.walk = g;
-      else if (n.includes("run")) this.groups.run = g;
-      else if (n.includes("jump")) this.groups.jump = g;
-      else if (n.includes("fall")) this.groups.fall = g;
-    }
-    console.log("Animation groups set:", Object.keys(this.groups).filter(k => this.groups[k as AnimState]));
+
+    this.groups.idle = animationGroups.find((item)=>item.name === 'idle');
+    this.groups.walk = animationGroups.find((item)=>item.name === 'walking');
+    this.groups.walk_back = animationGroups.find((item)=>item.name === 'walking backwards');
+    this.groups.run = animationGroups.find((item)=>item.name === 'slow running');
+    console.warn("Animation groups set:", Object.keys(this.groups).filter(k => this.groups[k as AnimState]));
   }
 
   update(): void {
@@ -36,7 +34,12 @@ export class PlayerAnimationController {
     if (!this.player.isGrounded) {
       next = this.player.velocity.y > 0 ? "jump" : "fall";
     } else if (this.player.speed > 0.1) {
-      next = this.player.isRunning ? "run" : "walk";
+      if(this.player.isGoingBack === false){
+        next = this.player.isRunning ? "run" : "walk";
+      }
+      if(this.player.isGoingBack){
+        next = 'walk_back';
+      }
     }
 
     this.play(next);
@@ -48,7 +51,9 @@ export class PlayerAnimationController {
 
     // Detener todas las animaciones
     Object.values(this.groups).forEach((g) => {
-      if (g && g.isPlaying) g.stop();
+      if (g?.isPlaying) {
+        g.stop();
+      }
     });
 
     // Reproducir la animación correspondiente

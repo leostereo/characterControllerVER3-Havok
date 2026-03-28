@@ -1,13 +1,12 @@
 import {
-  Scene,
+  type Scene,
   Vector3,
   MeshBuilder,
-  AbstractMesh,
+  type AbstractMesh,
   PhysicsCharacterController,
   CharacterSupportedState,
-  AnimationGroup,
+  type AnimationGroup,
   Quaternion,
-  Matrix,
 } from "@babylonjs/core";
 
 const MOVE_SPEED = 5;
@@ -24,6 +23,7 @@ export class PlayerController {
   private verticalVelocity = 0;
   private readonly keys: Record<string, boolean> = {};
   private grounded = false;
+  private goingBack = false;
   private localVelocity = Vector3.Zero();
   public animationGroups: AnimationGroup[] = [];
   private meshOffset = new Vector3(0, 0, 0);
@@ -69,7 +69,7 @@ export class PlayerController {
     // Sincronizar la posición del controller físico
     this.controller.setPosition(mesh.position.clone());
 
-    console.log("Character model set:", mesh.name);
+    console.warn("Character model set:", mesh.name);
   }
 
   /**
@@ -105,9 +105,9 @@ export class PlayerController {
 
       const turn = (this.keys["KeyD"] ? 1 : 0) - (this.keys["KeyA"] ? 1 : 0);
       if (turn !== 0) {
-        if (!this.characterMesh.rotationQuaternion) {
-          this.characterMesh.rotationQuaternion = this.characterMesh.rotation.toQuaternion();
-        }
+
+        this.characterMesh.rotationQuaternion ??= this.characterMesh.rotation.toQuaternion();
+
         const deltaYaw = turn * ROTATE_SPEED * dt;
         const deltaRot = Quaternion.RotationAxis(Vector3.Up(), deltaYaw);
         this.characterMesh.rotationQuaternion = deltaRot.multiply(this.characterMesh.rotationQuaternion);
@@ -120,14 +120,19 @@ export class PlayerController {
 
       const forward = this.characterMesh.forward;
 
-
-
       const running = this.keys["ShiftLeft"] || this.keys["ShiftRight"];
-      const speed = MOVE_SPEED * (running ? RUN_MULTIPLIER : 1);
+      const forwardSpeed = MOVE_SPEED * (running ? RUN_MULTIPLIER : 1);
+      const backwardSpeed = MOVE_SPEED; 
 
       const velocity = Vector3.Zero();
-      if (this.keys["KeyW"]) velocity.addInPlace(forward.scale(speed));
-      if (this.keys["KeyS"]) velocity.addInPlace(forward.scale(-speed));
+      if (this.keys["KeyW"]) {
+        velocity.addInPlace(forward.scale(forwardSpeed))
+        this.goingBack = false;
+      }
+      if (this.keys["KeyS"]) {
+        velocity.addInPlace(forward.scale(-backwardSpeed))
+        this.goingBack = true;
+      }
 
       // Salto y gravedad
       if (isGrounded) {
@@ -164,6 +169,10 @@ export class PlayerController {
 
   get isGrounded(): boolean {
     return this.grounded;
+  }
+
+  get isGoingBack(): boolean {
+    return this.goingBack;
   }
 
   get velocity(): Vector3 {

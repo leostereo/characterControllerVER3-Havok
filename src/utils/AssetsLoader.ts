@@ -1,4 +1,4 @@
-import { AssetsManager, Scene, AbstractMesh, AnimationGroup, Texture } from "@babylonjs/core";
+import { AssetsManager, type Scene, type AbstractMesh, type AnimationGroup, type Texture, type AbstractAssetTask } from "@babylonjs/core";
 
 export interface LoadedAssets {
   meshes: { [key: string]: AbstractMesh[] };
@@ -29,16 +29,16 @@ export class AssetLoader {
     rootUrl: string,
     filename: string,
     onSuccess?: (meshes: AbstractMesh[], animationGroups: AnimationGroup[]) => void,
-    onError?: (message: string, exception?: any) => void
+    onError?: (message: string, exception?: Error) => void
   ): void {
     const task = this.assetsManager.addMeshTask(name, meshNames, rootUrl, filename);
-    task.onSuccess = (task) => {
+    task.onSuccess = (task): void => {
       this.loadedAssets.meshes[name] = task.loadedMeshes as AbstractMesh[];
       this.loadedAssets.animations[name] = task.loadedAnimationGroups;
       if (onSuccess) onSuccess(task.loadedMeshes as AbstractMesh[], task.loadedAnimationGroups);
     };
     if (onError) {
-      task.onError = (task, message, exception) => onError(message ?? 'ERRORGEN', exception);
+      task.onError = (task, message, exception): void => onError(message ?? `'ERRORGEN' at ${task.name}`, exception);
     }
   }
 
@@ -49,15 +49,15 @@ export class AssetLoader {
     name: string,
     url: string,
     onSuccess?: (texture: Texture) => void,
-    onError?: (message: string, exception?: any) => void
+    onError?: (message: string, exception?: Error) => void
   ): void {
     const task = this.assetsManager.addTextureTask(name, url);
-    task.onSuccess = (task) => {
+    task.onSuccess = (task): void => {
       this.loadedAssets.textures[name] = task.texture;
       if (onSuccess) onSuccess(task.texture);
     };
     if (onError) {
-      task.onError = (task, message, exception) => onError(message ?? 'ERRORGEN', exception);
+      task.onError = (task, message, exception): void => onError(message ?? `'ERRORGEN' at ${task.name}`, exception);
     }
   }
 
@@ -68,15 +68,15 @@ export class AssetLoader {
     name: string,
     url: string,
     onSuccess?: (data: ArrayBuffer) => void,
-    onError?: (message: string, exception?: any) => void
+    onError?: (message: string, exception?: Error) => void
   ): void {
     const task = this.assetsManager.addBinaryFileTask(name, url);
-    task.onSuccess = (task) => {
+    task.onSuccess = (task): void => {
       this.loadedAssets.binaries[name] = task.data;
       if (onSuccess) onSuccess(task.data);
     };
     if (onError) {
-      task.onError = (task, message, exception) => onError(message ?? 'ERRORGEN', exception);
+      task.onError = (task, message, exception): void => onError(message ?? `'ERRORGEN' at ${task.name}`, exception);
     }
   }
 
@@ -104,10 +104,10 @@ export class AssetLoader {
    */
   load(
     onFinish?: (assets: LoadedAssets) => void,
-    onProgress?: (remainingCount: number, totalCount: number, task: any) => void
+    onProgress?: (remainingCount: number, totalCount: number, task: AbstractAssetTask) => void
   ): void {
     if (onFinish) {
-      this.assetsManager.onFinish = () => onFinish(this.loadedAssets);
+      this.assetsManager.onFinish = (): void => onFinish(this.loadedAssets);
     }
     if (onProgress) {
       this.assetsManager.onProgress = onProgress;

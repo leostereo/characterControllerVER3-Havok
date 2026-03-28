@@ -13,7 +13,7 @@ export class Player {
   constructor(scene: Scene, startPosition: Vector3) {
     this.controller = new PlayerController(scene, startPosition);
     this.animationController = new PlayerAnimationController(this.controller);
-    this.cameraController = new PlayerCameraController(scene, this.controller);
+    this.cameraController = new PlayerCameraController(scene);
     this.effectsController = new PlayerEffectsController(this.controller);
   }
 
@@ -48,7 +48,7 @@ export class Player {
   startUpdateLoop(scene: Scene): void {
     scene.onBeforeRenderObservable.add(() => {
       this.animationController.update();
-      this.effectsController.update();
+      //this.effectsController.update(); not implemented
     });
   }
 
