@@ -20,6 +20,7 @@ export class Ground {
   _createSphere(): void {
     const mesh = MeshBuilder.CreateSphere("sphere", { diameter: 2, segments: 32 }, this.scene);
     mesh.position.y = 4;
+    mesh.position.x = 4;
 
     new PhysicsAggregate(mesh, PhysicsShapeType.SPHERE, { mass: 1, restitution: 0.75 }, this.scene);
   }

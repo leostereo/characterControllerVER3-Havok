@@ -7,17 +7,22 @@ import { Tools } from "@babylonjs/core/Misc/tools";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { WebGPUEngine } from "@babylonjs/core/Engines/webgpuEngine";
 import "@babylonjs/core/Helpers/sceneHelpers";
-// import { LoadAssetContainerAsync } from "@babylonjs/core/Loading/sceneLoader";
 import { Ground } from "./ground";
 import { setUI } from "./gui";
+import { AssetLoader, type LoadedAssets } from "@/utils/AssetsLoader";
+import { Player } from "@/player/Player";
+import "@babylonjs/loaders/glTF";
 
 export default class MainScene {
   private camera: ArcRotateCamera;
+  private assetLoader: AssetLoader;
+  private player: Player | null = null;
 
   constructor(private scene: Scene, private canvas: HTMLCanvasElement, private engine: Engine | WebGPUEngine) {
     this._setCamera(scene);
     this._setLight(scene);
     this._setEnvironment(scene);
+    this.assetLoader = new AssetLoader(this.scene);
     void this.loadComponents();
   }
 
@@ -37,18 +42,63 @@ export default class MainScene {
   }
 
   _setPipeLine(): void {
-    if(this.scene.activeCamera){
+    if (this.scene.activeCamera) {
       const pipeline = new DefaultRenderingPipeline("default-pipeline", false, this.scene, [this.scene.activeCamera]);
       pipeline.fxaaEnabled = true;
       pipeline.samples = 4;
-    } 
+    }
   }
 
   async loadComponents(): Promise<void> {
-    // Load your files in order
+
     new Ground(this.scene);
-    // Load Babylon GUI
-    await setUI(this.scene);
-    //
+
+    this._addAssetTasks();
+    this.assetLoader.load(
+      (assets) => this._onAssetsLoaded(assets),
+      (remaining, total) => this._onLoadingProgress(remaining, total)
+    );
+  }
+
+  private _addAssetTasks(): void {
+    this.assetLoader.addMeshTask(
+      "characterTask",
+      "",
+      "",
+      "./model/ybotV7.glb",
+      undefined,
+      (message, exception) => {
+        console.error("Error loading character model:", message, exception);
+      }
+    );
+  }
+
+  private _onAssetsLoaded(assets: LoadedAssets): void {
+
+     console.log("All assets loaded successfully:", assets);
+
+  const characterMeshes = assets.meshes["characterTask"];
+  const characterAnimations = assets.animations["characterTask"];
+
+  // Crear Player
+  this.player = new Player(this.scene, new Vector3(0, 1, 0));
+
+  // Pasar mesh y animations al Player (detiene automáticamente las animaciones en play)
+  if (characterMeshes && characterMeshes.length > 0) {
+    this.player.setCharacterModel(characterMeshes[0], characterAnimations);
+  }
+
+  // Establecer offset Y si es necesario
+  this.player.setMeshYOffset(-0.9);
+
+  // Iniciar loop de actualización
+  this.player.startUpdateLoop(this.scene);
+
+    void setUI(this.scene);
+  }
+
+  private _onLoadingProgress(remaining: number, total: number): void {
+    const progress = ((total - remaining) / total) * 100;
+    console.log(`Loading progress: ${progress.toFixed(2)}%`);
   }
 }
