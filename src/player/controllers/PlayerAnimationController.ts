@@ -1,5 +1,5 @@
-import { AnimationGroup } from "@babylonjs/core";
-import { PlayerController } from "./PlayerController";
+import type { AnimationGroup } from "@babylonjs/core";
+import type { PlayerController } from "./PlayerController";
 
 type AnimState = "idle" | "walk" | "run" | "jump" | "fall";
 

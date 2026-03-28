@@ -1,4 +1,4 @@
-import { Scene, AbstractMesh, AnimationGroup, Vector3 } from "@babylonjs/core";
+import type { Scene, AbstractMesh, AnimationGroup, Vector3 } from "@babylonjs/core";
 import { PlayerController } from "./controllers/PlayerController";
 import { PlayerAnimationController } from "./controllers/PlayerAnimationController";
 import { PlayerCameraController } from "./controllers/PlayerCameraController";
@@ -36,6 +36,8 @@ export class Player {
    * Establece el offset Y del mesh si es necesario.
    */
   setMeshYOffset(y: number): void {
+    console.log(y);
+    
     //this.controller.setMeshYOffset(y);
   }
 
