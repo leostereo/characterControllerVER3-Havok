@@ -33,7 +33,8 @@ export class PlayerAnimationController {
 
     if (!this.player.isGrounded) {
       next = this.player.velocity.y > 0 ? "jump" : "fall";
-    } else if (this.player.speed > 0.1) {
+    } else if (this.player.speed > 1) {
+      
       if(this.player.isGoingBack === false){
         next = this.player.isRunning ? "run" : "walk";
       }

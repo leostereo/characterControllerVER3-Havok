@@ -132,8 +132,15 @@ export class PlayerController {
 
     } else if (this.state === "ON_GROUND") {
       const speed = ON_GROUND_SPEED * (running ? RUN_MULTIPLIER : 1);
+
+      let backWardsSpeedMultiplicator = 1;
+      if (this.isGoingBack) {
+        backWardsSpeedMultiplicator = 0.3;
+      }
+
       const desiredVelocity = this.inputDirection
         .scale(speed)
+        .scale(backWardsSpeedMultiplicator)
         .applyRotationQuaternion(characterOrientation);
 
       let outputVelocity = this.controller.calculateMovement(
@@ -222,10 +229,6 @@ export class PlayerController {
 
       const down = new Vector3(0, -1, 0);
       const support = this.controller.checkSupport(dt, down);
-
-      console.warn(
-        this.meshOffset
-      );
 
       const desiredVelocity = this.getDesiredVelocity(dt, support, this.controller.getVelocity());
 
