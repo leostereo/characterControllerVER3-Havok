@@ -2,7 +2,8 @@ import type { Scene } from "@babylonjs/core/scene";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { PhysicsAggregate } from "@babylonjs/core/Physics/v2/physicsAggregate";
 import { PhysicsMotionType, PhysicsShapeType } from "@babylonjs/core/Physics/";
-import { Vector3 } from "@babylonjs/core";
+import { Color3, Vector3 } from "@babylonjs/core";
+import { GridMaterial } from "@babylonjs/materials";
 
 export class Ground {
   constructor(private scene: Scene) {
@@ -14,9 +15,17 @@ export class Ground {
 
   _createGround(): void {
     const mesh = MeshBuilder.CreateGround("ground", { width: 100, height: 100 }, this.scene);
-    const pa = new PhysicsAggregate(mesh, PhysicsShapeType.BOX, { mass: 0 }, this.scene);
-    //pa.body.startAsleep = true;
-    console.warn(pa);
+    // Grid material
+    const gridMat = new GridMaterial("gridMat", this.scene);
+    gridMat.majorUnitFrequency = 5;   // línea gruesa cada 5 unidades
+    gridMat.minorUnitVisibility = 0.5; // opacidad de líneas finas
+    gridMat.gridRatio = 1;             // 1 celda = 1 unidad de mundo
+    gridMat.backFaceCulling = false;
+    gridMat.mainColor = new Color3(1, 1, 1);
+    gridMat.lineColor = new Color3(0.5, 0.5, 0.5);
+    gridMat.opacity = 0.98;
+    mesh.material = gridMat;
+    new PhysicsAggregate(mesh, PhysicsShapeType.BOX, { mass: 0 }, this.scene);
   }
 
   _createSphere(): void {
@@ -32,10 +41,10 @@ export class Ground {
     const platform = MeshBuilder.CreateBox("Platform", { width: 4, height: 0.2, depth: 4 }, this.scene);
     platform.position.set(-4, 1, -12);
     // platform.material = this.scene.getMeshByName("Cube").material;
-    var platformAggregate = new PhysicsAggregate(platform, PhysicsShapeType.BOX, { mass: 0.1 });
+    const platformAggregate = new PhysicsAggregate(platform, PhysicsShapeType.BOX, { mass: 0.1 });
     platformAggregate.body.setMotionType(PhysicsMotionType.ANIMATED);
     platformAggregate.body.disablePreStep = false;
-    var platformTime = 0;
+    let platformTime = 0;
     this.scene.onBeforeRenderObservable.add(() => {
       platform.rotate(new Vector3(0, 1, 0), 0.005);
       platform.position.y = Math.sin(platformTime) * 2. + 1.2;

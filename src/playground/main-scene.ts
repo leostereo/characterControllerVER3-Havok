@@ -81,7 +81,7 @@ export default class MainScene {
     const characterAnimations = assets.animations["characterTask"];
 
     // Crear Player
-    this.player = new Player(this.scene, new Vector3(0, 1, 0));
+    this.player = new Player(this.scene, new Vector3(0, 0.9, 0));
 
     // Pasar mesh y animations al Player (detiene automáticamente las animaciones en play)
     if (characterMeshes && characterMeshes.length > 0) {

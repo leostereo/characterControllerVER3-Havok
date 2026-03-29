@@ -118,7 +118,7 @@ export class PlayerController {
         .scale(speed)
         .applyRotationQuaternion(characterOrientation);
 
-      let outputVelocity = this.controller.calculateMovement(
+      const outputVelocity = this.controller.calculateMovement(
         dt, forwardWorld, upWorld,
         currentVelocity, Vector3.ZeroReadOnly, desiredVelocity, upWorld
       );
@@ -251,10 +251,10 @@ export class PlayerController {
 
   setMeshYOffset(y: number): void {
     this.meshOffset.y = y;
-    if (this.characterMesh) {
-      this.characterMesh.position.y = this.startPosition.y + y;
-      this.controller.setPosition(this.characterMesh.position.clone());
-    }
+    // if (this.characterMesh) {
+    //   this.characterMesh.position.y = this.startPosition.y + y;
+    //   this.controller.setPosition(this.characterMesh.position.clone());
+    // }
   }
 
   get targetMesh(): AbstractMesh { return this.characterMesh; }

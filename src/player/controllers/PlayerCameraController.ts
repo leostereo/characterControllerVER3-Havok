@@ -1,4 +1,4 @@
-import { FollowCamera, Vector3, type Scene, type AbstractMesh, KeyboardInfo, ArcRotateCamera } from "@babylonjs/core";
+import { FollowCamera, Vector3, type Scene, type AbstractMesh, type KeyboardInfo, type ArcRotateCamera } from "@babylonjs/core";
 
 export class PlayerCameraController {
   private readonly camera: FollowCamera;
@@ -31,11 +31,10 @@ export class PlayerCameraController {
   }
 
 
-  private onDebugKeyboard(kbInfo: KeyboardInfo, scene: Scene) {
+  private onDebugKeyboard(kbInfo: KeyboardInfo, scene: Scene):void {
 
     const camera = scene.getCameraByName('camera') as ArcRotateCamera;
-    console.log(kbInfo.event.key);
-
+    
     switch (kbInfo.event.key) {
       case '1':
         // console.log(this.State.state, this.displayMeshAggregate.body.getLinearVelocity()._y, this.AnimationContainer.getCurrentPlayingAnimation()?.name)
