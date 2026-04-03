@@ -29,3 +29,29 @@
 Based on old good https://github.com/minibao/babylon-vite
 
 **Made by https://babylonpress.org/**
+
+
+Esquema 1.1
+En el esquema 1.1 definimos los siguientes actores.
+Controllers:
+Se ubican en la carpeta controllers.
+Se encargan de leer desde un input (maquinas de estado)
+Procesan y generan o no un ouput, es decir cambio en una maquina de estado.
+Se pueden diferenciar:
+    physicController: Responsable de la fisica del personaje.
+    inputController: Responsable de la lectura de teclado para direccionar el personaje.
+    AnimationController: Responsable de las animaciones del modelo que representa el personaje
+    effectsController: Responsable de los efectos de sonido u otros del personaje. 
+    cameraController: Responsable del control de la camara.
+
+Maquinas de estado:
+    Sus tareas son:
+    Guaradar un estado.
+    Setear un estado.
+    Devolver un estado.
+Para esta version tenemos 3 maquinas de estado:
+
+    physicState: Mantiene el estado de soporte, velocidad y otros relativos a la fisica
+    AnimationState: Mantiene el estado de accion del personaje, por ejemplo cayendo , caminando , saltando , comenzando_salto,etc.
+    InputState
+
