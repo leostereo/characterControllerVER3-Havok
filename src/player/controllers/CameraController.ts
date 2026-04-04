@@ -1,9 +1,9 @@
 import { FollowCamera, Vector3, type Scene, type AbstractMesh, type KeyboardInfo, type ArcRotateCamera } from "@babylonjs/core";
 
-export class PlayerCameraController {
+export class CameraController {
   private readonly camera: FollowCamera;
 
-  constructor(scene: Scene) {
+  constructor(scene: Scene, targetMesh:AbstractMesh) {
     this.camera = new FollowCamera('FollowCam', new Vector3(0, 10, 0), scene);
     this.camera.radius = 10;
 
@@ -19,18 +19,18 @@ export class PlayerCameraController {
     //The speed at which acceleration is halted 
     this.camera.maxCameraSpeed = 10
 
+    this.camera.lockedTarget = targetMesh;
+
     scene.activeCamera = this.camera;
+
+
     this.camera.attachControl(true);
 
     scene.onKeyboardObservable.add((kbInfo: KeyboardInfo) => this.onDebugKeyboard(kbInfo, scene))
 
   }
 
-  public setTarget(mesh: AbstractMesh): void {
-    this.camera.lockedTarget = mesh;
-  }
-
-
+  
   private onDebugKeyboard(kbInfo: KeyboardInfo, scene: Scene):void {
 
     const camera = scene.getCameraByName('camera') as ArcRotateCamera;

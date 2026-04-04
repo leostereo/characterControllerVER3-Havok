@@ -76,24 +76,22 @@ export default class MainScene {
   private _onAssetsLoaded(assets: LoadedAssets): void {
 
     console.warn("All assets loaded successfully:", assets);
-
     const characterMeshes = assets.meshes["characterTask"];
     const characterAnimations = assets.animations["characterTask"];
 
-    // Crear Player
-    this.player = new Player(this.scene, new Vector3(0, 0.9, 0));
+    // Crear Player con modelo y animaciones cargadas
+    
+    if(characterMeshes && characterMeshes.length > 0) {
 
-    // Pasar mesh y animations al Player (detiene automáticamente las animaciones en play)
-    if (characterMeshes && characterMeshes.length > 0) {
-      this.player.setCharacterModel(characterMeshes[0], characterAnimations);
-    }
-
-    // Establecer offset Y si es necesario
-    this.player.setMeshYOffset(-0.9);
-
-    // Iniciar loop de actualización
-    this.player.startUpdateLoop(this.scene);
-
+      this.player = new Player(
+        this.scene,
+        new Vector3(0, 0.9, 0),
+        characterMeshes[0],
+        characterAnimations,
+        -0.9
+      );
+    } 
+      
     void setUI(this.scene);
   }
 
