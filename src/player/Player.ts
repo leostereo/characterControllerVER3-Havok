@@ -32,14 +32,13 @@ export class Player {
     }
 
     this.cameraController = new CameraController(scene,mesh);
-
-
     this.startUpdateLoop(scene);
+    
   }
 
-  update(): void {
-    this.animationController.update();
-  }
+  // update(): void {
+  //   this.animationController.update();
+  // }
 
   startUpdateLoop(scene: Scene): void {
     scene.onBeforeRenderObservable.add(() => {

@@ -33,6 +33,12 @@ export class AnimationController {
     this.groups.walking = animationGroups.find((item) => item.name === "walking");
     this.groups.walking_backwards = animationGroups.find((item) => item.name === "walking backwards");
     this.groups.running = animationGroups.find((item) => item.name === "slow running");
+
+    //jump
+    this.groups.jumping = animationGroups.find((item) => item.name === "jumping");
+    this.groups.jump_impulse_starts = this.groups.jumping;
+    this.groups.jump_impulse_is_over = this.groups.jumping;
+
     console.warn("Animation groups set:", Object.keys(this.groups).filter(k => this.groups[k as AnimationStateValue]));
 
     // Stop all animations on initialization
@@ -44,14 +50,27 @@ export class AnimationController {
   }
 
   update(): void {
+
+    //Animation desicion matrix
     let next: AnimationStateValue = "idle";
 
+    //IN THE AIR
     if (!this.physicState.grounded) {
       next = this.physicState.velocity.y > 0 ? "jumping" : "falling_to_crash";
-    } else if (this.physicState.speed > 1) {
-      if (this.inputState.moveZ < 0) {
+    }
+
+    //ON THE GROUND
+    if (this.physicState.grounded) {
+
+      if (this.inputState.action === 'jump' && this.animationState.current !== 'jump_impulse_starts') {
+        next = "jump_impulse_starts"
+      }
+
+      if (this.physicState.speed > 1 && this.inputState.moveZ < 0) {
         next = "walking_backwards";
-      } else {
+      }
+
+      if (this.physicState.speed > 1 && this.inputState.moveZ > 0) {
         next = this.inputState.run ? "running" : "walking";
       }
     }
@@ -61,7 +80,7 @@ export class AnimationController {
 
   private play(state: AnimationStateValue): void {
     if (this.animationState.current === state) return;
-    
+
     // Update animation state machine
     this.animationState.setState(state);
 

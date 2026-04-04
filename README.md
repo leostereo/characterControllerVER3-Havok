@@ -55,3 +55,10 @@ Para esta version tenemos 3 maquinas de estado:
     AnimationState: Mantiene el estado de accion del personaje, por ejemplo cayendo , caminando , saltando , comenzando_salto,etc.
     InputState
 
+Esquema1.2
+Implementacion del salto en 3 etapas:
+1 - en animation controller , detectamos grounded y want jump.
+2 - seteamos el estado en jump_start.
+3 - emitimos un evento en frame 10
+4 - cambiamos a impulse is over
+5 - detectamos impulse is over en physicController.
