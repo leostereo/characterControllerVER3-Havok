@@ -1,12 +1,13 @@
 export type AnimationStateValue =
   | "idle"
-  | "walk"
-  | "run"
-  | "jump_start"
-  | "jump"
-  | "fall"
-  | "walk_back"
-  | "attack";
+  | "walking"
+  | "running"
+  | "jump_impulse_starts"
+  | "jump_impulse_is_over"
+  | "jumping"
+  | "falling_to_land"
+  | "falling_to_crash"
+  | "walking_backwards"
 
 export interface AnimationState {
   current: AnimationStateValue;

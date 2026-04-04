@@ -1,20 +1,19 @@
 import type { AnimationGroup } from "@babylonjs/core";
 import { type InputState } from "../statemachines/InputState";
 import { type PhysicState } from "../statemachines/PhysicState";
-import { type AnimationStateMachine } from "../statemachines/AnimationState";
-
-type AnimState = "idle" | "walk" | "run" | "jump_start" | "jump" | "fall" | "walk_back" | "attack";
+import { AnimationStateValue, type AnimationStateMachine } from "../statemachines/AnimationState";
 
 export class AnimationController {
-  private groups: Record<AnimState, AnimationGroup | undefined> = {
+  private groups: Record<AnimationStateValue, AnimationGroup | undefined> = {
     idle: undefined,
-    walk: undefined,
-    run: undefined,
-    jump_start: undefined,
-    jump: undefined,
-    fall: undefined,
-    walk_back: undefined,
-    attack: undefined
+    walking: undefined,
+    running: undefined,
+    jump_impulse_starts: undefined,
+    jump_impulse_is_over: undefined,
+    jumping: undefined,
+    falling_to_land: undefined,
+    falling_to_crash: undefined,
+    walking_backwards: undefined,
   };
 
   constructor(
@@ -31,10 +30,10 @@ export class AnimationController {
    */
   private mapAnimationGroups(animationGroups: AnimationGroup[]): void {
     this.groups.idle = animationGroups.find((item) => item.name === "idle");
-    this.groups.walk = animationGroups.find((item) => item.name === "walking");
-    this.groups.walk_back = animationGroups.find((item) => item.name === "walking backwards");
-    this.groups.run = animationGroups.find((item) => item.name === "slow running");
-    console.warn("Animation groups set:", Object.keys(this.groups).filter(k => this.groups[k as AnimState]));
+    this.groups.walking = animationGroups.find((item) => item.name === "walking");
+    this.groups.walking_backwards = animationGroups.find((item) => item.name === "walking backwards");
+    this.groups.running = animationGroups.find((item) => item.name === "slow running");
+    console.warn("Animation groups set:", Object.keys(this.groups).filter(k => this.groups[k as AnimationStateValue]));
 
     // Stop all animations on initialization
     Object.values(this.groups).forEach((g) => {
@@ -45,22 +44,22 @@ export class AnimationController {
   }
 
   update(): void {
-    let next: AnimState = "idle";
+    let next: AnimationStateValue = "idle";
 
     if (!this.physicState.grounded) {
-      next = this.physicState.velocity.y > 0 ? "jump_start" : "fall";
+      next = this.physicState.velocity.y > 0 ? "jumping" : "falling_to_crash";
     } else if (this.physicState.speed > 1) {
       if (this.inputState.moveZ < 0) {
-        next = "walk_back";
+        next = "walking_backwards";
       } else {
-        next = this.inputState.run ? "run" : "walk";
+        next = this.inputState.run ? "running" : "walking";
       }
     }
 
     this.play(next);
   }
 
-  private play(state: AnimState): void {
+  private play(state: AnimationStateValue): void {
     if (this.animationState.current === state) return;
     
     // Update animation state machine
