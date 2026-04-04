@@ -1,4 +1,4 @@
-import { InputState } from "../statemachines/InputState";
+import { type InputState } from "../statemachines/InputState";
 
 
 

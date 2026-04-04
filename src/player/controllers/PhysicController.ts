@@ -8,8 +8,8 @@ import {
   type CharacterSurfaceInfo,
   Quaternion,
 } from "@babylonjs/core";
-import { InputState } from "../statemachines/InputState";
-import { PhysicState } from "../statemachines/PhysicState";
+import { type InputState } from "../statemachines/InputState";
+import { type PhysicState } from "../statemachines/PhysicState";
 
 const ON_GROUND_SPEED = 10.0;
 const IN_AIR_SPEED = 8.0;

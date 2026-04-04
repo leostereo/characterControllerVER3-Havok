@@ -4,8 +4,7 @@ import { AnimationController } from "./controllers/AnimationController";
 import { InputState } from "./statemachines/InputState";
 import { PhysicState } from "./statemachines/PhysicState";
 import { AnimationStateMachine } from "./statemachines/AnimationState";
-import type { Scene, Vector3, AbstractMesh } from "@babylonjs/core";
-import type { AnimationGroup } from "@babylonjs/core";
+import type { Scene, Vector3, AbstractMesh, AnimationGroup } from "@babylonjs/core";
 import { CameraController } from "./controllers/CameraController";
 
 export class Player {

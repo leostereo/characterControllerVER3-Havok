@@ -1,7 +1,7 @@
 import type { AnimationGroup } from "@babylonjs/core";
-import { InputState } from "../statemachines/InputState";
-import { PhysicState } from "../statemachines/PhysicState";
-import { AnimationStateMachine } from "../statemachines/AnimationState";
+import { type InputState } from "../statemachines/InputState";
+import { type PhysicState } from "../statemachines/PhysicState";
+import { type AnimationStateMachine } from "../statemachines/AnimationState";
 
 type AnimState = "idle" | "walk" | "run" | "jump_start" | "jump" | "fall" | "walk_back" | "attack";
 
