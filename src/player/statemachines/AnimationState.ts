@@ -8,15 +8,18 @@ export type AnimationStateValue =
   | "falling_to_land"
   | "falling_to_crash"
   | "walking_backwards"
+  | "none"
 
 export interface AnimationState {
   current: AnimationStateValue;
 }
 
 export class AnimationStateMachine implements AnimationState {
-  current: AnimationStateValue = "idle";
 
-  setState(state: AnimationStateValue): void {
+  current: AnimationStateValue = "none";
+  blockingAnimationIsPlaying = false;
+
+  public setState(state: AnimationStateValue): void {
     this.current = state;
   }
 }

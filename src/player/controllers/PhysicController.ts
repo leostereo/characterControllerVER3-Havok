@@ -10,10 +10,11 @@ import {
 } from "@babylonjs/core";
 import { type InputState } from "../statemachines/InputState";
 import { type PhysicState } from "../statemachines/PhysicState";
+import { type AnimationStateMachine } from "../statemachines/AnimationState";
 
 const ON_GROUND_SPEED = 10.0;
 const IN_AIR_SPEED = 8.0;
-const JUMP_HEIGHT = 1.5;
+const JUMP_HEIGHT = 2.5;
 const GRAVITY = new Vector3(0, -18, 0);
 const ROTATE_SPEED = 2;
 const RUN_MULTIPLIER = 1.8;
@@ -37,7 +38,8 @@ export class PhysicController {
     startPosition: Vector3,
     mesh: AbstractMesh | null,
     private inputState: InputState,
-    private physicState: PhysicState
+    private physicState: PhysicState,
+    private animationState: AnimationStateMachine,
   ) {
     this.startPosition = startPosition.clone();
 
@@ -190,7 +192,8 @@ export class PhysicController {
       const down = new Vector3(0, -1, 0);
       const support = this.controller.checkSupport(dt, down);
 
-      this.wantJump = this.inputState.action === "jump";
+      // this.wantJump = this.inputState.action === "jump";
+      this.wantJump = this.animationState.current === "jump_impulse_is_over"
 
       const desiredVelocity = this.getDesiredVelocity(dt, support, this.controller.getVelocity());
       this.controller.setVelocity(desiredVelocity);

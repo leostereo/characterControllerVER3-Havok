@@ -24,7 +24,7 @@ export class Player {
     animationGroups: AnimationGroup[] = [],
     meshYOffset = 0
   ) {
-    this.physicController = new PhysicController(scene, startPosition, mesh, this.inputState, this.physicState);
+    this.physicController = new PhysicController(scene, startPosition, mesh, this.inputState, this.physicState, this.animationState);
     this.animationController = new AnimationController(this.inputState, this.physicState, this.animationState, animationGroups);
 
     if (meshYOffset !== 0) {
@@ -33,7 +33,7 @@ export class Player {
 
     this.cameraController = new CameraController(scene,mesh);
     this.startUpdateLoop(scene);
-    
+
   }
 
   // update(): void {
