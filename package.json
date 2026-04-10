@@ -30,11 +30,12 @@
   },
   "dependencies": {
     "@babylonjs/core": "^9.0.0",
-    "@babylonjs/gui": "^8.37.0",
+    "@babylonjs/gui": "^9.0.0",
     "@babylonjs/havok": "^1.3.12",
-    "@babylonjs/inspector": "^8.36.1",
-    "@babylonjs/loaders": "^8.36.1",
-    "@babylonjs/materials": "^8.36.1",
-    "@babylonjs/post-processes": "^8.36.1"
+    "@babylonjs/inspector": "^9.0.0",
+    "@babylonjs/loaders": "^9.0.0",
+    "@babylonjs/materials": "^9.0.0",
+    "@babylonjs/post-processes": "^9.0.0"
+
   }
 }
