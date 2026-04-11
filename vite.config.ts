@@ -11,8 +11,8 @@ export default ({ mode }: any) => {
   const root = process.cwd();
   const env = loadEnv(mode, root);
   return defineConfig({
-    // base: env.VITE_PUBLIC_PATH,
-    base: '/characterControllerVER3-Havok/',
+    base: env.VITE_PUBLIC_PATH,
+    // base: '/characterControllerVER3-Havok/',
     root,
     // plugin
     plugins: vitePlugins(env),
