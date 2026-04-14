@@ -10,6 +10,7 @@ export class Ground {
     this.scene = scene;
     this._createGround();
     this._createSphere();
+    this._createRamp();
     this._createPlatform();
   }
 
@@ -36,6 +37,15 @@ export class Ground {
     new PhysicsAggregate(mesh, PhysicsShapeType.SPHERE, { mass: 1, restitution: 0.75 }, this.scene);
   }
 
+  _createRamp(): void {
+
+    const ramp = MeshBuilder.CreateBox("Platform", { width: 4, height: 0.2, depth: 40 }, this.scene);
+    //ramp.position = new Vector3(-20, 10, -10);
+    ramp.rotation = new Vector3(-145, 0, 0);
+    new PhysicsAggregate(ramp, PhysicsShapeType.BOX, { mass: 0 });
+
+  }
+
   _createPlatform(): void {
 
     const platform = MeshBuilder.CreateBox("Platform", { width: 4, height: 0.2, depth: 4 }, this.scene);
@@ -47,7 +57,7 @@ export class Ground {
     let platformTime = 0;
     this.scene.onBeforeRenderObservable.add(() => {
       platform.rotate(new Vector3(0, 1, 0), 0.005);
-      platform.position.y = Math.sin(platformTime) * 2. + 1.2;
+      platform.position.y = Math.sin(platformTime) * 20 + 10.2;
       if (this.scene.deltaTime) {
         platformTime += this.scene.deltaTime * 0.001;
       }

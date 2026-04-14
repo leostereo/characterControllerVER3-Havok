@@ -14,7 +14,7 @@ import { type AnimationStateMachine } from "../statemachines/AnimationState";
 
 const ON_GROUND_SPEED = 10.0;
 const IN_AIR_SPEED = 8.0;
-const JUMP_HEIGHT = 2.5;
+const JUMP_HEIGHT = 3.5;
 const GRAVITY = new Vector3(0, -18, 0);
 const ROTATE_SPEED = 2;
 const RUN_MULTIPLIER = 1.8;
