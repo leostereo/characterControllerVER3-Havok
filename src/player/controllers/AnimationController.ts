@@ -1,8 +1,8 @@
-import { type AnimationGroup, AnimationEvent } from "@babylonjs/core";
+import { type AnimationGroup } from "@babylonjs/core";
 import { type InputState } from "../statemachines/InputState";
 import { type PhysicState } from "../statemachines/PhysicState";
 import { type AnimationStateValue, type AnimationStateMachine } from "../statemachines/AnimationState";
-import { AnimationGroupsManager } from "../managers/AnimationGroupsMaanger";
+import { type AnimationGroupsManager } from "../managers/AnimationGroupsMaanger";
 
 export class AnimationController {
   private groups: Record<AnimationStateValue, AnimationGroup | undefined> = {
