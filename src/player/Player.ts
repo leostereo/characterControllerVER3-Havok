@@ -6,12 +6,18 @@ import { PhysicState } from "./statemachines/PhysicState";
 import { AnimationStateMachine } from "./statemachines/AnimationState";
 import type { Scene, Vector3, AbstractMesh, AnimationGroup } from "@babylonjs/core";
 import { CameraController } from "./controllers/CameraController";
+import { AnimationGroupsManager } from "./managers/AnimationGroupsMaanger";
 
 export class Player {
+  //state
   private inputState = new InputState();
   private physicState = new PhysicState();
   private animationState = new AnimationStateMachine();
 
+  //managers
+  private animationGroupsManager: AnimationGroupsManager;
+
+  //controlllers
   private inputController = new InputController(this.inputState);
   private physicController: PhysicController;
   private animationController: AnimationController;
@@ -25,8 +31,13 @@ export class Player {
     meshYOffset = 0
   ) {
     this.physicController = new PhysicController(scene, startPosition, mesh, this.inputState, this.physicState, this.animationState);
-    this.animationController = new AnimationController(this.inputState, this.physicState, this.animationState, animationGroups);
-
+    this.animationGroupsManager = new AnimationGroupsManager(animationGroups, this.animationState);
+    this.animationController = new AnimationController(
+      this.inputState,
+      this.physicState,
+      this.animationState,
+      this.animationGroupsManager  // Cambiado
+    );
     if (meshYOffset !== 0) {
       this.physicController.setMeshYOffset(meshYOffset);
     }
