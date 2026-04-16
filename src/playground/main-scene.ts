@@ -65,7 +65,7 @@ export default class MainScene {
       "characterTask",
       "",
       "",
-      "./model/ybotV7.glb",
+      "./model/ybotV9.glb",
       undefined,
       (message, exception) => {
         console.error("Error loading character model:", message, exception);

@@ -14,7 +14,7 @@ import { type AnimationStateMachine } from "../statemachines/AnimationState";
 
 const ON_GROUND_SPEED = 10.0;
 const IN_AIR_SPEED = 8.0;
-const JUMP_HEIGHT = 2.5;
+const JUMP_HEIGHT = 3.5;
 const GRAVITY = new Vector3(0, -18, 0);
 const ROTATE_SPEED = 2;
 const RUN_MULTIPLIER = 1.8;
@@ -139,6 +139,15 @@ export class PhysicController {
         desiredVelocity,
         upWorld
       );
+
+      // Will force character to slowdown on particular situations
+      if (forwardSpeed === 0 || this.animationState.blockingAnimationIsPlaying) {
+        //will priorize when no input forward detected
+        const slowDownFactor =  forwardSpeed === 0 ?  0.1 : 0.8
+        const scaledx =   outputVelocity._x*slowDownFactor; 
+        const scaledz =   outputVelocity._z*slowDownFactor; 
+        outputVelocity = new Vector3(scaledx,outputVelocity.y,scaledz)
+      }
 
       outputVelocity.subtractInPlace(support.averageSurfaceVelocity);
       const inv1k = 1e-3;

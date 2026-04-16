@@ -1,7 +1,8 @@
-import { type AnimationGroup, AnimationEvent } from "@babylonjs/core";
+import { type AnimationGroup } from "@babylonjs/core";
 import { type InputState } from "../statemachines/InputState";
 import { type PhysicState } from "../statemachines/PhysicState";
 import { type AnimationStateValue, type AnimationStateMachine } from "../statemachines/AnimationState";
+import { type AnimationGroupsManager } from "../managers/AnimationGroupsMaanger";
 
 export class AnimationController {
   private groups: Record<AnimationStateValue, AnimationGroup | undefined> = {
@@ -11,8 +12,10 @@ export class AnimationController {
     jump_impulse_starts: undefined,
     jump_impulse_is_over: undefined,
     jumping: undefined,
-    falling_to_land: undefined,
+    falling_down: undefined,
+    landing_safety: undefined,
     falling_to_crash: undefined,
+    crashing_flat: undefined,
     walking_backwards: undefined,
     none: undefined
   };
@@ -21,66 +24,11 @@ export class AnimationController {
     private inputState: InputState,
     private physicState: PhysicState,
     private animationState: AnimationStateMachine,
-    animationGroups: AnimationGroup[] = []
-  ) {
-
-    this.stopAllAnimations(animationGroups);
-    this.mapAnimationGroups(animationGroups);
-    this.disposehUnusedAnimations(animationGroups);
-  }
-
-
-  private disposehUnusedAnimations(animationGroups: AnimationGroup[]): void {
-    const usedGroups = new Set<AnimationGroup>(
-      Object.values(this.groups).filter((group): group is AnimationGroup => group !== undefined)
-    );
-
-    animationGroups.forEach((group) => {
-      if (!usedGroups.has(group)) {
-        group.dispose();
-        //console.warn(`Disposed unused animation group: ${group.name}`);
-      }
-    });
-  }
-
-
-  private stopAllAnimations(animationGroups: AnimationGroup[]): void {
-    animationGroups.forEach((ag: AnimationGroup) => ag.stop());
-  }
-
-  /**
-   * Maps animation groups by name to the corresponding state
-   */
-  private mapAnimationGroups(animationGroups: AnimationGroup[]): void {
-    this.groups.idle = animationGroups.find((item) => item.name === "idle");
-    this.groups.walking = animationGroups.find((item) => item.name === "walking");
-    this.groups.walking_backwards = animationGroups.find((item) => item.name === "walking backwards");
-    this.groups.running = animationGroups.find((item) => item.name === "slow running");
-
-    //jump
-    this.groups.jumping = animationGroups.find((item) => item.name === "falling idle");
-
-
-    const event = new AnimationEvent(30, () => {
-      console.warn("Frame 15 alcanzado!");
-      this.animationState.blockingAnimationIsPlaying = false;
-      this.animationState.current = "jump_impulse_is_over"
-    }, true);
-
-    this.groups.jump_impulse_starts = animationGroups.find((item) => item.name === "jumping");
-    const anim = this.groups.jump_impulse_starts?.targetedAnimations[0].animation;
-    anim?.addEvent(event);
-
-
-    this.groups.jump_impulse_is_over = this.groups.jumping;
-
-    console.warn("Animation groups set:", Object.keys(this.groups).filter(k => this.groups[k as AnimationStateValue]));
-
-
-  }
+    private animationGroupsManager: AnimationGroupsManager  // Cambiado
+  ) {}
 
   update(): void {
-    
+
     if (this.animationState.blockingAnimationIsPlaying) return;
 
     //Animation desicion matrix
@@ -88,17 +36,25 @@ export class AnimationController {
 
     //IN THE AIR
     if (!this.physicState.grounded) {
-      
-      if(this.animationState.current === 'jump_impulse_is_over' || this.animationState.current === 'jumping' ) {
+
+      if (this.animationState.current === 'jump_impulse_is_over' || this.animationState.current === 'jumping') {
         next = 'jumping'
       }
-      
+
+      if (this.physicState.velocity._y < -3) {
+        next = 'falling_down';
+      }
+
+      if (this.physicState.velocity._y < -15) {
+        next = 'falling_to_crash';
+      }
+
     }
-    
+
     //ON THE GROUND
     if (this.physicState.grounded) {
-      
-      if(this.animationState.current === 'jump_impulse_is_over'){
+
+      if (this.animationState.current === 'jump_impulse_is_over') {
         return;
       }
 
@@ -115,6 +71,16 @@ export class AnimationController {
         this.animationState.blockingAnimationIsPlaying = true;
       }
 
+      if (this.animationState.current === 'falling_to_crash') {
+        next = 'crashing_flat'
+        this.animationState.blockingAnimationIsPlaying = true;
+      }
+
+      if (this.animationState.current === 'falling_down') {
+        next = 'landing_safety'
+        this.animationState.blockingAnimationIsPlaying = true;
+      }
+
     }
 
     this.play(next);
@@ -123,12 +89,12 @@ export class AnimationController {
   private play(state: AnimationStateValue): void {
     if (this.animationState.current === state) return;
 
-    this.groups[state]?.stop();
+    this.animationGroupsManager.groups[state]?.stop();  // Cambiado
     // Update animation state machine
     this.animationState.setState(state);
 
     // Play the corresponding animation
-    const group = this.groups[state] ?? this.groups.idle;
-    if (group) group.start(true, 1.0, group.from, group.to, true);
+    const group = this.animationGroupsManager.groups[state] ?? this.animationGroupsManager.groups.idle;  // Cambiado
+    if (group) group.start(true, group.speedRatio, group.from, group.to, true);
   }
 }

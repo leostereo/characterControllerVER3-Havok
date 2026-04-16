@@ -5,8 +5,10 @@ export type AnimationStateValue =
   | "jump_impulse_starts"
   | "jump_impulse_is_over"
   | "jumping"
-  | "falling_to_land"
+  | "landing_safety"
   | "falling_to_crash"
+  | "crashing_flat"
+  | "falling_down"
   | "walking_backwards"
   | "none"
 
