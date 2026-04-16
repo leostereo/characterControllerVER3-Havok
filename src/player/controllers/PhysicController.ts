@@ -140,6 +140,15 @@ export class PhysicController {
         upWorld
       );
 
+      // Will force character to slowdown on particular situations
+      if (forwardSpeed === 0 || this.animationState.blockingAnimationIsPlaying) {
+        //will priorize when no input forward detected
+        const slowDownFactor =  forwardSpeed === 0 ?  0.1 : 0.8
+        const scaledx =   outputVelocity._x*slowDownFactor; 
+        const scaledz =   outputVelocity._z*slowDownFactor; 
+        outputVelocity = new Vector3(scaledx,outputVelocity.y,scaledz)
+      }
+
       outputVelocity.subtractInPlace(support.averageSurfaceVelocity);
       const inv1k = 1e-3;
       if (outputVelocity.dot(upWorld) > inv1k) {
