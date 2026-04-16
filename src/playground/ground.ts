@@ -40,8 +40,8 @@ export class Ground {
   _createRamp(): void {
 
     const ramp = MeshBuilder.CreateBox("Platform", { width: 4, height: 0.2, depth: 40 }, this.scene);
-    //ramp.position = new Vector3(-20, 10, -10);
-    ramp.rotation = new Vector3(-145, 0, 0);
+    ramp.position = new Vector3(0,10,-40);
+    ramp.rotation = new Vector3(145, 0, 0);
     new PhysicsAggregate(ramp, PhysicsShapeType.BOX, { mass: 0 });
 
   }

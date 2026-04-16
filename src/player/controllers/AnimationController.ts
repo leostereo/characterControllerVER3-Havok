@@ -25,15 +25,7 @@ export class AnimationController {
     private physicState: PhysicState,
     private animationState: AnimationStateMachine,
     private animationGroupsManager: AnimationGroupsManager  // Cambiado
-  ) {
-
-
-  }
-
-
-
-
-
+  ) {}
 
   update(): void {
 
@@ -62,16 +54,6 @@ export class AnimationController {
     //ON THE GROUND
     if (this.physicState.grounded) {
 
-      if (this.animationState.current === 'falling_to_crash') {
-        next = 'crashing_flat'
-        this.animationState.blockingAnimationIsPlaying = true;
-      }
-
-      if (this.animationState.current === 'falling_down') {
-        next = 'landing_safety'
-        this.animationState.blockingAnimationIsPlaying = true;
-      }
-
       if (this.animationState.current === 'jump_impulse_is_over') {
         return;
       }
@@ -86,6 +68,16 @@ export class AnimationController {
 
       if (this.inputState.action === 'jump' && this.animationState.current !== 'jump_impulse_starts') {
         next = "jump_impulse_starts"
+        this.animationState.blockingAnimationIsPlaying = true;
+      }
+
+      if (this.animationState.current === 'falling_to_crash') {
+        next = 'crashing_flat'
+        this.animationState.blockingAnimationIsPlaying = true;
+      }
+
+      if (this.animationState.current === 'falling_down') {
+        next = 'landing_safety'
         this.animationState.blockingAnimationIsPlaying = true;
       }
 
