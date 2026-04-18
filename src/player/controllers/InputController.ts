@@ -15,6 +15,7 @@ export class InputController {
     if (event.code === "KeyD") this.inputState.turn = 1;
     if (event.code === "ShiftLeft" || event.code === "ShiftRight") this.inputState.run = true;
     if (event.code === "Space") this.inputState.action = "jump";
+    if (event.code === "KeyJ") {this.inputState.action = "throw"};
   };
 
   private onKeyUp = (event: KeyboardEvent): void => {
@@ -22,6 +23,9 @@ export class InputController {
     if (event.code === "KeyA" || event.code === "KeyD") this.inputState.turn = 0;
     if (event.code === "ShiftLeft" || event.code === "ShiftRight") this.inputState.run = false;
     if (event.code === "Space" && this.inputState.action === "jump") {
+      this.inputState.action = "none";
+    }
+    if (event.code === "KeyJ" && this.inputState.action === "throw") {
       this.inputState.action = "none";
     }
   };

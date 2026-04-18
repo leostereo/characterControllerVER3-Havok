@@ -212,6 +212,9 @@ export class PhysicController {
       this.localVelocity.copyFrom(desiredVelocity);
       this.physicState.setGrounded(this.grounded);
       this.physicState.setVelocity(desiredVelocity);
+      this.physicState.setPosition(this.characterMesh.getAbsolutePosition());
+      this.physicState.setForward(this.characterMesh.forward)
+      
     });
   }
 

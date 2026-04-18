@@ -1,15 +1,19 @@
 export type AnimationStateValue =
   | "idle"
   | "walking"
+  | "walking_backwards"
   | "running"
   | "jump_impulse_starts"
   | "jump_impulse_is_over"
   | "jumping"
-  | "landing_safety"
   | "falling_to_crash"
-  | "crashing_flat"
   | "falling_down"
-  | "walking_backwards"
+  | "landing_safety"
+  | "crashing_flat"
+  | "throwing"
+  | "throwing_impulse_is_over"
+  | "air_throwing"
+  | "air_throwing_impulse_is_over"
   | "none"
 
 export interface AnimationState {

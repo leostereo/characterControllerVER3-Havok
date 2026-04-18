@@ -2,33 +2,20 @@ import { type AnimationGroup } from "@babylonjs/core";
 import { type InputState } from "../statemachines/InputState";
 import { type PhysicState } from "../statemachines/PhysicState";
 import { type AnimationStateValue, type AnimationStateMachine } from "../statemachines/AnimationState";
-import { type AnimationGroupsManager } from "../managers/AnimationGroupsMaanger";
+import { type AnimationGroupsManager } from "../managers/AnimationGroupsManger";
 
 export class AnimationController {
-  private groups: Record<AnimationStateValue, AnimationGroup | undefined> = {
-    idle: undefined,
-    walking: undefined,
-    running: undefined,
-    jump_impulse_starts: undefined,
-    jump_impulse_is_over: undefined,
-    jumping: undefined,
-    falling_down: undefined,
-    landing_safety: undefined,
-    falling_to_crash: undefined,
-    crashing_flat: undefined,
-    walking_backwards: undefined,
-    none: undefined
-  };
 
   constructor(
     private inputState: InputState,
     private physicState: PhysicState,
     private animationState: AnimationStateMachine,
     private animationGroupsManager: AnimationGroupsManager  // Cambiado
-  ) {}
+  ) { }
 
   update(): void {
 
+    // console.log(this.inputState.action, this.animationState.blockingAnimationIsPlaying , this.animationState.current);
     if (this.animationState.blockingAnimationIsPlaying) return;
 
     //Animation desicion matrix
@@ -47,6 +34,11 @@ export class AnimationController {
 
       if (this.physicState.velocity._y < -15) {
         next = 'falling_to_crash';
+      }
+
+      if (this.inputState.action === 'throw' && this.animationState.current !== 'air_throwing_impulse_is_over') {
+        next = 'air_throwing'
+        this.animationState.blockingAnimationIsPlaying = true;
       }
 
     }
@@ -81,16 +73,22 @@ export class AnimationController {
         this.animationState.blockingAnimationIsPlaying = true;
       }
 
+      if (this.inputState.action === 'throw' && this.animationState.current !== 'throwing_impulse_is_over') {
+        next = 'throwing'
+        this.animationState.blockingAnimationIsPlaying = true;
+      }
+
     }
 
     this.play(next);
   }
 
   private play(state: AnimationStateValue): void {
+    // console.log('state ',state);
+
     if (this.animationState.current === state) return;
 
-    this.animationGroupsManager.groups[state]?.stop();  // Cambiado
-    // Update animation state machine
+    this.animationGroupsManager.groups[state]?.stop();
     this.animationState.setState(state);
 
     // Play the corresponding animation
