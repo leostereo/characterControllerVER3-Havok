@@ -1,6 +1,5 @@
-import { Color3, Material, MeshBuilder, PhysicsAggregate, PhysicsShapeType, StandardMaterial, Vector3, type Scene } from "@babylonjs/core";
-import { ParticlesManager } from "./ParticlesManager";
-import { ThinSSRRenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/thinSSRRenderingPipeline";
+import { Color3, MeshBuilder, PhysicsAggregate, PhysicsShapeType, StandardMaterial, Vector3, type Scene } from "@babylonjs/core";
+import { type ParticlesManager } from "./ParticlesManager";
 
 
 

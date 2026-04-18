@@ -1,9 +1,8 @@
-import { Color3, Color4, ParticleSystem, Scene, Texture, Vector3 } from "@babylonjs/core";
+import { Color4, ParticleSystem, type Scene, type Texture, type Vector3 } from "@babylonjs/core";
 
 export class ParticlesManager {
     private scene: Scene;
     private particlesEmiterTexture: Texture;
-    private power: number | null;
     private particleSystem: ParticleSystem;
 
     constructor(scene: Scene, particlesEmiterTexture: Texture) {
@@ -13,7 +12,7 @@ export class ParticlesManager {
         this._initThrowingParticleSystem();
     }
 
-    private _initThrowingParticleSystem() {
+    private _initThrowingParticleSystem():void {
         this.particleSystem = new ParticleSystem("particles", 2000, this.scene);
         this.particleSystem.particleTexture = this.particlesEmiterTexture;
         this.particleSystem.color1 = new Color4(0.2, 0.5, 1.0, 1.0);
@@ -38,9 +37,7 @@ export class ParticlesManager {
 
     }
 
-    public emitThrowingParticles(position: Vector3, forward: Vector3) {
-
-        
+    public emitThrowingParticles(position: Vector3, forward: Vector3):void {
         
         const emiterposition = position.clone();
         const emiterOffset = forward.clone();

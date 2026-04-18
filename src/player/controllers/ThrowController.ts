@@ -1,10 +1,8 @@
 import { type Scene } from "@babylonjs/core";
-import { type InputState } from "../statemachines/InputState";
 import { type PhysicState } from "../statemachines/PhysicState";
 import { type AnimationStateMachine } from "../statemachines/AnimationState";
-import { type AnimationGroupsManager } from "../managers/AnimationGroupsManger";
 import { FreesBeeManager } from "../managers/FreesBeeManager";
-import { ParticlesManager } from "../managers/ParticlesManager";
+import { type ParticlesManager } from "../managers/ParticlesManager";
 
 export class ThrowController {
 
