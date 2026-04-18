@@ -4,10 +4,11 @@ import { AnimationController } from "./controllers/AnimationController";
 import { InputState } from "./statemachines/InputState";
 import { PhysicState } from "./statemachines/PhysicState";
 import { AnimationStateMachine } from "./statemachines/AnimationState";
-import type { Scene, Vector3, AbstractMesh, AnimationGroup } from "@babylonjs/core";
+import type { Scene, Vector3, AbstractMesh, AnimationGroup, Texture } from "@babylonjs/core";
 import { CameraController } from "./controllers/CameraController";
 import { AnimationGroupsManager } from "./managers/AnimationGroupsManger";
 import { ThrowController } from "./controllers/ThrowController";
+import { ParticlesManager } from "./managers/ParticlesManager";
 
 export class Player {
   //state
@@ -17,6 +18,7 @@ export class Player {
 
   //managers
   private animationGroupsManager: AnimationGroupsManager;
+  private particlesManager: ParticlesManager;
 
   //controlllers
   private inputController = new InputController(this.inputState);
@@ -30,8 +32,10 @@ export class Player {
     startPosition: Vector3,
     mesh: AbstractMesh,
     animationGroups: AnimationGroup[] = [],
+    particlesEmiterTexture:Texture,
     meshYOffset = 0
   ) {
+    this.particlesManager = new ParticlesManager(scene, particlesEmiterTexture)
     this.physicController = new PhysicController(scene, startPosition, mesh, this.inputState, this.physicState, this.animationState);
     this.animationGroupsManager = new AnimationGroupsManager(animationGroups, this.animationState);
     this.animationController = new AnimationController(
@@ -43,10 +47,9 @@ export class Player {
 
     this.throwController = new ThrowController(
       scene,
-      this.inputState,
       this.physicState,
       this.animationState,
-      this.animationGroupsManager  // Cambiado
+      this.particlesManager
     );
 
     if (meshYOffset !== 0) {

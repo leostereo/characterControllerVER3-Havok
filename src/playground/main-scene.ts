@@ -54,10 +54,13 @@ export default class MainScene {
     new Ground(this.scene);
 
     this._addAssetTasks();
+    this._addTextureTasks();
+
     this.assetLoader.load(
       (assets) => this._onAssetsLoaded(assets),
       (remaining, total) => this._onLoadingProgress(remaining, total)
     );
+
   }
 
   private _addAssetTasks(): void {
@@ -73,11 +76,23 @@ export default class MainScene {
     );
   }
 
+  private _addTextureTasks():void{
+    this.assetLoader.addTextureTask(
+      "emiterTextureTask",
+      "https://assets.babylonjs.com/textures/flare.png",
+      undefined,
+      (texture) => {
+        console.error("Error loading character texture:", texture);
+      }
+    )
+  }
+
   private _onAssetsLoaded(assets: LoadedAssets): void {
 
     console.warn("All assets loaded successfully:", assets);
     const characterMeshes = assets.meshes["characterTask"];
     const characterAnimations = assets.animations["characterTask"];
+    const particlesEmiterTexture = assets.textures["emiterTextureTask"]
 
     // Crear Player con modelo y animaciones cargadas
     
@@ -88,6 +103,7 @@ export default class MainScene {
         new Vector3(0, 0.9, 0),
         characterMeshes[0],
         characterAnimations,
+        particlesEmiterTexture,
         -0.9
       );
     } 

@@ -1,26 +1,22 @@
-import { Scene, type AnimationGroup } from "@babylonjs/core";
+import { type Scene } from "@babylonjs/core";
 import { type InputState } from "../statemachines/InputState";
 import { type PhysicState } from "../statemachines/PhysicState";
-import { type AnimationStateValue, type AnimationStateMachine } from "../statemachines/AnimationState";
+import { type AnimationStateMachine } from "../statemachines/AnimationState";
 import { type AnimationGroupsManager } from "../managers/AnimationGroupsManger";
 import { FreesBeeManager } from "../managers/FreesBeeManager";
+import { ParticlesManager } from "../managers/ParticlesManager";
 
 export class ThrowController {
-
-  ///TODO el disco sale muy rapido y bajo.
-  // calibrar.
-  //seguir trabajando en este branch mergear a main.
 
   private freesbeeManager:FreesBeeManager
 
   constructor(
     private scene: Scene,
-    private inputState: InputState,
     private physicState: PhysicState,
     private animationState: AnimationStateMachine,
-    private animationGroupsManager: AnimationGroupsManager  
+    private particlesManager: ParticlesManager,
   ) {
-    this.freesbeeManager = new FreesBeeManager(scene);
+    this.freesbeeManager = new FreesBeeManager(scene,particlesManager);
    }
   
   update(): void {
