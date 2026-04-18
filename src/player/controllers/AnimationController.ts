@@ -50,6 +50,11 @@ export class AnimationController {
       }
 
       if (this.inputState.moveZ === 0 && this.inputState.action === 'rollOrDuck') {
+        next = "go_ducking";
+        this.animationState.blockingAnimationIsPlaying = true;
+      }
+
+      if (this.animationState.current === 'go_ducking') {
         next = "ducking";
         this.animationState.blockingAnimationIsPlaying = true;
       }

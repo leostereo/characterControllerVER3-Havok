@@ -18,10 +18,10 @@ export class AnimationGroupsManager {
         throwing_impulse_is_over: undefined,
         air_throwing: undefined,
         air_throwing_impulse_is_over: undefined,
-        go_ducking:undefined,
-        ducking:undefined,
-        standup_from_ducking:undefined,
-        rolling:undefined,
+        go_ducking: undefined,
+        ducking: undefined,
+        standup_from_ducking: undefined,
+        rolling: undefined,
         none: undefined
     };
 
@@ -120,24 +120,36 @@ export class AnimationGroupsManager {
         air_throw_anim?.addEvent(air_throwing_event);
         air_throw_anim?.addEvent(air_throwing_event_finish);
         this.groups.air_throwing_impulse_is_over = this.groups.air_throwing;
-        
+
         //Rolling
         this.groups.rolling = animationGroups.find((item) => item.name === 'sprinting roll');
         const rolling_finish_event = new AnimationEvent(70, () => {
             this.animationState.blockingAnimationIsPlaying = false;
         }, true);
-        if (this.groups.rolling){
+        if (this.groups.rolling) {
             this.groups.rolling.speedRatio = 2;
         }
         const rolling_anim = this.groups.rolling?.targetedAnimations[0].animation;
         rolling_anim?.addEvent(rolling_finish_event)
-        
+
         //Duck
         this.groups.ducking = animationGroups.find((item) => item.name === 'crouching');
-        if (this.groups.ducking){
-            this.groups.ducking.from = 150;
+        if (this.groups.ducking) {
+            this.groups.ducking.from = 160;
             this.groups.ducking.speedRatio = 1;
         }
+
+        this.groups.go_ducking = this.groups.ducking?.clone('go_ducking')
+        const go_ducking_finish_event = new AnimationEvent(140, () => {
+            this.animationState.blockingAnimationIsPlaying = false;
+        }, true);
+        if (this.groups.go_ducking) {
+            this.groups.go_ducking.from = 30;
+            this.groups.go_ducking.to = 150;
+            this.groups.go_ducking.speedRatio = 2.8;
+        }
+        const go_ducking_anim = this.groups.go_ducking?.targetedAnimations[0].animation;
+        go_ducking_anim?.addEvent(go_ducking_finish_event)
 
         //
         console.warn("Animation groups set:", Object.keys(this.groups).filter(k => this.groups[k as AnimationStateValue]));
