@@ -1,4 +1,4 @@
-import { Color3, MeshBuilder, PhysicsAggregate, PhysicsShapeType, StandardMaterial, Vector3, type Scene } from "@babylonjs/core";
+import { Color3, type Mesh, MeshBuilder, PhysicsAggregate, PhysicsShapeType, StandardMaterial, Vector3, type Scene } from "@babylonjs/core";
 import { type ParticlesManager } from "./ParticlesManager";
 
 
@@ -9,37 +9,47 @@ export class FreesBeeManager {
     private color: Color3;
     private material: StandardMaterial;
 
+
+    private freesbe_template: Mesh;
+
     constructor(private scene: Scene, particlesManager: ParticlesManager) {
         this.color = Color3.Blue();
         this.material = new StandardMaterial("freesbe_material", this.scene);
         this.material.emissiveColor = this.color;
+
+        this.freesbe_template = MeshBuilder.CreateCylinder("freesbe_template", { diameter: 0.5, height: 0.1 }, this.scene);
+        this.freesbe_template.material = this.material;
+        this.freesbe_template.setEnabled(false)
+
         this.particlesManager = particlesManager;
     }
 
     public thowFreesbe(position: Vector3, forward: Vector3, rotateVertical = false): void {
 
-        const freesbe = MeshBuilder.CreateCylinder('freesbe', { diameter: 0.5, height: 0.1 })
-        freesbe.material = this.material
-        freesbe.position = position.clone();
+        const freesbe = this.freesbe_template.clone("freesbe_active");
+        freesbe.setEnabled(true); freesbe.material = this.material
+        freesbe.position.copyFrom(position);
         freesbe.position.addInPlace(forward.scale(3))
         freesbe.position._y += 1;
 
-
         if (rotateVertical) {
-            const targetAngle = Math.atan2(-forward.z,
-                forward.x);
+            const targetAngle = Math.atan2(-forward.z, forward.x);
             freesbe.rotation = new Vector3(Math.PI / 2, targetAngle, 0)
         }
-
-        this.particlesManager.emitThrowingParticles(freesbe.position, forward)
-
+        
         const freesbeAggregate = new PhysicsAggregate(freesbe, PhysicsShapeType.BOX, { mass: 10, restitution: 0.75 }, this.scene);
         freesbeAggregate.body.applyImpulse(forward.scale(1000), freesbe.absolutePosition);
         // freesbeAggregate.body.setCollisionCallbackEnabled(true)
         // freesbeAggregate.body.getCollisionObservable().add(bodyCollideCB);
 
+        
+        this.particlesManager.emitThrowingParticles(freesbe.position, forward)
+
         setTimeout(() => {
-            freesbe.dispose()
+            if (!this.scene.isDisposed) {
+                freesbeAggregate.dispose();
+                freesbe.dispose();
+            }
         }, 4000)
 
     }
