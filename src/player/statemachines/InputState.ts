@@ -2,7 +2,7 @@ export interface IInputState {
   moveZ: number; // -1 atrás, 0 parado, +1 adelante
   turn: number;  // -1 izquierda, 0 nada, +1 derecha
   run: boolean;
-  action: "none" | "jump" | "attack" | "throw";
+  action: "none" | "jump" | "attack" | "rollOrDuck" | "throw";
 }
 
 export class InputState implements IInputState {
@@ -12,6 +12,7 @@ export class InputState implements IInputState {
   action: "none" 
   | "jump" 
   | "attack" 
+  | "rollOrDuck" 
   | "throw" = "none";
 
   resetAction(): void {

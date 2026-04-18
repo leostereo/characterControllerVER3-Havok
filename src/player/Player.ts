@@ -21,7 +21,7 @@ export class Player {
   private particlesManager: ParticlesManager;
 
   //controlllers
-  private inputController = new InputController(this.inputState);
+  private inputController: InputController;
   private physicController: PhysicController;
   private animationController: AnimationController;
   private throwController: ThrowController;
@@ -32,9 +32,10 @@ export class Player {
     startPosition: Vector3,
     mesh: AbstractMesh,
     animationGroups: AnimationGroup[] = [],
-    particlesEmiterTexture:Texture,
+    particlesEmiterTexture: Texture,
     meshYOffset = 0
   ) {
+    this.inputController = new InputController(this.inputState, this.animationState);
     this.particlesManager = new ParticlesManager(scene, particlesEmiterTexture)
     this.physicController = new PhysicController(scene, startPosition, mesh, this.inputState, this.physicState, this.animationState);
     this.animationGroupsManager = new AnimationGroupsManager(animationGroups, this.animationState);

@@ -143,7 +143,9 @@ export class PhysicController {
       // Will force character to slowdown on particular situations
       if (forwardSpeed === 0 || this.animationState.blockingAnimationIsPlaying) {
         //will priorize when no input forward detected
-        const slowDownFactor =  forwardSpeed === 0 ?  0.1 : 0.8
+        let slowDownFactor =  forwardSpeed === 0 ?  0.1 : 0.8
+        slowDownFactor = this.animationState.current === 'ducking' ? 0 : slowDownFactor;
+        slowDownFactor = this.animationState.current === 'rolling' ? 1 : slowDownFactor;
         const scaledx =   outputVelocity._x*slowDownFactor; 
         const scaledz =   outputVelocity._z*slowDownFactor; 
         outputVelocity = new Vector3(scaledx,outputVelocity.y,scaledz)

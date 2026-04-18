@@ -49,12 +49,21 @@ export class AnimationController {
         return;
       }
 
+      if (this.inputState.moveZ === 0 && this.inputState.action === 'rollOrDuck') {
+        next = "ducking";
+        this.animationState.blockingAnimationIsPlaying = true;
+      }
+
       if (this.physicState.speed > 1 && this.inputState.moveZ < 0) {
         next = "walking_backwards";
       }
 
       if (this.physicState.speed > 1 && this.inputState.moveZ > 0) {
         next = this.inputState.run ? "running" : "walking";
+        if(this.inputState.action === 'rollOrDuck' && this.animationState.current !== 'rolling'){
+          next = 'rolling';
+          this.animationState.blockingAnimationIsPlaying = true;
+        }
       }
 
       if (this.inputState.action === 'jump' && this.animationState.current !== 'jump_impulse_starts') {
