@@ -1,9 +1,10 @@
+import { type AnimationStateMachine } from "../statemachines/AnimationState";
 import { type InputState } from "../statemachines/InputState";
 
 
 
 export class InputController {
-  constructor(private inputState: InputState) {
+  constructor(private inputState: InputState, private animationState:AnimationStateMachine) {
     window.addEventListener("keydown", this.onKeyDown);
     window.addEventListener("keyup", this.onKeyUp);
   }
@@ -15,6 +16,8 @@ export class InputController {
     if (event.code === "KeyD") this.inputState.turn = 1;
     if (event.code === "ShiftLeft" || event.code === "ShiftRight") this.inputState.run = true;
     if (event.code === "Space") this.inputState.action = "jump";
+    if (event.code === "KeyJ") {this.inputState.action = "throw"};
+    if (event.code === "KeyK") {this.inputState.action = "rollOrDuck"};
   };
 
   private onKeyUp = (event: KeyboardEvent): void => {
@@ -22,6 +25,16 @@ export class InputController {
     if (event.code === "KeyA" || event.code === "KeyD") this.inputState.turn = 0;
     if (event.code === "ShiftLeft" || event.code === "ShiftRight") this.inputState.run = false;
     if (event.code === "Space" && this.inputState.action === "jump") {
+      this.inputState.action = "none";
+    }
+    if (event.code === "KeyJ" && this.inputState.action === "throw") {
+      this.inputState.action = "none";
+    }
+    if (event.code === "KeyK" && this.inputState.action === "rollOrDuck") {
+      if(this.animationState.current === 'ducking'){
+        this.animationState.blockingAnimationIsPlaying = false;
+        this.animationState.setState('none');
+      }
       this.inputState.action = "none";
     }
   };
