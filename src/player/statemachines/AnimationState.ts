@@ -15,9 +15,9 @@ export type AnimationStateValue =
   | "air_throwing"
   | "air_throwing_impulse_is_over"
   | "rolling"
-  | "go_ducking"
-  | "ducking"
-  | "standup_from_ducking"
+  | "standing_to_crunch"
+  | "crunch_idle"
+  | "crouched_to_standing"
   | "none"
 
 export interface AnimationState {

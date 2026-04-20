@@ -143,12 +143,20 @@ export class PhysicController {
       // Will force character to slowdown on particular situations
       if (forwardSpeed === 0 || this.animationState.blockingAnimationIsPlaying) {
         //will priorize when no input forward detected
-        let slowDownFactor =  forwardSpeed === 0 ?  0.1 : 0.8
-        slowDownFactor = this.animationState.current === 'ducking' ? 0 : slowDownFactor;
-        slowDownFactor = this.animationState.current === 'rolling' ? 1 : slowDownFactor;
-        const scaledx =   outputVelocity._x*slowDownFactor; 
-        const scaledz =   outputVelocity._z*slowDownFactor; 
-        outputVelocity = new Vector3(scaledx,outputVelocity.y,scaledz)
+        let slowDownFactor = 0.8;
+        if (forwardSpeed === 0) {
+          slowDownFactor = 0.1;
+        }
+        if (this.animationState.current === 'rolling') {
+          slowDownFactor = 1
+        }
+        if (this.animationState.current === 'crunch_idle' || this.animationState.current === 'crashing_flat') {
+          slowDownFactor = 0
+        }
+
+        const scaledx = outputVelocity._x * slowDownFactor;
+        const scaledz = outputVelocity._z * slowDownFactor;
+        outputVelocity = new Vector3(scaledx, outputVelocity.y, scaledz)
       }
 
       outputVelocity.subtractInPlace(support.averageSurfaceVelocity);
@@ -216,7 +224,7 @@ export class PhysicController {
       this.physicState.setVelocity(desiredVelocity);
       this.physicState.setPosition(this.characterMesh.getAbsolutePosition());
       this.physicState.setForward(this.characterMesh.forward)
-      
+
     });
   }
 
