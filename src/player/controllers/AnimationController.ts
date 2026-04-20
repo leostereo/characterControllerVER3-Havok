@@ -50,12 +50,17 @@ export class AnimationController {
       }
 
       if (this.inputState.moveZ === 0 && this.inputState.action === 'rollOrDuck') {
-        next = "go_ducking";
+        next = "standing_to_crunch";
         this.animationState.blockingAnimationIsPlaying = true;
       }
 
-      if (this.animationState.current === 'go_ducking') {
-        next = "ducking";
+      if (this.animationState.current === 'standing_to_crunch') {
+        next = "crunch_idle";
+        this.animationState.blockingAnimationIsPlaying = true;
+      }
+
+      if (this.animationState.current === 'crunch_idle') {
+        next = "crouched_to_standing";
         this.animationState.blockingAnimationIsPlaying = true;
       }
 
@@ -80,19 +85,19 @@ export class AnimationController {
         next = 'crashing_flat'
         this.animationState.blockingAnimationIsPlaying = true;
       }
-
+      
       if (this.animationState.current === 'falling_down') {
         next = 'landing_safety'
         this.animationState.blockingAnimationIsPlaying = true;
       }
-
+      
       if (this.inputState.action === 'throw' && this.animationState.current !== 'throwing_impulse_is_over') {
         next = 'throwing'
         this.animationState.blockingAnimationIsPlaying = true;
       }
-
+      
     }
-
+    
     this.play(next);
   }
 

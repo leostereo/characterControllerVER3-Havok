@@ -18,9 +18,9 @@ export class AnimationGroupsManager {
         throwing_impulse_is_over: undefined,
         air_throwing: undefined,
         air_throwing_impulse_is_over: undefined,
-        go_ducking: undefined,
-        ducking: undefined,
-        standup_from_ducking: undefined,
+        standing_to_crunch: undefined,
+        crunch_idle: undefined,
+        crouched_to_standing: undefined,
         rolling: undefined,
         none: undefined
     };
@@ -132,24 +132,28 @@ export class AnimationGroupsManager {
         const rolling_anim = this.groups.rolling?.targetedAnimations[0].animation;
         rolling_anim?.addEvent(rolling_finish_event)
 
-        //Duck
-        this.groups.ducking = animationGroups.find((item) => item.name === 'crouching');
-        if (this.groups.ducking) {
-            this.groups.ducking.from = 160;
-            this.groups.ducking.speedRatio = 1;
-        }
+        //Crunch
+        this.groups.crunch_idle = animationGroups.find((item) => item.name === 'crouching idle');
 
-        this.groups.go_ducking = this.groups.ducking?.clone('go_ducking')
-        const go_ducking_finish_event = new AnimationEvent(140, () => {
+        this.groups.standing_to_crunch = animationGroups.find((item) => item.name === 'standing to crouch');
+        const standing_to_crunch_finish_event = new AnimationEvent(38, () => {
             this.animationState.blockingAnimationIsPlaying = false;
         }, true);
-        if (this.groups.go_ducking) {
-            this.groups.go_ducking.from = 30;
-            this.groups.go_ducking.to = 150;
-            this.groups.go_ducking.speedRatio = 2.8;
+        if (this.groups.standing_to_crunch) {
+            this.groups.standing_to_crunch.speedRatio = 2;
         }
-        const go_ducking_anim = this.groups.go_ducking?.targetedAnimations[0].animation;
-        go_ducking_anim?.addEvent(go_ducking_finish_event)
+        const standing_to_crunch_anim = this.groups.standing_to_crunch?.targetedAnimations[0].animation;
+        standing_to_crunch_anim?.addEvent(standing_to_crunch_finish_event)
+
+        this.groups.crouched_to_standing = animationGroups.find((item) => item.name === 'crouched to standing');
+        const crouched_to_standing_finish_event = new AnimationEvent(38, () => {
+            this.animationState.blockingAnimationIsPlaying = false;
+        }, true);
+        if (this.groups.crouched_to_standing) {
+            this.groups.crouched_to_standing.speedRatio = 2;
+        }
+        const crounched_to_standing_anim = this.groups.crouched_to_standing?.targetedAnimations[0].animation;
+        crounched_to_standing_anim?.addEvent(crouched_to_standing_finish_event)
 
         //
         console.warn("Animation groups set:", Object.keys(this.groups).filter(k => this.groups[k as AnimationStateValue]));

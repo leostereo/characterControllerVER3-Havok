@@ -31,9 +31,8 @@ export class InputController {
       this.inputState.action = "none";
     }
     if (event.code === "KeyK" && this.inputState.action === "rollOrDuck") {
-      if(this.animationState.current === 'ducking'){
+      if(this.animationState.current === 'crunch_idle'){
         this.animationState.blockingAnimationIsPlaying = false;
-        this.animationState.setState('none');
       }
       this.inputState.action = "none";
     }
