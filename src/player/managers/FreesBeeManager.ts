@@ -1,5 +1,6 @@
 import { Color3, type Mesh, MeshBuilder, PhysicsAggregate, PhysicsShapeType, StandardMaterial, Vector3, type Scene } from "@babylonjs/core";
 import { type ParticlesManager } from "./ParticlesManager";
+import { EventManager } from "@/game/eventManager/eventManager";
 
 
 
@@ -8,7 +9,7 @@ export class FreesBeeManager {
     private particlesManager: ParticlesManager
     private color: Color3;
     private material: StandardMaterial;
-
+    private eventManager: EventManager = EventManager.getInstance();
 
     private freesbe_template: Mesh;
 
@@ -22,6 +23,7 @@ export class FreesBeeManager {
         this.freesbe_template.setEnabled(false)
 
         this.particlesManager = particlesManager;
+
     }
 
     public thowFreesbe(position: Vector3, forward: Vector3, rotateVertical = false): void {
@@ -36,13 +38,23 @@ export class FreesBeeManager {
             const targetAngle = Math.atan2(-forward.z, forward.x);
             freesbe.rotation = new Vector3(Math.PI / 2, targetAngle, 0)
         }
-        
+
         const freesbeAggregate = new PhysicsAggregate(freesbe, PhysicsShapeType.BOX, { mass: 10, restitution: 0.75 }, this.scene);
         freesbeAggregate.body.applyImpulse(forward.scale(1000), freesbe.absolutePosition);
         // freesbeAggregate.body.setCollisionCallbackEnabled(true)
         // freesbeAggregate.body.getCollisionObservable().add(bodyCollideCB);
 
-        
+
+        this.eventManager.emit({
+            type: "projectile_fired",
+            source: "player",
+            data: {
+                position: freesbe.position,
+                direction: forward,
+                damage: 10,
+            },
+        });
+
         this.particlesManager.emitThrowingParticles(freesbe.position, forward)
 
         setTimeout(() => {
@@ -86,4 +98,6 @@ export class FreesBeeManager {
     //         // })
     //     }
     // }
+
+
 }

@@ -8,7 +8,7 @@ import { WebGPUEngine } from "@babylonjs/core/Engines/webgpuEngine";
 import { HavokPlugin } from "@babylonjs/core/Physics/v2/Plugins/havokPlugin";
 import HavokPhysics from "@babylonjs/havok";
 
-import MainScene from "./playground/main-scene";
+import MainScene from "./scene/main-scene";
 
 class App {
   public engine: Engine | WebGPUEngine;
