@@ -62,3 +62,7 @@ Implementacion del salto en 3 etapas:
 3 - emitimos un evento en frame 10
 4 - cambiamos a impulse is over
 5 - detectamos impulse is over en physicController.
+
+
+Fine tunning
+1 - "block rotate from character when crashed u other forbiden.

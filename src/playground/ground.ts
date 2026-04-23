@@ -4,6 +4,7 @@ import { PhysicsAggregate } from "@babylonjs/core/Physics/v2/physicsAggregate";
 import { PhysicsMotionType, PhysicsShapeType } from "@babylonjs/core/Physics/";
 import { Color3, Vector3 } from "@babylonjs/core";
 import { GridMaterial } from "@babylonjs/materials";
+import { FixedCanionEnemy } from "@/enemies/fixedCannion/fixedCanion";
 
 export class Ground {
   constructor(private scene: Scene) {
@@ -12,6 +13,7 @@ export class Ground {
     this._createSphere();
     this._createRamp();
     this._createPlatform();
+    this._createFixedCanion();
   }
 
   _createGround(): void {
@@ -40,7 +42,7 @@ export class Ground {
   _createRamp(): void {
 
     const ramp = MeshBuilder.CreateBox("Platform", { width: 4, height: 0.2, depth: 40 }, this.scene);
-    ramp.position = new Vector3(0,10,-40);
+    ramp.position = new Vector3(0, 10, -40);
     ramp.rotation = new Vector3(145, 0, 0);
     new PhysicsAggregate(ramp, PhysicsShapeType.BOX, { mass: 0 });
 
@@ -62,6 +64,10 @@ export class Ground {
         platformTime += this.scene.deltaTime * 0.001;
       }
     });
+  }
+
+  _createFixedCanion(): void {
+    new FixedCanionEnemy(this.scene, new Vector3(10, 0, 10), '__root__');
   }
 
 }
