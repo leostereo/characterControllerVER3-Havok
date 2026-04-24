@@ -11,6 +11,7 @@ import {
 import { type InputState } from "../statemachines/InputState";
 import { type PhysicState } from "../statemachines/PhysicState";
 import { type AnimationStateMachine } from "../statemachines/AnimationState";
+import { GameConfig } from "@/config/GameConfig";
 
 const ON_GROUND_SPEED = 10.0;
 const IN_AIR_SPEED = 8.0;
@@ -18,6 +19,7 @@ const JUMP_HEIGHT = 3.5;
 const GRAVITY = new Vector3(0, -18, 0);
 const ROTATE_SPEED = 2;
 const RUN_MULTIPLIER = 1.8;
+const KNOCKBACK_FORCE = 5.0; // tunear según se sienta bien
 
 type CharacterState = "IN_AIR" | "ON_GROUND" | "START_JUMP";
 
@@ -150,6 +152,9 @@ export class PhysicController {
         if (this.animationState.current === 'rolling') {
           slowDownFactor = 1
         }
+        if (this.animationState.current === 'impact_recibed') {
+          slowDownFactor = 1
+        }
         if (this.animationState.current === 'crunch_idle' || this.animationState.current === 'crashing_flat') {
           slowDownFactor = 0
         }
@@ -214,7 +219,23 @@ export class PhysicController {
       // this.wantJump = this.inputState.action === "jump";
       this.wantJump = this.animationState.current === "jump_impulse_is_over"
 
-      const desiredVelocity = this.getDesiredVelocity(dt, support, this.controller.getVelocity());
+      let desiredVelocity = this.getDesiredVelocity(dt, support, this.controller.getVelocity());
+
+      // ── KNOCKBACK ──────────────────────────────────────────
+      const { recibed_impact, impact_direction } = this.physicState.getHitData();
+
+      if (recibed_impact) {
+        const knockback = impact_direction
+          .normalize()
+          .scale(KNOCKBACK_FORCE);          // fuerza horizontal
+
+        desiredVelocity = desiredVelocity.add(knockback);
+        this.physicState.clearHitImpulse(); // consumir el evento
+        this.animationState.setState('impact_force_applied')
+      }
+      // ───────────────────────────────────────────────────────
+
+
       this.controller.setVelocity(desiredVelocity);
       this.controller.integrate(dt, support, GRAVITY);
 
@@ -234,6 +255,7 @@ export class PhysicController {
     mesh.scaling.copyFrom(this.characterMesh.scaling);
     this.characterMesh.dispose();
     this.characterMesh = mesh;
+    this.characterMesh.name = GameConfig.player.player1.meshName;
     this.controller.setPosition(mesh.position.clone());
   }
 

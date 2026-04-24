@@ -96,6 +96,11 @@ export class AnimationController {
         this.animationState.blockingAnimationIsPlaying = true;
       }
       
+      if(this.animationState.current === 'impact_force_applied'){
+        next = 'impact_recibed'
+        this.animationState.blockingAnimationIsPlaying = true;
+      }
+      
     }
     
     this.play(next);

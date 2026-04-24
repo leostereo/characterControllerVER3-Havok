@@ -5,6 +5,8 @@ import { PhysicsMotionType, PhysicsShapeType } from "@babylonjs/core/Physics/";
 import { Color3, Vector3 } from "@babylonjs/core";
 import { GridMaterial } from "@babylonjs/materials";
 import { FixedCanionEnemy } from "@/enemies/fixedCannion/fixedCanion";
+import { BasicCoverWall } from "./coverWall/basicCoverWall";
+import { GameConfig } from "@/config/GameConfig";
 
 export class Ground {
   constructor(private scene: Scene) {
@@ -14,6 +16,7 @@ export class Ground {
     this._createRamp();
     this._createPlatform();
     this._createFixedCanion();
+    this._createBasicCoverWall();
   }
 
   _createGround(): void {
@@ -67,7 +70,16 @@ export class Ground {
   }
 
   _createFixedCanion(): void {
-    new FixedCanionEnemy(this.scene, new Vector3(10, 0, 10), '__root__');
+    const playerMeshName = GameConfig.player.player1.meshName;
+    new FixedCanionEnemy(this.scene, new Vector3(10, 0, 10), playerMeshName);
   }
 
+  _createBasicCoverWall(): void {
+    new BasicCoverWall(
+      this.scene,
+      new Vector3(0, 0,20),   // posición en el mapa
+      { width: 10.0, height: 2.4 },
+      Math.PI / 2             // rotación hacia el cañón
+    );
+  }
 }

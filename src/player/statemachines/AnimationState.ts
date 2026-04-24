@@ -18,6 +18,8 @@ export type AnimationStateValue =
   | "standing_to_crunch"
   | "crunch_idle"
   | "crouched_to_standing"
+  | "impact_force_applied"
+  | "impact_recibed"
   | "none"
 
 export interface AnimationState {
