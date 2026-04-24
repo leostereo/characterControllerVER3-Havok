@@ -1,3 +1,4 @@
+import { coverWallConfig  } from "@/config/GameConfig";
 import {
   type Scene,
   type Mesh,
@@ -16,9 +17,9 @@ interface CoverWallOptions {
 }
 
 const DEFAULT_OPTIONS: CoverWallOptions = {
-  width:  10.0,
-  height: 2.4,  // suficiente para cubrir al personaje agachado/parado
-  depth:  0.3,
+  width:  coverWallConfig.width,
+  height: coverWallConfig.height,  // suficiente para cubrir al personaje agachado/parado
+  depth:  coverWallConfig.depth,
 };
 
 export class BasicCoverWall {

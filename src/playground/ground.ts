@@ -6,7 +6,7 @@ import { Color3, Vector3 } from "@babylonjs/core";
 import { GridMaterial } from "@babylonjs/materials";
 import { FixedCanionEnemy } from "@/enemies/fixedCannion/fixedCanion";
 import { BasicCoverWall } from "./coverWall/basicCoverWall";
-import { GameConfig } from "@/config/GameConfig";
+import { groundConfig, playerConfig } from "@/config/GameConfig";
 
 export class Ground {
   constructor(private scene: Scene) {
@@ -20,7 +20,7 @@ export class Ground {
   }
 
   _createGround(): void {
-    const mesh = MeshBuilder.CreateGround("ground", { width: 100, height: 100 }, this.scene);
+    const mesh = MeshBuilder.CreateGround("ground", { width: groundConfig.width, height: groundConfig.height }, this.scene);
     // Grid material
     const gridMat = new GridMaterial("gridMat", this.scene);
     gridMat.majorUnitFrequency = 5;   // línea gruesa cada 5 unidades
@@ -70,7 +70,7 @@ export class Ground {
   }
 
   _createFixedCanion(): void {
-    const playerMeshName = GameConfig.player.player1.meshName;
+    const playerMeshName = playerConfig.player1.meshName;
     new FixedCanionEnemy(this.scene, new Vector3(10, 0, 10), playerMeshName);
   }
 

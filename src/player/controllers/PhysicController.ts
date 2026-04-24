@@ -11,7 +11,7 @@ import {
 import { type InputState } from "../statemachines/InputState";
 import { type PhysicState } from "../statemachines/PhysicState";
 import { type AnimationStateMachine } from "../statemachines/AnimationState";
-import { GameConfig } from "@/config/GameConfig";
+import { playerConfig } from "@/config/GameConfig";
 
 const ON_GROUND_SPEED = 10.0;
 const IN_AIR_SPEED = 8.0;
@@ -255,7 +255,7 @@ export class PhysicController {
     mesh.scaling.copyFrom(this.characterMesh.scaling);
     this.characterMesh.dispose();
     this.characterMesh = mesh;
-    this.characterMesh.name = GameConfig.player.player1.meshName;
+    this.characterMesh.name = playerConfig.player1.meshName;
     this.controller.setPosition(mesh.position.clone());
   }
 
