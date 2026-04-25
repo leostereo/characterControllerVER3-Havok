@@ -12,6 +12,7 @@ import { AssetLoader, type LoadedAssets } from "@/utils/AssetsLoader";
 import { Player } from "@/player/Player";
 import "@babylonjs/loaders/glTF";
 import { setUI } from "@/game/hud/hud";
+import { meshNames } from "@/config/GameConfig";
 
 export default class MainScene {
   private camera: ArcRotateCamera;
@@ -51,8 +52,6 @@ export default class MainScene {
 
   async loadComponents(): Promise<void> {
 
-    new Ground(this.scene);
-
     this._addAssetTasks();
     this._addTextureTasks();
 
@@ -60,6 +59,10 @@ export default class MainScene {
       (assets) => this._onAssetsLoaded(assets),
       (remaining, total) => this._onLoadingProgress(remaining, total)
     );
+
+    new Ground(this.scene);
+
+    void setUI(this.scene);
 
   }
 
@@ -69,7 +72,12 @@ export default class MainScene {
       "",
       "",
       "./model/ybotV10.glb",
-      undefined,
+      (meshes) => {
+        const alphaJoints = meshes.find(m => m.name === "Alpha_Joints");
+        if (alphaJoints) {
+          alphaJoints.name = meshNames.player1Raycast;
+        }
+      },
       (message, exception) => {
         console.error("Error loading character model:", message, exception);
       }
@@ -105,8 +113,6 @@ export default class MainScene {
         -0.9
       );
     }
-
-    void setUI(this.scene);
   }
 
   private _onLoadingProgress(remaining: number, total: number): void {

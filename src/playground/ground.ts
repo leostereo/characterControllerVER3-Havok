@@ -77,7 +77,7 @@ export class Ground {
   _createBasicCoverWall(): void {
     new BasicCoverWall(
       this.scene,
-      new Vector3(0, 0,20),   // posición en el mapa
+      new Vector3(0, 0, 20),   // posición en el mapa
       { width: 10.0, height: 2.4 },
       Math.PI / 2             // rotación hacia el cañón
     );

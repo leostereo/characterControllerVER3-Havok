@@ -80,6 +80,7 @@ export const coverWallConfig = {
 // ─────────────────────────────────────────────
 export const meshNames = {
     player: "playerCapsule",
+    player1Raycast: "player1_Alpha_Joints",
     coverWall: "cover_wall",
     projectile: "projectile",
     canionRoot: "canio_root",
@@ -97,6 +98,19 @@ export const audioConfig = {
     masterVolume: 1.0,
     sfxVolume: 1.0,
     musicVolume: 0.5,
+} as const;
+
+// ─────────────────────────────────────────────
+//  CAMERA  — completar
+// ─────────────────────────────────────────────
+export const cameraConfig = {
+    followCamera: {
+        radius: 15,
+        heightOffset: 10,
+        rotationOffset: 180,
+        cameraAcceleration: 0.05,
+        maxCameraSpeed: 10
+    }
 } as const;
 
 // ─────────────────────────────────────────────

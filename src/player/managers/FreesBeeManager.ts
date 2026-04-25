@@ -4,7 +4,7 @@ import { EventManager } from "@/game/eventManager/eventManager";
 
 
 
-export class FreesBeeManager {
+export class FreesBeManager {
 
     private particlesManager: ParticlesManager
     private color: Color3;
@@ -26,7 +26,7 @@ export class FreesBeeManager {
 
     }
 
-    public thowFreesbe(position: Vector3, forward: Vector3, rotateVertical = false): void {
+    public throwFreesbe(position: Vector3, forward: Vector3, rotateVertical = false): void {
 
         const freesbe = this.freesbe_template.clone("freesbe_active");
         freesbe.setEnabled(true); freesbe.material = this.material
@@ -65,39 +65,6 @@ export class FreesBeeManager {
         }, 4000)
 
     }
-
-    // public throwProjectile(startingPosition: Vector3, impulse: Vector3, damage: number): void {
-
-    //     const projectile = MeshBuilder.CreateSphere('Projectile_' + Date.now(), { diameter: 1 }, this.scene);
-    //     projectile.position = startingPosition.clone();
-    //     projectile.material = this.material;
-    //     //projectile.rotation.y = (Math.PI / 2) - angle;
-
-    //     var projectileAggregate = new PhysicsAggregate(projectile, PhysicsShapeType.SPHERE, { mass: 10, restitution: 0.75 }, this.scene);
-    //     projectileAggregate.body.applyImpulse(impulse.scale(damage), projectile.absolutePosition);
-    //     projectileAggregate.body.setCollisionCallbackEnabled(true)
-    //     projectileAggregate.body.getCollisionObservable().add((collision) => this.bodyCollideCB(collision));
-
-    //     setTimeout(() => {
-    //         projectile.dispose()
-    //     }, 4000)
-
-    // }
-
-    // private bodyCollideCB(collision: IPhysicsCollisionEvent) {
-
-    //     if (collision.collidedAgainst.transformNode.name.includes('player')) {
-    //         console.log(collision.collidedAgainst.transformNode.name);
-    //         // this.eventContainer.pushEvent({
-    //         //     eventType: 'freesbehit',
-    //         //     eventData: {
-    //         //         damage: 1,
-    //         //         shooter: collision.collider.transformNode.name,
-    //         //         target: collision.collidedAgainst.transformNode.name,
-    //         //     }
-    //         // })
-    //     }
-    // }
 
 
 }
