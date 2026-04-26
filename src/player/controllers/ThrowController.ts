@@ -2,7 +2,6 @@ import { type Scene } from "@babylonjs/core";
 import { type PhysicState } from "../statemachines/PhysicState";
 import { type AnimationStateMachine } from "../statemachines/AnimationState";
 import { FreesBeManager } from "../managers/FreesBeeManager";
-import { type ParticlesManager } from "../managers/ParticlesManager";
 
 export class ThrowController {
 
@@ -12,9 +11,8 @@ export class ThrowController {
     private scene: Scene,
     private physicState: PhysicState,
     private animationState: AnimationStateMachine,
-    private particlesManager: ParticlesManager,
   ) {
-    this.freesbeeManager = new FreesBeManager(scene, particlesManager);
+    this.freesbeeManager = new FreesBeManager(scene);
   }
 
   update(): void {

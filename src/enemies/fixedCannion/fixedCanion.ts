@@ -8,28 +8,39 @@ import {
   TransformNode,
   PointLight,
   Ray,
+  PhysicsAggregate,
+  PhysicsShapeType,
+  type Observer,
 } from "@babylonjs/core";
+import { EventManager, type GameEvent } from "@/game/eventManager/eventManager";
+import {
+  enemiesConfig,
+  meshMetadata,
+  meshNames,
+  playerConfig,
+} from "@/config/GameConfig";
 import { ProjectileManager } from "./managers/projectileManager";
-import { enemiesConfig, meshNames, playerConfig } from "@/config/GameConfig";
+import { ParticlesManager } from "@/game/effects/ParticlesManager";
 
 type CanionState = "alert" | "searching";
 
 export class FixedCanionEnemy {
 
   // ─────────────────────────────────────────────
-  //  CONFIGURACIÓN — todo desde GameConfig
+  //  CONFIGURACIÓN
   // ─────────────────────────────────────────────
   private readonly SHOOTING_RATE = enemiesConfig.canion.shootingRate;
   private readonly TURRET_HEIGHT_MULT = enemiesConfig.canion.turretHeightMult;
   private readonly AIM_HEIGHT_MULT = enemiesConfig.canion.aimHeightMult;
   private readonly CHARACTER_HEIGHT = playerConfig.height;
-  private readonly SEARCH_ROTATE_SPEED = 0.8;
+  private readonly SEARCH_ROTATE_SPEED = enemiesConfig.canion.searchRotateSpeed;
 
   // ─────────────────────────────────────────────
   //  ESTADO
   // ─────────────────────────────────────────────
   private state: CanionState = "searching";
   private elapsed = 0;
+  private isDestroyed = false;
 
   // ─────────────────────────────────────────────
   //  REFERENCIAS
@@ -38,31 +49,37 @@ export class FixedCanionEnemy {
   private muzzleMesh: Mesh;
   private bodyMesh: Mesh;
   private searchLight: PointLight;
+  private renderObserver: Observer<GameEvent> | null;
   private projectileManager: ProjectileManager;
+  private eventManager = EventManager.getInstance();
+  private particlesManager: ParticlesManager = ParticlesManager.getInstance();
+  private canionBodyAggregate: PhysicsAggregate;
 
   constructor(
     private scene: Scene,
     private position: Vector3,
-    private meshToShootName: string,  // ← default desde config
+    private meshToShootName: string,
   ) {
     this.projectileManager = new ProjectileManager(scene);
 
-    const { barrelPivot, muzzleMesh, bodyMesh } = this.buildCanionGeometry();
+    const { barrelPivot, muzzleMesh, bodyMesh, canionBodyAggregate } = this.buildCanionGeometry();
     this.barrelPivot = barrelPivot;
     this.muzzleMesh = muzzleMesh;
     this.bodyMesh = bodyMesh;
     this.searchLight = this.buildSearchLight();
+    this.canionBodyAggregate = canionBodyAggregate;
 
+    this.subscribeToHit();
     this.go_into_alertState();
   }
 
   // ─────────────────────────────────────────────
-  //  ESTADOS
+  //  ESTADO ALERTA
   // ─────────────────────────────────────────────
   go_into_alertState(): void {
     this.elapsed = 0;
 
-    this.scene.onBeforeRenderObservable.add(() => {
+      this.renderObserver = this.scene.onBeforeRenderObservable.add(() => {
       const dt = this.scene.getEngine().getDeltaTime();
       const playerInSight = this.hasLineOfSight();
 
@@ -104,10 +121,7 @@ export class FixedCanionEnemy {
   // ─────────────────────────────────────────────
   private hasLineOfSight(): boolean {
     const target = this.scene.getMeshByName(this.meshToShootName);
-    if (!target) {
-      console.warn("[LoS] target no encontrado:", this.meshToShootName);
-      return false;
-    }
+    if (!target) return false;
 
     const aimHeight = this.CHARACTER_HEIGHT * this.AIM_HEIGHT_MULT;
     const aimTarget = target.position.add(new Vector3(0, aimHeight, 0));
@@ -117,10 +131,7 @@ export class FixedCanionEnemy {
 
     const ray = new Ray(origin, direction, distance);
     const hit = this.scene.pickWithRay(ray, (mesh) =>
-      mesh.name !== 'cylinder' &&
-      mesh.name !== meshNames.canionBase &&
       mesh.name !== meshNames.canionMuzzle &&
-      mesh.name !== meshNames.canionBody &&
       mesh.name !== meshNames.canionBarrel &&
       mesh.name !== meshNames.canionPivot &&
       mesh.name !== meshNames.projectile
@@ -151,6 +162,51 @@ export class FixedCanionEnemy {
   }
 
   // ─────────────────────────────────────────────
+  //  DESTRUCCIÓN
+  // ─────────────────────────────────────────────
+  private subscribeToHit(): void {
+    const observer = this.eventManager.subscribe((event) => {
+
+      if (this.isDestroyed) return;
+      if (event.type !== "enemy_damaged") return;
+
+      const data = event.data as { enemyClass: string };
+      if (data.enemyClass !== meshMetadata.enemyClasses.canion) return;
+
+      this.eventManager.unsubscribe(observer);
+      this.destroy();
+    });
+  }
+
+  private destroy(): void {
+    if (this.isDestroyed) return;
+    this.isDestroyed = true;
+
+    this.scene.onBeforeRenderObservable.remove(this.renderObserver);
+
+    this.particlesManager.generateCanionDestruction(
+      this.muzzleMesh.getAbsolutePosition()
+    );
+
+    this.bodyMesh.setEnabled(false);
+    this.barrelPivot.setEnabled(false);
+    this.searchLight.setEnabled(false);
+
+    this.applyDestroyedMaterial();
+  }
+
+  private applyDestroyedMaterial(): void {
+    const base = this.scene.getMeshByName(meshNames.canionBase);
+    if (!base) return;
+
+    const mat = new StandardMaterial("canio_destroyed_mat", this.scene);
+    mat.diffuseColor = new Color3(0.15, 0.10, 0.08);
+    mat.emissiveColor = new Color3(0.05, 0.02, 0.0);
+    mat.specularColor = new Color3(0.1, 0.1, 0.1);
+    base.material = mat;
+  }
+
+  // ─────────────────────────────────────────────
   //  HELPERS VISUALES
   // ─────────────────────────────────────────────
   private applyStateColor(diffuse: Color3, emissive: Color3): void {
@@ -170,9 +226,9 @@ export class FixedCanionEnemy {
   }
 
   // ─────────────────────────────────────────────
-  //  GEOMETRÍA — nombres desde meshNames
+  //  GEOMETRÍA
   // ─────────────────────────────────────────────
-  private buildCanionGeometry(): { barrelPivot: TransformNode; muzzleMesh: Mesh; bodyMesh: Mesh } {
+  private buildCanionGeometry(): { barrelPivot: TransformNode; muzzleMesh: Mesh; bodyMesh: Mesh; canionBodyAggregate: PhysicsAggregate } {
     const root = new TransformNode(meshNames.canionRoot, this.scene);
     root.position = this.position;
 
@@ -200,6 +256,19 @@ export class FixedCanionEnemy {
     bodyMesh.material = mat;
     bodyMesh.parent = root;
 
+    const canionBodyAggregate = new PhysicsAggregate(
+      bodyMesh,
+      PhysicsShapeType.CYLINDER,
+      { mass: 0, restitution: 0.3, friction: 0.5 },  // mass: 0 = estático, no se mueve
+      this.scene
+    );
+
+    // Metadata — identifica este mesh como enemigo para el raycast del frisbee
+    bodyMesh.metadata = {
+      type: meshMetadata.types.enemy,
+      enemyClass: meshMetadata.enemyClasses.canion,
+    };
+
     const barrelPivot = new TransformNode(meshNames.canionPivot, this.scene);
     barrelPivot.position.y = baseHeight + bodyHeight;
     barrelPivot.parent = root;
@@ -213,6 +282,7 @@ export class FixedCanionEnemy {
     barrel.position.z = 0.55;
     barrel.material = mat;
     barrel.parent = barrelPivot;
+    barrel.metadata = bodyMesh.metadata;
 
     const muzzleMesh = MeshBuilder.CreateTorus(
       meshNames.canionMuzzle,
@@ -223,8 +293,9 @@ export class FixedCanionEnemy {
     muzzleMesh.position.z = 1.15;
     muzzleMesh.material = muzzleMat;
     muzzleMesh.parent = barrelPivot;
+    muzzleMesh.metadata = bodyMesh.metadata;
 
-    return { barrelPivot, muzzleMesh, bodyMesh };
+    return { barrelPivot, muzzleMesh, bodyMesh, canionBodyAggregate };
   }
 
   // ─────────────────────────────────────────────
@@ -237,7 +308,7 @@ export class FixedCanionEnemy {
     mat.specularColor = new Color3(1, 1, 1);
     return mat;
   }
-
+  
   private buildMuzzleMaterial(): StandardMaterial {
     const mat = new StandardMaterial(`${meshNames.canionMuzzle}_mat`, this.scene);
     mat.diffuseColor = new Color3(0, 0.6, 0.9);

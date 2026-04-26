@@ -14,6 +14,7 @@ export const playerConfig = {
     backwardsMultiplier: 0.3,
     player1: {
         meshName: 'player1',
+        name: 'player1',
         player1Raycast: "player1_Alpha_Joints",
         player1Collision: "player1_colision"
     }
@@ -43,6 +44,8 @@ export const enemiesConfig = {
         shootingRate: 2000,
         turretHeightMult: 1.2,
         aimHeightMult: 0.6,
+        searchRotateSpeed: 0.8,  // ← agregado
+
     },
 } as const;
 
@@ -122,6 +125,19 @@ export const uiConfig = {
     hudOpacity: 1.0,
 } as const;
 
+export const meshMetadata = {
+    types: {
+        enemy: "enemy",
+        player: "player",
+        terrain: "terrain",
+        cover: "cover",
+    },
+    enemyClasses: {
+        canion: "canion",
+    },
+} as const;
+
+
 // ─────────────────────────────────────────────
 //  TIPOS DERIVADOS
 // ─────────────────────────────────────────────
@@ -133,3 +149,7 @@ export type CoverWallConfig = typeof coverWallConfig;
 export type MeshNames = typeof meshNames;
 export type AudioConfig = typeof audioConfig;
 export type UiConfig = typeof uiConfig;
+export type MeshMetadata = {
+    type: typeof meshMetadata.types[keyof typeof meshMetadata.types];
+    enemyClass?: typeof meshMetadata.enemyClasses[keyof typeof meshMetadata.enemyClasses];
+};

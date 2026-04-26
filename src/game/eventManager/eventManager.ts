@@ -10,9 +10,15 @@ export type EventType =
   | "game_over"
   | "game_won";
 
+export type SourceType = 
+| "enemy"
+| "player"
+| "other"
+
 export interface GameEvent {
   type: EventType;
   source?: string; // ej: "player", "enemy_1"
+  sourceType : SourceType;
   data?: object;
 }
 

@@ -13,6 +13,7 @@ import { Player } from "@/player/Player";
 import "@babylonjs/loaders/glTF";
 import { setUI } from "@/game/hud/hud";
 import { playerConfig } from "@/config/GameConfig";
+import { ParticlesManager } from "@/game/effects/ParticlesManager";
 
 export default class MainScene {
   private camera: ArcRotateCamera;
@@ -60,10 +61,6 @@ export default class MainScene {
       (remaining, total) => this._onLoadingProgress(remaining, total)
     );
 
-    new Ground(this.scene);
-
-    void setUI(this.scene);
-
   }
 
   private _addAssetTasks(): void {
@@ -102,6 +99,8 @@ export default class MainScene {
     const characterAnimations = assets.animations["characterTask"];
     const particlesEmiterTexture = assets.textures["emiterTextureTask"]
 
+    ParticlesManager.initialize(this.scene,particlesEmiterTexture);
+    
     // Crear Player con modelo y animaciones cargadas
     if (characterMeshes && characterMeshes.length > 0) {
       this.player = new Player(
@@ -109,10 +108,14 @@ export default class MainScene {
         new Vector3(0, 0.9, 0),
         characterMeshes[0],
         characterAnimations,
-        particlesEmiterTexture,
         -0.9
       );
     }
+
+    //Crear resto
+    new Ground(this.scene);
+    void setUI(this.scene);
+
   }
 
   private _onLoadingProgress(remaining: number, total: number): void {
