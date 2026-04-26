@@ -13,7 +13,9 @@ export const playerConfig = {
     runMultiplier: 1.8,
     backwardsMultiplier: 0.3,
     player1: {
-        meshName: 'player1'
+        meshName: 'player1',
+        player1Raycast: "player1_Alpha_Joints",
+        player1Collision: "player1_colision"
     }
 } as const;
 
@@ -79,8 +81,8 @@ export const coverWallConfig = {
 //  NOMBRES DE MESHES
 // ─────────────────────────────────────────────
 export const meshNames = {
-    player: "playerCapsule",
-    player1Raycast: "player1_Alpha_Joints",
+    // player: "playerCapsule",
+    // player1Raycast: "player1_Alpha_Joints",
     coverWall: "cover_wall",
     projectile: "projectile",
     canionRoot: "canio_root",

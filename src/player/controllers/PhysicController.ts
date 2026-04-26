@@ -58,6 +58,12 @@ export class PhysicController {
       scene
     );
 
+    const ccTransformNode = scene.getTransformNodeByName('CCTransformNode');
+    if(ccTransformNode){
+      ccTransformNode.name = playerConfig.player1.player1Collision;
+    }
+
+
     if (mesh) {
       this.setCharacterModel(mesh);
     }

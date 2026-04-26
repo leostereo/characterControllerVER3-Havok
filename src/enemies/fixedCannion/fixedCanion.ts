@@ -43,7 +43,7 @@ export class FixedCanionEnemy {
   constructor(
     private scene: Scene,
     private position: Vector3,
-    private meshToShootName: string = meshNames.player,  // ← default desde config
+    private meshToShootName: string,  // ← default desde config
   ) {
     this.projectileManager = new ProjectileManager(scene);
 
@@ -126,7 +126,7 @@ export class FixedCanionEnemy {
       mesh.name !== meshNames.projectile
     );
 
-    return hit?.pickedMesh?.name === meshNames.player1Raycast;
+    return hit?.pickedMesh?.name === playerConfig.player1.player1Raycast;
   }
 
   // ─────────────────────────────────────────────

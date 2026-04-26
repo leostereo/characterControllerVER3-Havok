@@ -12,7 +12,7 @@ import { AssetLoader, type LoadedAssets } from "@/utils/AssetsLoader";
 import { Player } from "@/player/Player";
 import "@babylonjs/loaders/glTF";
 import { setUI } from "@/game/hud/hud";
-import { meshNames } from "@/config/GameConfig";
+import { playerConfig } from "@/config/GameConfig";
 
 export default class MainScene {
   private camera: ArcRotateCamera;
@@ -75,7 +75,7 @@ export default class MainScene {
       (meshes) => {
         const alphaJoints = meshes.find(m => m.name === "Alpha_Joints");
         if (alphaJoints) {
-          alphaJoints.name = meshNames.player1Raycast;
+          alphaJoints.name = playerConfig.player1.player1Raycast;
         }
       },
       (message, exception) => {

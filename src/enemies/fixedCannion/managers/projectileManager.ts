@@ -1,3 +1,4 @@
+import { playerConfig } from "@/config/GameConfig";
 import { EventManager } from "@/game/eventManager/eventManager";
 import {
     type Scene,
@@ -60,7 +61,7 @@ export class ProjectileManager {
 
             // Ignorar colisiones con el suelo, la pared, etc.
             // Solo reaccionar si golpea al jugador
-            if (hitMesh?.name !== "CCTransformNode") return;
+            if (hitMesh?.name !== playerConfig.player1.player1Collision) return;
 
             this.onImpact(direction, hitMesh, mesh, aggregate, collisionObserver);
         });
