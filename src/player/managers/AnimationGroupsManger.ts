@@ -22,6 +22,8 @@ export class AnimationGroupsManager {
         crunch_idle: undefined,
         crouched_to_standing: undefined,
         rolling: undefined,
+        impact_force_applied: undefined,
+        impact_recibed: undefined,
         none: undefined
     };
 
@@ -154,6 +156,18 @@ export class AnimationGroupsManager {
         }
         const crounched_to_standing_anim = this.groups.crouched_to_standing?.targetedAnimations[0].animation;
         crounched_to_standing_anim?.addEvent(crouched_to_standing_finish_event)
+        
+        
+        //projectile hit
+        this.groups.impact_recibed = animationGroups.find((item) => item.name === 'head hit');
+        const impact_recibed_finish_event = new AnimationEvent(80, () => {
+            this.animationState.blockingAnimationIsPlaying = false;
+        }, true);
+        if (this.groups.impact_recibed) {
+            this.groups.impact_recibed.speedRatio = 1.2;
+        }
+        const impact_recibed_anim = this.groups.impact_recibed?.targetedAnimations[0].animation;
+        impact_recibed_anim?.addEvent(impact_recibed_finish_event)
 
         //
         console.warn("Animation groups set:", Object.keys(this.groups).filter(k => this.groups[k as AnimationStateValue]));

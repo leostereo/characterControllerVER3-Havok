@@ -1,5 +1,6 @@
 import type { Scene } from "@babylonjs/core/scene";
-import { AdvancedDynamicTexture, Button, StackPanel, type TextBlock } from "@babylonjs/gui/2D";
+import { AdvancedDynamicTexture, Button, StackPanel, TextBlock } from "@babylonjs/gui/2D";
+import { EventManager, type GameEvent } from "../eventManager/eventManager";
 
 export const setUI = async (scene: Scene): Promise<void> => {
   if (scene.getEngine().name === "WebGPU") {
@@ -20,18 +21,23 @@ export const setUI = async (scene: Scene): Promise<void> => {
   panel.topInPixels = 20;
   advancedTexture.addControl(panel);
 
-  const button = Button.CreateSimpleButton("but", "Click Me");
-  button.width = 0.9;
-  button.height = "40px";
-  button.color = "white";
-  button.background = "MidnightBlue";
-  panel.addControl(button);
+  // Contador de disparos
+  const shotCounterText = new TextBlock();
+  shotCounterText.text = "Shots: 0";
+  shotCounterText.height = "40px";
+  shotCounterText.color = "white";
+  shotCounterText.fontSize = 24;
+  panel.addControl(shotCounterText);
 
-  let counter = 0;
-  button.onPointerUpObservable.add(() => {
-    counter++;
-    (button.children[0] as TextBlock).text = counter.toString();
+  let shotCount = 0;
+  const eventManager = EventManager.getInstance();
+  const shotObserver = eventManager.subscribe((event: GameEvent) => {
+    if (event.type === "projectile_fired" && event.source === "player") {
+      shotCount++;
+      shotCounterText.text = `Shots: ${shotCount}`;
+    }
   });
+
 
   const disposeButton = Button.CreateSimpleButton("disposeButton", "Dispose GUI");
   disposeButton.width = 0.9;
@@ -41,6 +47,7 @@ export const setUI = async (scene: Scene): Promise<void> => {
   panel.addControl(disposeButton);
 
   disposeButton.onPointerUpObservable.addOnce(() => {
+    eventManager.unsubscribe(shotObserver); // Limpiar suscripción al destruir GUI
     advancedTexture.dispose();
   });
 };

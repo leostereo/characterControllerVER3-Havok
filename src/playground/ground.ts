@@ -4,6 +4,9 @@ import { PhysicsAggregate } from "@babylonjs/core/Physics/v2/physicsAggregate";
 import { PhysicsMotionType, PhysicsShapeType } from "@babylonjs/core/Physics/";
 import { Color3, Vector3 } from "@babylonjs/core";
 import { GridMaterial } from "@babylonjs/materials";
+import { FixedCanionEnemy } from "@/enemies/fixedCannion/fixedCanion";
+import { BasicCoverWall } from "./objetcs/coverWall/basicCoverWall";
+import { groundConfig, playerConfig } from "@/config/GameConfig";
 
 export class Ground {
   constructor(private scene: Scene) {
@@ -12,10 +15,12 @@ export class Ground {
     this._createSphere();
     this._createRamp();
     this._createPlatform();
+    this._createFixedCanion();
+    this._createBasicCoverWall();
   }
 
   _createGround(): void {
-    const mesh = MeshBuilder.CreateGround("ground", { width: 100, height: 100 }, this.scene);
+    const mesh = MeshBuilder.CreateGround("ground", { width: groundConfig.width, height: groundConfig.height }, this.scene);
     // Grid material
     const gridMat = new GridMaterial("gridMat", this.scene);
     gridMat.majorUnitFrequency = 5;   // línea gruesa cada 5 unidades
@@ -40,7 +45,7 @@ export class Ground {
   _createRamp(): void {
 
     const ramp = MeshBuilder.CreateBox("Platform", { width: 4, height: 0.2, depth: 40 }, this.scene);
-    ramp.position = new Vector3(0,10,-40);
+    ramp.position = new Vector3(0, 10, -40);
     ramp.rotation = new Vector3(145, 0, 0);
     new PhysicsAggregate(ramp, PhysicsShapeType.BOX, { mass: 0 });
 
@@ -64,4 +69,17 @@ export class Ground {
     });
   }
 
+  _createFixedCanion(): void {
+    const playerMeshName = playerConfig.player1.meshName;
+    new FixedCanionEnemy(this.scene, new Vector3(10, 0, 10), playerMeshName);
+  }
+
+  _createBasicCoverWall(): void {
+    new BasicCoverWall(
+      this.scene,
+      new Vector3(0, 0, 20),   // posición en el mapa
+      { width: 10.0, height: 2.4 },
+      Math.PI / 2             // rotación hacia el cañón
+    );
+  }
 }
