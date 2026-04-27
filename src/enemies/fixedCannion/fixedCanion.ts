@@ -19,6 +19,7 @@ export class FixedCanionEnemy {
 
   private readonly CHARACTER_HEIGHT   = playerConfig.height;
   private readonly TURRET_HEIGHT_MULT = enemiesConfig.canion.turretHeightMult;
+  private readonly id = `canion_${Math.random().toString(36).slice(2, 7)}`;
 
   constructor(
     private scene:           Scene,
@@ -46,6 +47,7 @@ export class FixedCanionEnemy {
       bodyAggregate,
       stateMachine,
       controller,
+      this.id,     // ← nuevo parámetro
     );
 
     controller.start();
@@ -91,6 +93,7 @@ export class FixedCanionEnemy {
     bodyMesh.metadata   = {
       type:       meshMetadata.types.enemy,
       enemyClass: meshMetadata.enemyClasses.canion,
+      canionId:   this.id,   
     };
 
     const bodyAggregate = new PhysicsAggregate(

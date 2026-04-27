@@ -62,6 +62,7 @@ export class FreesBeManager {
                     data: {
                         hitMeshName: hitMesh.name,
                         enemyClass: metadata.enemyClass,
+                        canionId: metadata.canionId,
                         direction: forward.clone(),
                         damage: 10,
                     },
