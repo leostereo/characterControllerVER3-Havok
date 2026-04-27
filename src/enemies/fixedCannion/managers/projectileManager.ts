@@ -50,7 +50,6 @@ export class ProjectileManager {
             { mass: 5, restitution: 0.0, friction: 0.0 },
             this.scene
         );
-console.log(opts.speed);
 
         const impulse = direction.scale(opts.speed);
         aggregate.body.applyImpulse(impulse, mesh.getAbsolutePosition());
