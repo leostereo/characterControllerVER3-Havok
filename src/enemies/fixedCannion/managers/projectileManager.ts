@@ -1,4 +1,4 @@
-import { playerConfig } from "@/config/GameConfig";
+import { playerConfig, projectilesConfig } from "@/config/GameConfig";
 import { EventManager } from "@/game/eventManager/eventManager";
 import {
     type Scene,
@@ -20,9 +20,9 @@ interface ProjectileOptions {
 }
 
 const DEFAULT_OPTIONS: ProjectileOptions = {
-    speed: 1000,
-    radius: 0.12,
-    maxLifetime: 4000,
+    speed: projectilesConfig.canion.speed,
+    radius: projectilesConfig.canion.radius,
+    maxLifetime: projectilesConfig.canion.maxLifetime,
 };
 
 export class ProjectileManager {
@@ -50,6 +50,7 @@ export class ProjectileManager {
             { mass: 5, restitution: 0.0, friction: 0.0 },
             this.scene
         );
+console.log(opts.speed);
 
         const impulse = direction.scale(opts.speed);
         aggregate.body.applyImpulse(impulse, mesh.getAbsolutePosition());

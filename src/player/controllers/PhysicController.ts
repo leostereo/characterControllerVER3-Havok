@@ -159,7 +159,7 @@ export class PhysicController {
           slowDownFactor = 1
         }
         if (this.animationState.current === 'impact_recibed') {
-          slowDownFactor = 1
+          slowDownFactor = 0.6
         }
         if (this.animationState.current === 'crunch_idle' || this.animationState.current === 'crashing_flat') {
           slowDownFactor = 0

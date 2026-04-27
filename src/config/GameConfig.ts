@@ -54,9 +54,9 @@ export const enemiesConfig = {
 // ─────────────────────────────────────────────
 export const projectilesConfig = {
     canion: {
-        speed: 1500,
+        speed: 300,
         mass: 5,
-        radius: 0.12,
+        radius: 0.2,
         restitution: 0.0,
         friction: 0.0,
         maxLifetime: 4000,
