@@ -85,6 +85,7 @@ export class ProjectileManager {
         this.eventManager.emit({
             type: "projectile_hit",
             source: "canion_enemy",
+            sourceType: 'enemy',
             data: {
                 direction: direction.clone(),   // dirección del proyectil al impactar
                 hitMeshName: hitMesh?.name ?? "unknown",
