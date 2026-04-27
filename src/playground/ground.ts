@@ -5,7 +5,7 @@ import { PhysicsMotionType, PhysicsShapeType } from "@babylonjs/core/Physics/";
 import { Color3, Vector3 } from "@babylonjs/core";
 import { GridMaterial } from "@babylonjs/materials";
 import { FixedCanionEnemy } from "@/enemies/fixedCannion/fixedCanion";
-import { BasicCoverWall } from "./coverWall/basicCoverWall";
+import { BasicCoverWall } from "./objetcs/coverWall/basicCoverWall";
 import { groundConfig, playerConfig } from "@/config/GameConfig";
 
 export class Ground {

@@ -94,6 +94,8 @@ export const meshNames = {
     canionPivot: "canio_barrel_pivot",
     canionBarrel: "canio_barrel",
     canionMuzzle: "canio_muzzle",
+    ground: "playground_ground",
+
 } as const;
 
 // ─────────────────────────────────────────────
@@ -137,6 +139,13 @@ export const meshMetadata = {
     },
 } as const;
 
+export const playgroundConfig = {
+    groundSize: 60,
+    wallCount: 50,
+    enemyCount: 3,
+    spawnSafeRadius: 8,
+    playerSpawn: { x: 0, z: 0 },
+} as const;
 
 // ─────────────────────────────────────────────
 //  TIPOS DERIVADOS

@@ -7,13 +7,13 @@ import { Tools } from "@babylonjs/core/Misc/tools";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { WebGPUEngine } from "@babylonjs/core/Engines/webgpuEngine";
 import "@babylonjs/core/Helpers/sceneHelpers";
-import { Ground } from "../playground/ground";
 import { AssetLoader, type LoadedAssets } from "@/utils/AssetsLoader";
 import { Player } from "@/player/Player";
 import "@babylonjs/loaders/glTF";
 import { setUI } from "@/game/hud/hud";
 import { playerConfig } from "@/config/GameConfig";
 import { ParticlesManager } from "@/game/effects/ParticlesManager";
+import { PlayGround } from "@/playground/PlayGround";
 
 export default class MainScene {
   private camera: ArcRotateCamera;
@@ -113,7 +113,8 @@ export default class MainScene {
     }
 
     //Crear resto
-    new Ground(this.scene);
+    new PlayGround(this.scene, playerConfig.player1.meshName);
+
     void setUI(this.scene);
 
   }
