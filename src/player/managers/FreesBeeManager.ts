@@ -41,20 +41,17 @@ export class FreesBeManager {
         const freesbeAggregate = new PhysicsAggregate(freesbe, PhysicsShapeType.BOX, { mass: 10, restitution: 0.75 }, this.scene);
         freesbeAggregate.body.applyImpulse(forward.scale(1000), freesbe.absolutePosition);
 
-        // ✅ Solo nos interesa el primer impacto
         freesbeAggregate.body.setCollisionCallbackEnabled(true);
         const collisionObserver = freesbeAggregate.body.getCollisionObservable().add((event) => {
 
             const hitMesh = event.collidedAgainst?.transformNode as Mesh;
             if (!hitMesh) return;
 
-            // ✅ Eliminar observer inmediatamente — solo primer impacto
-            freesbeAggregate.body.getCollisionObservable().remove(collisionObserver);
-
             const metadata = hitMesh.metadata as MeshMetadata | null;
-
+            
             // ✅ Emitir evento según el tipo de mesh golpeado
             if (metadata?.type === meshMetadata.types.enemy) {
+                freesbeAggregate.body.getCollisionObservable().remove(collisionObserver);
                 this.eventManager.emit({
                     type: "enemy_damaged",
                     source: playerConfig.player1.name,

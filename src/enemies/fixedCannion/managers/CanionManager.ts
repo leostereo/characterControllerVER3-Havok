@@ -11,7 +11,7 @@ import { type CanionController } from "../controllers/CanionController";
 import { EventManager } from "@/game/eventManager/eventManager";
 import { ParticlesManager } from "@/game/effects/ParticlesManager";
 import { ProjectileManager } from "./projectileManager";
-import { enemiesConfig, meshMetadata, meshNames } from "@/config/GameConfig";
+import { enemiesConfig, meshMetadata } from "@/config/GameConfig";
 import { type CanionStateMachine } from "../stateMachines/CanionStateMachine";
 
 export class CanionManager {
@@ -26,12 +26,13 @@ export class CanionManager {
     constructor(
         private scene: Scene,
         private bodyMesh: Mesh,
+        private baseMesh: Mesh,
         private barrelPivot: TransformNode,
         private searchLight: PointLight,
         private bodyAggregate: PhysicsAggregate,
         private stateMachine: CanionStateMachine,
         private controller: CanionController,
-        private id: string,  
+        private uniqueId: string,
     ) {
         this.projectileManager = new ProjectileManager(scene);
     }
@@ -101,12 +102,13 @@ export class CanionManager {
 
             const data = event.data as { enemyClass: string; canionId: string };
             if (data.enemyClass !== meshMetadata.enemyClasses.canion) return;
-            if (data.canionId !== this.id) return;   // ← solo el cañón correcto reacciona
+            if (data.canionId !== this.uniqueId) return;   // ← renombrado
 
             this.eventManager.unsubscribe(observer);
             this.stateMachine.setState("destroyed");
         });
     }
+
     private destroy(): void {
         this.controller.stop();
 
@@ -123,14 +125,11 @@ export class CanionManager {
     }
 
     private applyDestroyedMaterial(): void {
-        const base = this.scene.getMeshByName(meshNames.canionBase);
-        if (!base) return;
-
-        const mat = new StandardMaterial("canio_destroyed_mat", this.scene);
+        const mat = new StandardMaterial(`canio_destroyed_mat_${this.uniqueId}`, this.scene);
         mat.diffuseColor = new Color3(0.15, 0.10, 0.08);
         mat.emissiveColor = new Color3(0.05, 0.02, 0.0);
         mat.specularColor = new Color3(0.1, 0.1, 0.1);
-        base.material = mat;
+        this.baseMesh.material = mat;   // ← referencia directa
     }
 
     private applyStateColor(diffuse: Color3, emissive: Color3): void {
