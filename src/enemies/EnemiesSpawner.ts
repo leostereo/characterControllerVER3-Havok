@@ -1,15 +1,15 @@
 import { type Scene, Vector3 } from "@babylonjs/core";
-import { playgroundConfig }    from "@/config/GameConfig";
-import { FixedCanionEnemy } from "./fixedCannion/fixedCanion";
+import { playgroundConfig } from "@/config/GameConfig";
+import { FixedCanionEnemy } from "./fixedCannion/FixedCanionEnemy";
 
 export class EnemiesSpawner {
 
   private enemies: FixedCanionEnemy[] = [];
 
   constructor(
-    private scene:           Scene,
+    private scene: Scene,
     private meshToShootName: string,
-  ) {}
+  ) { }
 
   // ─────────────────────────────────────────────
   //  API PÚBLICA
@@ -18,7 +18,7 @@ export class EnemiesSpawner {
     const { groundSize, enemyCount, spawnSafeRadius, playerSpawn } = playgroundConfig;
     const halfSize = groundSize / 2;
 
-    let placed   = 0;
+    let placed = 0;
     let attempts = 0;
     const maxAttempts = enemyCount * 10;
 
