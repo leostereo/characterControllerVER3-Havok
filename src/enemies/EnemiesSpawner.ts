@@ -1,10 +1,11 @@
 import { type Scene, Vector3 } from "@babylonjs/core";
 import { playgroundConfig } from "@/config/GameConfig";
-import { FixedCanionEnemy } from "./fixedCannion/FixedCanionEnemy";
+// import { FixedCanionEnemy } from "./fixedCannion/FixedCanionEnemy";
+import { SurveillanceStation } from "./surveillanceStation/SurveillanceStation";
 
 export class EnemiesSpawner {
 
-  private enemies: FixedCanionEnemy[] = [];
+  private enemies: SurveillanceStation[] = [];
 
   constructor(
     private scene: Scene,
@@ -34,9 +35,15 @@ export class EnemiesSpawner {
       );
       if (distToSpawn < spawnSafeRadius) continue;
 
-      this.enemies.push(
-        new FixedCanionEnemy(this.scene, position, this.meshToShootName)
-      );
+      if (attempts % 2 === 0) {
+        this.enemies.push(
+          new SurveillanceStation(this.scene, position,),
+        );
+      } else {
+        this.enemies.push(
+          new SurveillanceStation(this.scene, position, "highest")
+        )
+      }
       placed++;
     }
   }

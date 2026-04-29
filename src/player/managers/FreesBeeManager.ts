@@ -44,11 +44,10 @@ export class FreesBeManager {
         freesbeAggregate.body.setCollisionCallbackEnabled(true);
         const collisionObserver = freesbeAggregate.body.getCollisionObservable().add((event) => {
 
-            const hitMesh = event.collidedAgainst?.transformNode as Mesh;
-            if (!hitMesh) return;
+const hitNode  = event.collidedAgainst?.transformNode;  // ← ya no castear a Mesh
+            if (!hitNode) return;
 
-            const metadata = hitMesh.metadata as MeshMetadata | null;
-            
+const metadata = hitNode?.metadata as MeshMetadata | null;
             // ✅ Emitir evento según el tipo de mesh golpeado
             if (metadata?.type === meshMetadata.types.enemy) {
                 freesbeAggregate.body.getCollisionObservable().remove(collisionObserver);
@@ -57,9 +56,10 @@ export class FreesBeManager {
                     source: playerConfig.player1.name,
                     sourceType: 'player',
                     data: {
-                        hitMeshName: hitMesh.name,
+                        hitMeshName: hitNode.name,
                         enemyClass: metadata.enemyClass,
                         canionId: metadata.canionId,
+                        stationId: metadata.stationId,  
                         direction: forward.clone(),
                         damage: 10,
                     },
@@ -71,7 +71,7 @@ export class FreesBeManager {
                     source: playerConfig.player1.name,
                     sourceType: 'player',
                     data: {
-                        hitMeshName: hitMesh.name,
+                        hitMeshName: hitNode.name,
                         direction: forward.clone(),
                     },
                 });

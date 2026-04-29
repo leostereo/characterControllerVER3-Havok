@@ -26,8 +26,18 @@ export class FixedCanionEnemy {
     private position: Vector3,
     private meshToShootName: string,
   ) {
-const { barrelPivot, muzzleMesh, bodyMesh, baseMesh, searchLight, bodyAggregate } =
-  this.buildCanionGeometry();
+    const {
+      barrelPivot,
+      muzzleMesh,
+      bodyMesh,
+      baseMesh,
+      barrelMesh,
+      searchLight,
+      bodyAggregate,
+      baseAggregate,
+      barrelAggregate,
+      muzzleAggregate,
+    } = this.buildCanionGeometry();
 
     const stateMachine = new CanionStateMachine();
 
@@ -42,10 +52,14 @@ const { barrelPivot, muzzleMesh, bodyMesh, baseMesh, searchLight, bodyAggregate 
     const manager = new CanionManager(
       scene,
       bodyMesh,
-      baseMesh,        // ← nuevo
+      baseMesh,
+      barrelMesh,
       barrelPivot,
       searchLight,
       bodyAggregate,
+      baseAggregate,
+      barrelAggregate,
+      muzzleAggregate,
       stateMachine,
       controller,
       this.uniqueId,
@@ -62,9 +76,13 @@ const { barrelPivot, muzzleMesh, bodyMesh, baseMesh, searchLight, bodyAggregate 
     barrelPivot: TransformNode;
     muzzleMesh: Mesh;
     bodyMesh: Mesh;
-    baseMesh: Mesh;           // ← nuevo
+    baseMesh: Mesh;
+    barrelMesh: Mesh;           // ← nuevo
     searchLight: PointLight;
     bodyAggregate: PhysicsAggregate;
+    baseAggregate: PhysicsAggregate;    // ← nuevo
+    barrelAggregate: PhysicsAggregate;  // ← nuevo
+    muzzleAggregate: PhysicsAggregate;  // ← nuevo
   } {
     const root = new TransformNode(`${meshNames.canionRoot}_${this.uniqueId}`, this.scene);
     root.position = this.position;
@@ -75,7 +93,7 @@ const { barrelPivot, muzzleMesh, bodyMesh, baseMesh, searchLight, bodyAggregate 
 
     const baseHeight = turretHeight * 0.15;
     const base = MeshBuilder.CreateCylinder(
-      `${meshNames.canionBase}_${this.uniqueId}`,   // ← único
+      `${meshNames.canionBase}_${this.uniqueId}`,
       { diameter: 1.4, height: baseHeight, tessellation: 16 },
       this.scene
     );
@@ -83,9 +101,17 @@ const { barrelPivot, muzzleMesh, bodyMesh, baseMesh, searchLight, bodyAggregate 
     base.material = mat;
     base.parent = root;
 
+    // ← NUEVO: Agregar física a la base
+    const baseAggregate = new PhysicsAggregate(
+      base,
+      PhysicsShapeType.CYLINDER,
+      { mass: 2, restitution: 0.5, friction: 0.8 },
+      this.scene
+    );
+
     const bodyHeight = turretHeight * 0.40;
     const bodyMesh = MeshBuilder.CreateCylinder(
-      `${meshNames.canionBody}_${this.uniqueId}`,   // ← único
+      `${meshNames.canionBody}_${this.uniqueId}`,
       { diameter: 0.9, height: bodyHeight, tessellation: 16 },
       this.scene
     );
@@ -101,7 +127,7 @@ const { barrelPivot, muzzleMesh, bodyMesh, baseMesh, searchLight, bodyAggregate 
     const bodyAggregate = new PhysicsAggregate(
       bodyMesh,
       PhysicsShapeType.CYLINDER,
-      { mass: 0, restitution: 0.3, friction: 0.5 },
+      { mass: 3, restitution: 0.3, friction: 0.5 },
       this.scene
     );
 
@@ -110,7 +136,7 @@ const { barrelPivot, muzzleMesh, bodyMesh, baseMesh, searchLight, bodyAggregate 
     barrelPivot.parent = root;
 
     const barrel = MeshBuilder.CreateCylinder(
-      `${meshNames.canionBarrel}_${this.uniqueId}`,  // ← único
+      `${meshNames.canionBarrel}_${this.uniqueId}`,
       { diameter: 0.22, height: 1.1, tessellation: 12 },
       this.scene
     );
@@ -120,8 +146,16 @@ const { barrelPivot, muzzleMesh, bodyMesh, baseMesh, searchLight, bodyAggregate 
     barrel.parent = barrelPivot;
     barrel.metadata = bodyMesh.metadata;
 
+    // ← NUEVO: Agregar física al cañón
+    const barrelAggregate = new PhysicsAggregate(
+      barrel,
+      PhysicsShapeType.CYLINDER,
+      { mass: 1.5, restitution: 0.4, friction: 0.6 },
+      this.scene
+    );
+
     const muzzleMesh = MeshBuilder.CreateTorus(
-      `${meshNames.canionMuzzle}_${this.uniqueId}`,  // ← único
+      `${meshNames.canionMuzzle}_${this.uniqueId}`,
       { diameter: 0.32, thickness: 0.07, tessellation: 16 },
       this.scene
     );
@@ -131,13 +165,32 @@ const { barrelPivot, muzzleMesh, bodyMesh, baseMesh, searchLight, bodyAggregate 
     muzzleMesh.parent = barrelPivot;
     muzzleMesh.metadata = bodyMesh.metadata;
 
+    // ← NUEVO: Agregar física a la boca del cañón
+    const muzzleAggregate = new PhysicsAggregate(
+      muzzleMesh,
+      PhysicsShapeType.SPHERE,
+      { mass: 0.5, restitution: 0.3, friction: 0.5 },
+      this.scene
+    );
+
     const searchLight = new PointLight(`canio_search_light_${this.uniqueId}`, this.position.clone(), this.scene);
     searchLight.position.y += this.CHARACTER_HEIGHT * this.TURRET_HEIGHT_MULT;
     searchLight.intensity = 0.8;
     searchLight.range = 6;
     searchLight.diffuse = new Color3(1.0, 0.9, 0.0);
 
-    return { barrelPivot, muzzleMesh, bodyMesh, baseMesh: base, searchLight, bodyAggregate };
+    return {
+      barrelPivot,
+      muzzleMesh,
+      bodyMesh,
+      baseMesh: base,
+      barrelMesh: barrel,           // ← nuevo
+      searchLight,
+      bodyAggregate,
+      baseAggregate,                // ← nuevo
+      barrelAggregate,              // ← nuevo
+      muzzleAggregate,              // ← nuevo
+    };
   }
 
   // ─────────────────────────────────────────────

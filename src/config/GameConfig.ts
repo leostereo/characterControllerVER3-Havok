@@ -136,6 +136,7 @@ export const meshMetadata = {
     },
     enemyClasses: {
         canion: "canion",
+        surveillance: "surveillance",
     },
 } as const;
 
@@ -147,9 +148,19 @@ export const playgroundConfig = {
     playerSpawn: { x: 0, z: 0 },
 } as const;
 
+export const surveillanceConfig = {
+  heights: {
+    low:     0.8,   // 80% de la altura del personaje
+    middle:  1.2,   // igual que turretHeightMult actual
+    highest: 1.8,   // 180% de la altura del personaje
+  },
+} as const;
+
+
 // ─────────────────────────────────────────────
 //  TIPOS DERIVADOS
 // ─────────────────────────────────────────────
+export type SurveillanceHeight = keyof typeof surveillanceConfig.heights;
 export type PlayerConfig = typeof playerConfig;
 export type PhysicsConfig = typeof physicsConfig;
 export type EnemiesConfig = typeof enemiesConfig;
@@ -161,5 +172,6 @@ export type UiConfig = typeof uiConfig;
 export type MeshMetadata = {
     type: typeof meshMetadata.types[keyof typeof meshMetadata.types];
     enemyClass?: typeof meshMetadata.enemyClasses[keyof typeof meshMetadata.enemyClasses];
-    canionId?:   string;
+    canionId?: string;
+    stationId?: string;  
 };
