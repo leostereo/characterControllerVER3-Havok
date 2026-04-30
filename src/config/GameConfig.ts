@@ -12,6 +12,7 @@ export const playerConfig = {
     rotateSpeed: 2.0,
     runMultiplier: 1.8,
     backwardsMultiplier: 0.3,
+    aimHeightMultiplier: 0.5,  
     player1: {
         meshName: 'player1',
         name: 'player1',
@@ -54,9 +55,9 @@ export const enemiesConfig = {
 // ─────────────────────────────────────────────
 export const projectilesConfig = {
     canion: {
-        speed: 1500,
+        speed: 300,
         mass: 5,
-        radius: 0.12,
+        radius: 0.2,
         restitution: 0.0,
         friction: 0.0,
         maxLifetime: 4000,
@@ -113,7 +114,7 @@ export const audioConfig = {
 export const cameraConfig = {
     followCamera: {
         radius: 15,
-        heightOffset: 10,
+        heightOffset: 8,
         rotationOffset: 180,
         cameraAcceleration: 0.05,
         maxCameraSpeed: 10
@@ -136,20 +137,42 @@ export const meshMetadata = {
     },
     enemyClasses: {
         canion: "canion",
+        surveillance: "surveillance",
     },
 } as const;
 
 export const playgroundConfig = {
     groundSize: 60,
     wallCount: 50,
-    enemyCount: 3,
+    enemyCount: 6,
     spawnSafeRadius: 8,
     playerSpawn: { x: 0, z: 0 },
 } as const;
 
+export const surveillanceConfig = {
+    heights: {
+        low: 1.0,
+        middle: 1.4,
+        highest: 2.0,
+    },
+    shootingRate: 2500,
+    searchRotateSpeed: 0.6,
+    detection: {
+        range: 20,
+        angle: 45,
+    },
+    light: {
+        intensitySearching: 5,   // ← parametrizado
+        intensityAlert: 5,   // ← parametrizado
+    },
+    trackingRate: 500,   // ← ms entre recalculos de posición del jugador
+} as const;
+
+
 // ─────────────────────────────────────────────
 //  TIPOS DERIVADOS
 // ─────────────────────────────────────────────
+export type SurveillanceHeight = keyof typeof surveillanceConfig.heights;
 export type PlayerConfig = typeof playerConfig;
 export type PhysicsConfig = typeof physicsConfig;
 export type EnemiesConfig = typeof enemiesConfig;
@@ -161,5 +184,6 @@ export type UiConfig = typeof uiConfig;
 export type MeshMetadata = {
     type: typeof meshMetadata.types[keyof typeof meshMetadata.types];
     enemyClass?: typeof meshMetadata.enemyClasses[keyof typeof meshMetadata.enemyClasses];
-    canionId?:   string;
+    canionId?: string;
+    stationId?: string;
 };

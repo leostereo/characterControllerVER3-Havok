@@ -20,7 +20,7 @@ export class PlayGround {
     private meshToShootName: string,
   ) {
     this.wallsBuilder   = new WallsBuilder(scene);
-    this.enemiesSpawner = new EnemiesSpawner(scene, meshToShootName);
+    this.enemiesSpawner = new EnemiesSpawner(scene);
 
     this.buildGround();
     this.wallsBuilder.build();

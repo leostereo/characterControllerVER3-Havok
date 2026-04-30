@@ -24,7 +24,7 @@ export class PhysicState implements PhysicState {
 
   constructor() {
     this.eventManager.subscribe((event) => {
-      if (event.type === "projectile_hit") {
+      if (event.type === "projectile_hit" && event.sourceType === 'enemy') {
         const data = event.data as { direction: Vector3; hitMeshName: string };
         this.apply_hit_impulse = true;
         this.projectile_direction          = data.direction;

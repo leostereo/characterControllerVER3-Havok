@@ -160,11 +160,12 @@ export class AnimationGroupsManager {
         
         //projectile hit
         this.groups.impact_recibed = animationGroups.find((item) => item.name === 'head hit');
-        const impact_recibed_finish_event = new AnimationEvent(80, () => {
+        const impact_recibed_finish_event = new AnimationEvent(55, () => {
             this.animationState.blockingAnimationIsPlaying = false;
         }, true);
         if (this.groups.impact_recibed) {
-            this.groups.impact_recibed.speedRatio = 1.2;
+            this.groups.impact_recibed.speedRatio = 2;
+            this.groups.impact_recibed.to = 60;
         }
         const impact_recibed_anim = this.groups.impact_recibed?.targetedAnimations[0].animation;
         impact_recibed_anim?.addEvent(impact_recibed_finish_event)

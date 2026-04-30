@@ -1,15 +1,18 @@
 import { type Scene, Vector3 } from "@babylonjs/core";
-import { playgroundConfig }    from "@/config/GameConfig";
-import { FixedCanionEnemy } from "./fixedCannion/fixedCanion";
+import { playerConfig, playgroundConfig } from "@/config/GameConfig";
+// import { FixedCanionEnemy } from "./fixedCannion/FixedCanionEnemy";
+import { SurveillanceStation } from "./surveillanceStation/SurveillanceStation";
 
 export class EnemiesSpawner {
 
-  private enemies: FixedCanionEnemy[] = [];
+  private enemies: SurveillanceStation[] = [];
+  private meshToShootName_surveillanceStation: string = playerConfig.player1.meshName;
 
   constructor(
-    private scene:           Scene,
-    private meshToShootName: string,
-  ) {}
+    private scene: Scene
+  ) {
+
+  }
 
   // ─────────────────────────────────────────────
   //  API PÚBLICA
@@ -18,7 +21,7 @@ export class EnemiesSpawner {
     const { groundSize, enemyCount, spawnSafeRadius, playerSpawn } = playgroundConfig;
     const halfSize = groundSize / 2;
 
-    let placed   = 0;
+    let placed = 0;
     let attempts = 0;
     const maxAttempts = enemyCount * 10;
 
@@ -34,9 +37,19 @@ export class EnemiesSpawner {
       );
       if (distToSpawn < spawnSafeRadius) continue;
 
-      this.enemies.push(
-        new FixedCanionEnemy(this.scene, position, this.meshToShootName)
-      );
+      if (attempts % 2 === 0) {
+        this.enemies.push(
+          new SurveillanceStation(this.scene, position, this.meshToShootName_surveillanceStation, "low"),
+        );
+      } else if (attempts % 3 === 0) {
+        this.enemies.push(
+          new SurveillanceStation(this.scene, position, this.meshToShootName_surveillanceStation, "middle")
+        )
+      } else {
+        this.enemies.push(
+          new SurveillanceStation(this.scene, position, this.meshToShootName_surveillanceStation, "highest")
+        )
+      }
       placed++;
     }
   }
