@@ -1,16 +1,18 @@
 import { type Scene, Vector3 } from "@babylonjs/core";
-import { playgroundConfig } from "@/config/GameConfig";
+import { playerConfig, playgroundConfig } from "@/config/GameConfig";
 // import { FixedCanionEnemy } from "./fixedCannion/FixedCanionEnemy";
 import { SurveillanceStation } from "./surveillanceStation/SurveillanceStation";
 
 export class EnemiesSpawner {
 
   private enemies: SurveillanceStation[] = [];
+  private meshToShootName_surveillanceStation: string = playerConfig.player1.meshName;
 
   constructor(
-    private scene: Scene,
-    private meshToShootName: string,
-  ) { }
+    private scene: Scene
+  ) {
+
+  }
 
   // ─────────────────────────────────────────────
   //  API PÚBLICA
@@ -37,11 +39,15 @@ export class EnemiesSpawner {
 
       if (attempts % 2 === 0) {
         this.enemies.push(
-          new SurveillanceStation(this.scene, position,),
+          new SurveillanceStation(this.scene, position, this.meshToShootName_surveillanceStation, "low"),
         );
+      } else if (attempts % 3 === 0) {
+        this.enemies.push(
+          new SurveillanceStation(this.scene, position, this.meshToShootName_surveillanceStation, "middle")
+        )
       } else {
         this.enemies.push(
-          new SurveillanceStation(this.scene, position, "highest")
+          new SurveillanceStation(this.scene, position, this.meshToShootName_surveillanceStation, "highest")
         )
       }
       placed++;

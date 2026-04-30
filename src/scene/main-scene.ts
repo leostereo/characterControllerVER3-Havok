@@ -113,7 +113,7 @@ export default class MainScene {
     }
 
     //Crear resto
-    new PlayGround(this.scene, playerConfig.player1.meshName);
+    new PlayGround(this.scene, playerConfig.player1.player1Raycast);
 
     void setUI(this.scene);
 
