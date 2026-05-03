@@ -6,9 +6,10 @@ import {
   Vector3,
   SpotLight,
   Color3,
+  Ray,
 } from "@babylonjs/core";
 import { type SurveillanceStateMachine, type SurveillanceState } from "../statemachines/SurveillanceStateMachine";
-import { playerConfig, surveillanceConfig } from "@/config/GameConfig";
+import { meshNames, playerConfig, surveillanceConfig } from "@/config/GameConfig";
 
 export class SurveillanceController {
 
@@ -28,7 +29,8 @@ export class SurveillanceController {
     private barrel: Mesh,
     private rotationPivot: TransformNode,
     private stateMachine: SurveillanceStateMachine,
-    private meshToShootName: string,
+    private meshForPositionTrackName: string,
+    private meshForRayCastDetectionName: string,
   ) {
     this.spotLight = this.buildSpotLight();
 
@@ -66,11 +68,16 @@ export class SurveillanceController {
     });
   }
 
+  dispose(): void {
+    this.stop();                      // remueve renderObserver
+    this.spotLight.dispose();         // elimina la luz
+  }
+
   // ─────────────────────────────────────────────
   //  TRACKING — rota el pivot hacia el jugador
   // ─────────────────────────────────────────────
   private trackTarget(): void {
-    const target = this.scene.getMeshByName(this.meshToShootName);
+    const target = this.scene.getMeshByName(this.meshForPositionTrackName);
     if (!target) return;
 
     const origin = this.barrel.getAbsolutePosition();
@@ -101,7 +108,9 @@ export class SurveillanceController {
   //  DETECCIÓN — ángulo + distancia
   // ─────────────────────────────────────────────
   private hasLineOfSight(): boolean {
-    const target = this.scene.getMeshByName(this.meshToShootName);
+    const target = this.scene.getMeshByName(this.meshForPositionTrackName);
+    
+    //const target = this.scene.getMeshByName('playerCapsule');
     if (!target) return false;
 
     const origin = this.barrel.getAbsolutePosition();
@@ -109,16 +118,30 @@ export class SurveillanceController {
     const toTarget = target.position.subtract(origin);
     const distance = toTarget.length();
 
-    // 1. ¿Está dentro del rango?
+    // 1. ¿Dentro del rango?
     if (distance > this.DETECTION_RANGE) return false;
 
-
-    // 2. ¿Está dentro del ángulo del cono?
+    // 2. ¿Dentro del ángulo del cono?
     const dirToTarget = toTarget.normalize();
     const dot = Vector3.Dot(forward, dirToTarget);
     const angleToTarget = Math.acos(Math.min(1, Math.max(-1, dot)));
+    if (angleToTarget > this.DETECTION_ANGLE_RAD) return false;
 
-    return angleToTarget <= this.DETECTION_ANGLE_RAD;
+    // 3. ✅ Confirmación — raycast directo al jugador
+    //    Si hay un muro entre los dos, no entra en alert
+    // 3. Confirmación — raycast con origen elevado
+    const rayOrigin = origin.clone();
+    rayOrigin.y += 0.8;
+    const ray = new Ray(rayOrigin, dirToTarget, distance);
+    const hit = this.scene.pickWithRay(ray, (mesh) =>
+      !mesh.name.startsWith('ray') &&      //ray itself
+      !mesh.name.startsWith('cylinder') &&      //ray itself
+      !mesh.name.startsWith("surveillance_") &&
+      !mesh.name.startsWith(meshNames.projectile)
+    );
+
+    // Solo alert si el primer mesh golpeado es el jugador
+    return hit?.pickedMesh?.name === this.meshForRayCastDetectionName;
   }
 
   // ─────────────────────────────────────────────

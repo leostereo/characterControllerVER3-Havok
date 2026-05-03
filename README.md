@@ -66,3 +66,18 @@ Implementacion del salto en 3 etapas:
 
 Fine tunning
 1 - "block rotate from character when crashed u other forbiden.
+
+
+
+Survillance:
+1 - dispose las luces.
+2 - boton de reload.
+3 - enviar un rayo cuando este oculto detras de un muro.
+4 - ajustar velocidad de caminar / correr. (parametrizar el player)
+5 - defenceWall por bloques de 3 medidas + combinaciones.
+
+Player-
+caminar agachado.
+roll , solo mientras corre.
+encoger la capsula fisica.
+animaciones de impacto segun direccion.

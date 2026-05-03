@@ -1,16 +1,17 @@
-import { type Scene, Vector3 } from "@babylonjs/core";
+import { type KeyboardInfo, type Scene, Vector3 } from "@babylonjs/core";
 import { playerConfig, playgroundConfig } from "@/config/GameConfig";
-// import { FixedCanionEnemy } from "./fixedCannion/FixedCanionEnemy";
+import { type FixedCanionEnemy } from "./fixedCannion/FixedCanionEnemy";
 import { SurveillanceStation } from "./surveillanceStation/SurveillanceStation";
 
 export class EnemiesSpawner {
 
-  private enemies: SurveillanceStation[] = [];
-  private meshToShootName_surveillanceStation: string = playerConfig.player1.meshName;
+  private survillanceStations: SurveillanceStation[] = [];
+  private fixedCanions: FixedCanionEnemy[] = []
 
   constructor(
     private scene: Scene
   ) {
+    scene.onKeyboardObservable.add((kbInfo: KeyboardInfo) => this.keyboardSpawn(kbInfo))
 
   }
 
@@ -38,24 +39,39 @@ export class EnemiesSpawner {
       if (distToSpawn < spawnSafeRadius) continue;
 
       if (attempts % 2 === 0) {
-        this.enemies.push(
-          new SurveillanceStation(this.scene, position, this.meshToShootName_surveillanceStation, "low"),
-        );
+        this.survillanceStations.push(new SurveillanceStation(this.scene, position, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "low"))
       } else if (attempts % 3 === 0) {
-        this.enemies.push(
-          new SurveillanceStation(this.scene, position, this.meshToShootName_surveillanceStation, "middle")
-        )
+        this.survillanceStations.push(new SurveillanceStation(this.scene, position, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "middle"))
       } else {
-        this.enemies.push(
-          new SurveillanceStation(this.scene, position, this.meshToShootName_surveillanceStation, "highest")
-        )
+        this.survillanceStations.push(new SurveillanceStation(this.scene, position, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "highest"))
+        // //this.fixedCanions.push(new FixedCanionEnemy(this.scene, position, playerConfig.player1.positionTrackeableMeshName,playerConfig.player1.player1RaycastDetectableName))
       }
       placed++;
     }
   }
 
+  spawnOne(): void {
+    const { groundSize } = playgroundConfig;
+    const halfSize = groundSize / 2;
+    const position = this.randomPosition(halfSize);
+    this.survillanceStations.push(new SurveillanceStation(this.scene, position, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "low"))
+    
+  }
+
   dispose(): void {
-    this.enemies = [];
+    this.survillanceStations.forEach(e => e.dispose());  // ← llama dispose en cada enemigo
+    this.survillanceStations = [];
+  }
+
+  private keyboardSpawn(kbInfo: KeyboardInfo): void {
+    switch (kbInfo.event.key) {
+      case 'r':
+        this.dispose()
+        this.spawnAll();
+        break;
+      case '2':
+        break;
+    }
   }
 
   // ─────────────────────────────────────────────

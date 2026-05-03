@@ -24,20 +24,11 @@ export class FixedCanionEnemy {
   constructor(
     private scene: Scene,
     private position: Vector3,
-    private meshToShootName: string,
+    private meshForPositionTrackName: string,
+    private meshForRayCastDetectName: string,
   ) {
-    const {
-      barrelPivot,
-      muzzleMesh,
-      bodyMesh,
-      baseMesh,
-      barrelMesh,
-      searchLight,
-      bodyAggregate,
-      baseAggregate,
-      barrelAggregate,
-      muzzleAggregate,
-    } = this.buildCanionGeometry();
+    const { barrelPivot, muzzleMesh, bodyMesh, baseMesh, searchLight, bodyAggregate } =
+      this.buildCanionGeometry();
 
     const stateMachine = new CanionStateMachine();
 
@@ -46,23 +37,21 @@ export class FixedCanionEnemy {
       muzzleMesh,
       barrelPivot,
       stateMachine,
-      meshToShootName,
+      meshForPositionTrackName,
+      meshForRayCastDetectName
     );
 
     const manager = new CanionManager(
       scene,
       bodyMesh,
-      baseMesh,
-      barrelMesh,
+      baseMesh,        // ← nuevo
       barrelPivot,
       searchLight,
       bodyAggregate,
-      baseAggregate,
-      barrelAggregate,
-      muzzleAggregate,
       stateMachine,
       controller,
       this.uniqueId,
+      meshForPositionTrackName,
     );
 
     controller.start();
@@ -76,13 +65,9 @@ export class FixedCanionEnemy {
     barrelPivot: TransformNode;
     muzzleMesh: Mesh;
     bodyMesh: Mesh;
-    baseMesh: Mesh;
-    barrelMesh: Mesh;           // ← nuevo
+    baseMesh: Mesh;           // ← nuevo
     searchLight: PointLight;
     bodyAggregate: PhysicsAggregate;
-    baseAggregate: PhysicsAggregate;    // ← nuevo
-    barrelAggregate: PhysicsAggregate;  // ← nuevo
-    muzzleAggregate: PhysicsAggregate;  // ← nuevo
   } {
     const root = new TransformNode(`${meshNames.canionRoot}_${this.uniqueId}`, this.scene);
     root.position = this.position;
@@ -93,7 +78,7 @@ export class FixedCanionEnemy {
 
     const baseHeight = turretHeight * 0.15;
     const base = MeshBuilder.CreateCylinder(
-      `${meshNames.canionBase}_${this.uniqueId}`,
+      `${meshNames.canionBase}_${this.uniqueId}`,   // ← único
       { diameter: 1.4, height: baseHeight, tessellation: 16 },
       this.scene
     );
@@ -101,17 +86,9 @@ export class FixedCanionEnemy {
     base.material = mat;
     base.parent = root;
 
-    // ← NUEVO: Agregar física a la base
-    const baseAggregate = new PhysicsAggregate(
-      base,
-      PhysicsShapeType.CYLINDER,
-      { mass: 2, restitution: 0.5, friction: 0.8 },
-      this.scene
-    );
-
     const bodyHeight = turretHeight * 0.40;
     const bodyMesh = MeshBuilder.CreateCylinder(
-      `${meshNames.canionBody}_${this.uniqueId}`,
+      `${meshNames.canionBody}_${this.uniqueId}`,   // ← único
       { diameter: 0.9, height: bodyHeight, tessellation: 16 },
       this.scene
     );
@@ -127,7 +104,7 @@ export class FixedCanionEnemy {
     const bodyAggregate = new PhysicsAggregate(
       bodyMesh,
       PhysicsShapeType.CYLINDER,
-      { mass: 3, restitution: 0.3, friction: 0.5 },
+      { mass: 0, restitution: 0.3, friction: 0.5 },
       this.scene
     );
 
@@ -136,7 +113,7 @@ export class FixedCanionEnemy {
     barrelPivot.parent = root;
 
     const barrel = MeshBuilder.CreateCylinder(
-      `${meshNames.canionBarrel}_${this.uniqueId}`,
+      `${meshNames.canionBarrel}_${this.uniqueId}`,  // ← único
       { diameter: 0.22, height: 1.1, tessellation: 12 },
       this.scene
     );
@@ -146,16 +123,8 @@ export class FixedCanionEnemy {
     barrel.parent = barrelPivot;
     barrel.metadata = bodyMesh.metadata;
 
-    // ← NUEVO: Agregar física al cañón
-    const barrelAggregate = new PhysicsAggregate(
-      barrel,
-      PhysicsShapeType.CYLINDER,
-      { mass: 1.5, restitution: 0.4, friction: 0.6 },
-      this.scene
-    );
-
     const muzzleMesh = MeshBuilder.CreateTorus(
-      `${meshNames.canionMuzzle}_${this.uniqueId}`,
+      `${meshNames.canionMuzzle}_${this.uniqueId}`,  // ← único
       { diameter: 0.32, thickness: 0.07, tessellation: 16 },
       this.scene
     );
@@ -165,32 +134,13 @@ export class FixedCanionEnemy {
     muzzleMesh.parent = barrelPivot;
     muzzleMesh.metadata = bodyMesh.metadata;
 
-    // ← NUEVO: Agregar física a la boca del cañón
-    const muzzleAggregate = new PhysicsAggregate(
-      muzzleMesh,
-      PhysicsShapeType.SPHERE,
-      { mass: 0.5, restitution: 0.3, friction: 0.5 },
-      this.scene
-    );
-
     const searchLight = new PointLight(`canio_search_light_${this.uniqueId}`, this.position.clone(), this.scene);
     searchLight.position.y += this.CHARACTER_HEIGHT * this.TURRET_HEIGHT_MULT;
     searchLight.intensity = 0.8;
     searchLight.range = 6;
     searchLight.diffuse = new Color3(1.0, 0.9, 0.0);
 
-    return {
-      barrelPivot,
-      muzzleMesh,
-      bodyMesh,
-      baseMesh: base,
-      barrelMesh: barrel,           // ← nuevo
-      searchLight,
-      bodyAggregate,
-      baseAggregate,                // ← nuevo
-      barrelAggregate,              // ← nuevo
-      muzzleAggregate,              // ← nuevo
-    };
+    return { barrelPivot, muzzleMesh, bodyMesh, baseMesh: base, searchLight, bodyAggregate };
   }
 
   // ─────────────────────────────────────────────

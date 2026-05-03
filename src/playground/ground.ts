@@ -70,8 +70,9 @@ export class Ground {
   }
 
   _createFixedCanion(): void {
-    const playerMeshName = playerConfig.player1.meshName;
-    new FixedCanionEnemy(this.scene, new Vector3(10, 0, 10), playerMeshName);
+    const playerMeshName = playerConfig.player1.positionTrackeableMeshName;
+    const playerRayCast = playerConfig.player1.player1RaycastDetectableName;
+    new FixedCanionEnemy(this.scene, new Vector3(10, 0, 10), playerMeshName,playerRayCast);
   }
 
   _createBasicCoverWall(): void {

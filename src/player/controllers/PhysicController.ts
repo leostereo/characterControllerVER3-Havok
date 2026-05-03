@@ -60,7 +60,7 @@ export class PhysicController {
 
     const ccTransformNode = scene.getTransformNodeByName('CCTransformNode');
     if(ccTransformNode){
-      ccTransformNode.name = playerConfig.player1.player1Collision;
+      ccTransformNode.name = playerConfig.player1.player1CollisionDetectableName;
     }
 
 
@@ -261,7 +261,7 @@ export class PhysicController {
     mesh.scaling.copyFrom(this.characterMesh.scaling);
     this.characterMesh.dispose();
     this.characterMesh = mesh;
-    this.characterMesh.name = playerConfig.player1.meshName;
+    this.characterMesh.name = playerConfig.player1.positionTrackeableMeshName;
     this.controller.setPosition(mesh.position.clone());
   }
 

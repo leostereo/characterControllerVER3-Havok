@@ -12,12 +12,12 @@ export const playerConfig = {
     rotateSpeed: 2.0,
     runMultiplier: 1.8,
     backwardsMultiplier: 0.3,
-    aimHeightMultiplier: 0.5,  
+    aimHeightMultiplier: 0.5,
     player1: {
-        meshName: 'player1',
+        positionTrackeableMeshName: 'player1_trackeable',
         name: 'player1',
-        player1Raycast: "player1_Alpha_Joints",
-        player1Collision: "player1_colision"
+        player1RaycastDetectableName: "player1_rayCast_detectable",
+        player1CollisionDetectableName: "player1_colision_detectable"
     }
 } as const;
 
@@ -75,7 +75,7 @@ export const projectilesConfig = {
 // ─────────────────────────────────────────────
 export const coverWallConfig = {
     width: 3.0,
-    height: 1.4,
+    height: 2,
     depth: 0.3,
     restitution: 0.6,
     friction: 0.4,
@@ -85,8 +85,6 @@ export const coverWallConfig = {
 //  NOMBRES DE MESHES
 // ─────────────────────────────────────────────
 export const meshNames = {
-    // player: "playerCapsule",
-    // player1Raycast: "player1_Alpha_Joints",
     coverWall: "cover_wall",
     projectile: "projectile",
     canionRoot: "canio_root",

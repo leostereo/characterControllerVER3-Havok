@@ -61,7 +61,7 @@ export class ProjectileManager {
 
             // Ignorar colisiones con el suelo, la pared, etc.
             // Solo reaccionar si golpea al jugador
-            if (hitMesh?.name !== playerConfig.player1.player1Collision) return;
+            if (hitMesh?.name !== playerConfig.player1.player1CollisionDetectableName) return;
 
             this.onImpact(direction, hitMesh, mesh, aggregate, collisionObserver);
         });
