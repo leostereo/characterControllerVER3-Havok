@@ -19,6 +19,7 @@ export class EnemiesSpawner {
   //  API PÚBLICA
   // ─────────────────────────────────────────────
   spawnAll(): void {
+
     const { groundSize, enemyCount, spawnSafeRadius, playerSpawn } = playgroundConfig;
     const halfSize = groundSize / 2;
 

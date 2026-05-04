@@ -24,7 +24,7 @@ class App {
     this.canvas.id = "renderCanvas";
     document.body.appendChild(this.canvas);
 
-    //  this.init(); // Uncomment to use WebGL2 engine
+    //this.init(); // Uncomment to use WebGL2 engine
     void this.initWebGPU(); // Comment not to use WebGPU engine
   }
 

@@ -109,10 +109,9 @@ export class SurveillanceController {
   // ─────────────────────────────────────────────
   private hasLineOfSight(): boolean {
     const target = this.scene.getMeshByName(this.meshForPositionTrackName);
-    
-    //const target = this.scene.getMeshByName('playerCapsule');
     if (!target) return false;
 
+    
     const origin = this.barrel.getAbsolutePosition();
     const forward = this.rotationPivot.forward.normalize();
     const toTarget = target.position.subtract(origin);

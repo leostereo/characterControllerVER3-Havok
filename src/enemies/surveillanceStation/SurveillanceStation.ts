@@ -63,7 +63,8 @@ export class SurveillanceStation {
     this.baseMesh = baseMesh;       // ← nuevo
     this.lowerMesh = lowerMesh;      // ← nuevo
     this.baseAggregate = baseAggregate;  // ← nuevo
-
+    this.rotationPivot = rotationPivot;
+    
     const stateMachine = new SurveillanceStateMachine(this.uniqueId);
 
     const controller = new SurveillanceController(
@@ -74,6 +75,8 @@ export class SurveillanceStation {
       meshForPositionTrackName,
       meshForRayCastDetectName,
     );
+
+    this.controller = controller;
 
     const projectileManager = new ProjectileManager(scene);
 

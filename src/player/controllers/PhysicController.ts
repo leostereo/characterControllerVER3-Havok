@@ -2,67 +2,80 @@ import {
   type Scene,
   Vector3,
   MeshBuilder,
+  type Mesh,
   type AbstractMesh,
   PhysicsCharacterController,
   CharacterSupportedState,
   type CharacterSurfaceInfo,
   Quaternion,
 } from "@babylonjs/core";
-import { type InputState } from "../statemachines/InputState";
-import { type PhysicState } from "../statemachines/PhysicState";
+import { type InputState }           from "../statemachines/InputState";
+import { type PhysicState }          from "../statemachines/PhysicState";
 import { type AnimationStateMachine } from "../statemachines/AnimationState";
-import { playerConfig } from "@/config/GameConfig";
+import { playerConfig }              from "@/config/GameConfig";
 
-const ON_GROUND_SPEED = 10.0;
-const IN_AIR_SPEED = 8.0;
-const JUMP_HEIGHT = 3.5;
-const GRAVITY = new Vector3(0, -18, 0);
-const ROTATE_SPEED = 2;
-const RUN_MULTIPLIER = 1.8;
-const KNOCKBACK_FORCE = 5.0; // tunear según se sienta bien
+const ON_GROUND_SPEED  = 10.0;
+const IN_AIR_SPEED     = 8.0;
+const JUMP_HEIGHT      = 3.5;
+const GRAVITY          = new Vector3(0, -18, 0);
+const ROTATE_SPEED     = 2;
+const RUN_MULTIPLIER   = 1.8;
+const KNOCKBACK_FORCE  = 5.0;
 
 type CharacterState = "IN_AIR" | "ON_GROUND" | "START_JUMP";
 
 export class PhysicController {
-  private controller: PhysicsCharacterController;
-  private characterMesh: AbstractMesh;
-  private startPosition: Vector3;
-  private meshOffset = new Vector3(0, 0, 0);
 
-  private state: CharacterState = "IN_AIR";
-  private wantJump = false;
+  private controller:     PhysicsCharacterController;
+  private characterMesh:  AbstractMesh;
+  private raycastCapsule: Mesh;
+  private startPosition:  Vector3;
+  private meshOffset      = new Vector3(0, 0, 0);
 
-  private localVelocity = Vector3.Zero();
-  private grounded = false;
+  private state:         CharacterState = "IN_AIR";
+  private wantJump       = false;
+  private localVelocity  = Vector3.Zero();
+  private grounded       = false;
 
   constructor(
     scene: Scene,
     startPosition: Vector3,
     mesh: AbstractMesh | null,
-    private inputState: InputState,
-    private physicState: PhysicState,
+    private inputState:     InputState,
+    private physicState:    PhysicState,
     private animationState: AnimationStateMachine,
   ) {
     this.startPosition = startPosition.clone();
 
+    // Cápsula principal — maneja rotación y modelo
     this.characterMesh = MeshBuilder.CreateCapsule(
       "playerCapsule",
-      { height: 1.8, radius: 0.4 },
+      { height: playerConfig.height, radius: playerConfig.capsuleRadius },
       scene
     );
+    this.characterMesh.isVisible = false;
     this.characterMesh.position.copyFrom(this.startPosition);
 
     this.controller = new PhysicsCharacterController(
       this.startPosition,
-      { capsuleHeight: 1.8, capsuleRadius: 0.4 },
+      { capsuleHeight: playerConfig.height, capsuleRadius: playerConfig.capsuleRadius },
       scene
     );
 
     const ccTransformNode = scene.getTransformNodeByName('CCTransformNode');
-    if(ccTransformNode){
+    if (ccTransformNode) {
       ccTransformNode.name = playerConfig.player1.player1CollisionDetectableName;
     }
 
+    // Cápsula invisible para detección por raycast
+    this.raycastCapsule = MeshBuilder.CreateCapsule(
+      playerConfig.player1.player1RaycastDetectableName,
+      { height: playerConfig.height, radius: playerConfig.capsuleRadius },
+      scene
+    );
+    this.raycastCapsule.isVisible  = false;
+    this.raycastCapsule.isPickable = true;
+    this.raycastCapsule.position.copyFrom(this.startPosition);
 
     if (mesh) {
       this.setCharacterModel(mesh);
@@ -71,6 +84,9 @@ export class PhysicController {
     this.setupGameLoop(scene);
   }
 
+  // ─────────────────────────────────────────────
+  //  ESTADO
+  // ─────────────────────────────────────────────
   private getNextState(support: CharacterSurfaceInfo): CharacterState {
     if (this.state === "IN_AIR") {
       return support.supportedState === CharacterSupportedState.SUPPORTED
@@ -92,6 +108,9 @@ export class PhysicController {
     return "IN_AIR";
   }
 
+  // ─────────────────────────────────────────────
+  //  VELOCIDAD DESEADA
+  // ─────────────────────────────────────────────
   private getDesiredVelocity(
     dt: number,
     support: CharacterSurfaceInfo,
@@ -106,10 +125,10 @@ export class PhysicController {
     const characterOrientation = this.characterMesh.rotationQuaternion
       ?? Quaternion.FromEulerAngles(0, this.characterMesh.rotation.y, 0);
 
-    const running = this.inputState.run === true;
+    const running      = this.inputState.run === true;
     const forwardSpeed = this.inputState.moveZ;
-    const speed = this.state === "IN_AIR"
-      ? IN_AIR_SPEED * (running ? RUN_MULTIPLIER : 1)
+    const speed        = this.state === "IN_AIR"
+      ? IN_AIR_SPEED  * (running ? RUN_MULTIPLIER : 1)
       : ON_GROUND_SPEED * (running ? RUN_MULTIPLIER : 1);
 
     const backWardsSpeedMultiplicator = forwardSpeed < 0 ? 0.3 : 1;
@@ -129,11 +148,9 @@ export class PhysicController {
         desiredVelocity,
         upWorld
       );
-
       outputVelocity.addInPlace(upWorld.scale(-outputVelocity.dot(upWorld)));
       outputVelocity.addInPlace(upWorld.scale(currentVelocity.dot(upWorld)));
       outputVelocity.addInPlace(GRAVITY.scale(dt));
-
       return outputVelocity;
     }
 
@@ -148,61 +165,57 @@ export class PhysicController {
         upWorld
       );
 
-      // Will force character to slowdown on particular situations
       if (forwardSpeed === 0 || this.animationState.blockingAnimationIsPlaying) {
-        //will priorize when no input forward detected
         let slowDownFactor = 0.8;
-        if (forwardSpeed === 0) {
-          slowDownFactor = 0.1;
-        }
-        if (this.animationState.current === 'rolling') {
-          slowDownFactor = 1
-        }
-        if (this.animationState.current === 'impact_recibed') {
-          slowDownFactor = 0.6
-        }
-        if (this.animationState.current === 'crunch_idle' || this.animationState.current === 'crashing_flat') {
-          slowDownFactor = 0
-        }
+        if (forwardSpeed === 0)                                                           slowDownFactor = 0.1;
+        if (this.animationState.current === 'rolling')                                    slowDownFactor = 1;
+        if (this.animationState.current === 'impact_recibed')                             slowDownFactor = 0.6;
+        if (this.animationState.current === 'crunch_idle' ||
+            this.animationState.current === 'crashing_flat')                              slowDownFactor = 0;
 
-        const scaledx = outputVelocity._x * slowDownFactor;
-        const scaledz = outputVelocity._z * slowDownFactor;
-        outputVelocity = new Vector3(scaledx, outputVelocity.y, scaledz)
+        outputVelocity = new Vector3(
+          outputVelocity._x * slowDownFactor,
+          outputVelocity.y,
+          outputVelocity._z * slowDownFactor
+        );
       }
 
       outputVelocity.subtractInPlace(support.averageSurfaceVelocity);
       const inv1k = 1e-3;
       if (outputVelocity.dot(upWorld) > inv1k) {
-        const velLen = outputVelocity.length();
+        const velLen   = outputVelocity.length();
         outputVelocity.normalizeFromLength(velLen);
         const horizLen = velLen / support.averageSurfaceNormal.dot(upWorld);
-        const c = support.averageSurfaceNormal.cross(outputVelocity);
+        const c        = support.averageSurfaceNormal.cross(outputVelocity);
         outputVelocity = c.cross(upWorld);
         outputVelocity.scaleInPlace(horizLen);
       }
       outputVelocity.addInPlace(support.averageSurfaceVelocity);
-
       return outputVelocity;
     }
 
     if (this.state === "START_JUMP") {
-      const u = Math.sqrt(2 * GRAVITY.length() * JUMP_HEIGHT);
-      const curRelVel = currentVelocity.dot(upWorld);
+      const u          = Math.sqrt(2 * GRAVITY.length() * JUMP_HEIGHT);
+      const curRelVel  = currentVelocity.dot(upWorld);
       return currentVelocity.add(upWorld.scale(u - curRelVel));
     }
 
     return Vector3.Zero();
   }
 
+  // ─────────────────────────────────────────────
+  //  GAME LOOP
+  // ─────────────────────────────────────────────
   private setupGameLoop(scene: Scene): void {
+
+    // Rotación del personaje
     scene.onBeforeRenderObservable.add(() => {
-      const dt = scene.getEngine().getDeltaTime() / 1000;
+      const dt   = scene.getEngine().getDeltaTime() / 1000;
       const turn = this.inputState.turn;
+
       if (turn !== 0) {
         this.characterMesh.rotationQuaternion ??= Quaternion.FromEulerAngles(
-          0,
-          this.characterMesh.rotation.y,
-          0
+          0, this.characterMesh.rotation.y, 0
         );
         const deltaRot = Quaternion.RotationAxis(Vector3.Up(), turn * ROTATE_SPEED * dt);
         this.characterMesh.rotationQuaternion = deltaRot.multiply(
@@ -210,57 +223,58 @@ export class PhysicController {
         );
       }
 
+      // Sincronizar posición visual con el controller
       const physPos = this.controller.getPosition();
       this.characterMesh.position.copyFrom(physPos.add(this.meshOffset));
     });
 
+    // Física
     scene.onAfterPhysicsObservable.add(() => {
       if (scene.deltaTime === undefined) return;
       const dt = scene.deltaTime / 1000;
       if (dt === 0) return;
 
-      const down = new Vector3(0, -1, 0);
+      const down    = new Vector3(0, -1, 0);
       const support = this.controller.checkSupport(dt, down);
 
-      // this.wantJump = this.inputState.action === "jump";
-      this.wantJump = this.animationState.current === "jump_impulse_is_over"
+      this.wantJump = this.animationState.current === "jump_impulse_is_over";
 
       let desiredVelocity = this.getDesiredVelocity(dt, support, this.controller.getVelocity());
 
-      // ── KNOCKBACK ──────────────────────────────────────────
+      // Knockback
       const { recibed_impact, impact_direction } = this.physicState.getHitData();
-
       if (recibed_impact) {
-        const knockback = impact_direction
-          .normalize()
-          .scale(KNOCKBACK_FORCE);          // fuerza horizontal
-
+        const knockback = impact_direction.normalize().scale(KNOCKBACK_FORCE);
         desiredVelocity = desiredVelocity.add(knockback);
-        this.physicState.clearHitImpulse(); // consumir el evento
-        this.animationState.setState('impact_force_applied')
+        this.physicState.clearHitImpulse();
+        this.animationState.setState('impact_force_applied');
       }
-      // ───────────────────────────────────────────────────────
-
 
       this.controller.setVelocity(desiredVelocity);
       this.controller.integrate(dt, support, GRAVITY);
+
+      // ✅ Sincronizar raycastCapsule con el controller
+      const physPos = this.controller.getPosition();
+      this.raycastCapsule.position.copyFrom(physPos);
 
       this.grounded = support.supportedState === CharacterSupportedState.SUPPORTED;
       this.localVelocity.copyFrom(desiredVelocity);
       this.physicState.setGrounded(this.grounded);
       this.physicState.setVelocity(desiredVelocity);
       this.physicState.setPosition(this.characterMesh.getAbsolutePosition());
-      this.physicState.setForward(this.characterMesh.forward)
-
+      this.physicState.setForward(this.characterMesh.forward);
     });
   }
 
+  // ─────────────────────────────────────────────
+  //  API PÚBLICA
+  // ─────────────────────────────────────────────
   setCharacterModel(mesh: AbstractMesh): void {
     mesh.position.copyFrom(this.startPosition.add(this.meshOffset));
     mesh.rotation.copyFrom(this.characterMesh.rotation);
     mesh.scaling.copyFrom(this.characterMesh.scaling);
     this.characterMesh.dispose();
-    this.characterMesh = mesh;
+    this.characterMesh      = mesh;
     this.characterMesh.name = playerConfig.player1.positionTrackeableMeshName;
     this.controller.setPosition(mesh.position.clone());
   }
@@ -269,15 +283,16 @@ export class PhysicController {
     this.meshOffset.y = y;
   }
 
-  get targetMesh(): AbstractMesh { return this.characterMesh; }
-  get position(): Vector3 { return this.characterMesh.position; }
-  get isGrounded(): boolean { return this.grounded; }
-  get velocity(): Vector3 { return this.localVelocity; }
-  get speed(): number {
+  get targetMesh(): AbstractMesh  { return this.characterMesh; }
+  get position():   Vector3       { return this.characterMesh.position; }
+  get isGrounded(): boolean       { return this.grounded; }
+  get velocity():   Vector3       { return this.localVelocity; }
+  get speed():      number {
     return new Vector3(this.localVelocity.x, 0, this.localVelocity.z).length();
   }
 
   dispose(): void {
     this.characterMesh.dispose();
+    this.raycastCapsule.dispose();
   }
 }
