@@ -72,7 +72,11 @@ export default class MainScene {
       (meshes) => {
         const alphaJoints = meshes.find(m => m.name === "Alpha_Joints");
         if (alphaJoints) {
-          alphaJoints.name = playerConfig.player1.player1Raycast;
+          alphaJoints.name = playerConfig.player1.player1RaycastDetectableName;
+        }
+        const alphaSurface = meshes.find(m => m.name === "Alpha_Surface");
+        if (alphaSurface) {
+          alphaSurface.name = playerConfig.player1.player1RaycastDetectableName;
         }
       },
       (message, exception) => {
@@ -99,8 +103,8 @@ export default class MainScene {
     const characterAnimations = assets.animations["characterTask"];
     const particlesEmiterTexture = assets.textures["emiterTextureTask"]
 
-    ParticlesManager.initialize(this.scene,particlesEmiterTexture);
-    
+    ParticlesManager.initialize(this.scene, particlesEmiterTexture);
+
     // Crear Player con modelo y animaciones cargadas
     if (characterMeshes && characterMeshes.length > 0) {
       this.player = new Player(
@@ -113,7 +117,7 @@ export default class MainScene {
     }
 
     //Crear resto
-    new PlayGround(this.scene, playerConfig.player1.player1Raycast);
+    new PlayGround(this.scene, playerConfig.player1.player1RaycastDetectableName);
 
     void setUI(this.scene);
 

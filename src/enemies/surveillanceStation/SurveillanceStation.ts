@@ -39,19 +39,36 @@ export class SurveillanceStation {
 
   private barrel: Mesh;
   private upperTowerHeight: number;
+  private baseAggregate: PhysicsAggregate;
+  private baseMesh: Mesh;
+  private lowerMesh: Mesh;
+  private rotationPivot: TransformNode;
+  private controller: SurveillanceController;
+  private static instanceCount = 0;
+  private readonly sweepDirection: 1 | -1;
+
 
   constructor(
     private scene: Scene,
     private position: Vector3,
-    private meshToShootName: string,
+    private meshForPositionTrackName: string,
+    private meshForRayCastDetectName: string,
     height: SurveillanceHeight = "middle",
   ) {
     this.TURRET_HEIGHT_MULT = surveillanceConfig.heights[height];
 
-    const { lower, upperBody, barrel, rotationPivot } = this.buildGeometry();
+    SurveillanceStation.instanceCount++;
+    this.sweepDirection = SurveillanceStation.instanceCount % 2 === 0 ? 1 : -1;
+
+    const { lower, upperBody, barrel, rotationPivot, baseMesh, lowerMesh, baseAggregate } =
+      this.buildGeometry();
     this.lowerAggregate = lower;
     this.upperBody = upperBody;
     this.barrel = barrel;
+    this.baseMesh = baseMesh;       // ← nuevo
+    this.lowerMesh = lowerMesh;      // ← nuevo
+    this.baseAggregate = baseAggregate;  // ← nuevo
+    this.rotationPivot = rotationPivot;
 
     const stateMachine = new SurveillanceStateMachine(this.uniqueId);
 
@@ -60,8 +77,12 @@ export class SurveillanceStation {
       barrel,
       rotationPivot,
       stateMachine,
-      meshToShootName,
+      meshForPositionTrackName,
+      meshForRayCastDetectName,
+      this.sweepDirection,   // ← nuevo
     );
+
+    this.controller = controller;
 
     const projectileManager = new ProjectileManager(scene);
 
@@ -85,6 +106,29 @@ export class SurveillanceStation {
     });
 
     controller.start();
+  }
+
+
+  dispose(): void {
+    // 1. Detener controller — remueve observer y luz
+    this.controller.dispose();
+
+    // 2. Física
+    this.baseAggregate.dispose();
+    this.lowerAggregate.dispose();
+    this.upperBody.dispose();
+
+    // 3. Meshes
+    this.baseMesh.dispose();
+    this.lowerMesh.dispose();
+    this.rotationPivot.dispose();  // dispose del pivot elimina barrel (hijo)
+
+    // 4. Limpiar la escena del upperRoot y sus hijos
+    const upperRoot = this.upperBody.transformNode;
+    if (upperRoot) {
+      upperRoot.getChildMeshes().forEach(m => m.dispose());
+      upperRoot.dispose();
+    }
   }
 
   // ─────────────────────────────────────────────
@@ -121,6 +165,9 @@ export class SurveillanceStation {
     upperBody: PhysicsBody;
     barrel: Mesh;
     rotationPivot: TransformNode;
+    baseMesh: Mesh;        // ← nuevo
+    lowerMesh: Mesh;        // ← nuevo
+    baseAggregate: PhysicsAggregate; // ← nuevo
   } {
     const turretHeight = this.CHARACTER_HEIGHT * this.TURRET_HEIGHT_MULT;
     const mat = this.buildMaterial();
@@ -143,7 +190,11 @@ export class SurveillanceStation {
     base.position.y += baseHeight / 2;
     base.material = mat;
     base.metadata = stationMetadata;
-    new PhysicsAggregate(base, PhysicsShapeType.CYLINDER, { mass: 0, restitution: 0.1, friction: 0.9 }, this.scene);
+    const baseAggregate = new PhysicsAggregate(
+      base, PhysicsShapeType.CYLINDER,
+      { mass: 0, restitution: 0.1, friction: 0.9 },
+      this.scene
+    );
 
     // ── TORRE INFERIOR ────────────────────────
     const lowerTowerHeight = turretHeight * 0.45;
@@ -244,7 +295,15 @@ export class SurveillanceStation {
     upperBody.setMassProperties({ mass: 0 });
     this.upperTowerHeight = upperTowerHeight;
 
-    return { lower: lowerAggregate, upperBody, barrel, rotationPivot };
+    return {
+      lower: lowerAggregate,
+      upperBody,
+      barrel,
+      rotationPivot,
+      baseMesh: base,       // ← nuevo
+      lowerMesh: lowerTower, // ← nuevo
+      baseAggregate,             // ← nuevo
+    };
   }
 
   // ─────────────────────────────────────────────

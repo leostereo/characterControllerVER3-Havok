@@ -22,7 +22,8 @@ export class CanionController {
     private muzzleMesh: Mesh,
     private barrelPivot: TransformNode,
     private stateMachine: CanionStateMachine,
-    private meshToShootName: string,
+    private meshForPositionTrackName: string,
+    private meshForRayCastDetectName: string,
   ) { }
 
   // ─────────────────────────────────────────────
@@ -56,7 +57,7 @@ export class CanionController {
   //  RAYCAST
   // ─────────────────────────────────────────────
   private hasLineOfSight(): boolean {
-    const target = this.scene.getMeshByName(this.meshToShootName);
+    const target = this.scene.getMeshByName(this.meshForPositionTrackName);
     if (!target) return false;
 
     const aimHeight = this.CHARACTER_HEIGHT * this.AIM_HEIGHT_MULT;
@@ -67,20 +68,23 @@ export class CanionController {
 
     const ray = new Ray(origin, direction, distance);
     const hit = this.scene.pickWithRay(ray, (mesh) =>
+      !mesh.name.startsWith('ray') &&      //ray itself
+      !mesh.name.startsWith('cylinder') && //gizmo
       !mesh.name.startsWith(meshNames.canionMuzzle) &&
+      !mesh.name.startsWith(meshNames.canionBody) &&
       !mesh.name.startsWith(meshNames.canionBarrel) &&
       !mesh.name.startsWith(meshNames.canionPivot) &&
       !mesh.name.startsWith(meshNames.projectile)
     );
 
-    return hit?.pickedMesh?.name === playerConfig.player1.player1Raycast;
+    return hit?.pickedMesh?.name === this.meshForRayCastDetectName;
   }
 
   // ─────────────────────────────────────────────
   //  MOVIMIENTO
   // ─────────────────────────────────────────────
   private trackTarget(): void {
-    const target = this.scene.getMeshByName(this.meshToShootName);
+    const target = this.scene.getMeshByName(playerConfig.player1.positionTrackeableMeshName);
     if (!target) return;
 
     const aimHeight = this.CHARACTER_HEIGHT * this.AIM_HEIGHT_MULT;
@@ -100,7 +104,7 @@ export class CanionController {
   //  API PÚBLICA — usada por CanionManager al disparar
   // ─────────────────────────────────────────────
   getMuzzlePositionAndDirection(): { origin: Vector3; direction: Vector3 } | null {
-    const target = this.scene.getMeshByName(this.meshToShootName);
+    const target = this.scene.getMeshByName(this.meshForPositionTrackName);
     if (!target) return null;
 
     const aimHeight = this.CHARACTER_HEIGHT * this.AIM_HEIGHT_MULT;

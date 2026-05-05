@@ -21,7 +21,8 @@ export class FreesBeManager {
 
         this.freesbe_template = MeshBuilder.CreateCylinder("freesbe_template", { diameter: 0.5, height: 0.1 }, this.scene);
         this.freesbe_template.material = this.material;
-        this.freesbe_template.setEnabled(false)
+        this.freesbe_template.setEnabled(false);
+        this.freesbe_template.isPickable = false;
 
     }
 
