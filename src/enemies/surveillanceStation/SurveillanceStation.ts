@@ -44,6 +44,8 @@ export class SurveillanceStation {
   private lowerMesh: Mesh;
   private rotationPivot: TransformNode;
   private controller: SurveillanceController;
+  private static instanceCount = 0;
+  private readonly sweepDirection: 1 | -1;
 
 
   constructor(
@@ -55,6 +57,9 @@ export class SurveillanceStation {
   ) {
     this.TURRET_HEIGHT_MULT = surveillanceConfig.heights[height];
 
+    SurveillanceStation.instanceCount++;
+    this.sweepDirection = SurveillanceStation.instanceCount % 2 === 0 ? 1 : -1;
+
     const { lower, upperBody, barrel, rotationPivot, baseMesh, lowerMesh, baseAggregate } =
       this.buildGeometry();
     this.lowerAggregate = lower;
@@ -64,7 +69,7 @@ export class SurveillanceStation {
     this.lowerMesh = lowerMesh;      // ← nuevo
     this.baseAggregate = baseAggregate;  // ← nuevo
     this.rotationPivot = rotationPivot;
-    
+
     const stateMachine = new SurveillanceStateMachine(this.uniqueId);
 
     const controller = new SurveillanceController(
@@ -74,6 +79,7 @@ export class SurveillanceStation {
       stateMachine,
       meshForPositionTrackName,
       meshForRayCastDetectName,
+      this.sweepDirection,   // ← nuevo
     );
 
     this.controller = controller;

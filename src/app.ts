@@ -29,7 +29,7 @@ class App {
   }
 
   async init(): Promise<void> {
-    this.engine = new Engine(this.canvas, true, {
+      this.engine = new Engine(this.canvas, true, {
       powerPreference: "high-performance",
       preserveDrawingBuffer: true,
       stencil: true,
