@@ -148,24 +148,45 @@ export const playgroundConfig = {
 } as const;
 
 export const surveillanceConfig = {
-    heights: {
-        low: 1.0,
-        middle: 1.4,
-        highest: 2.0,
+  heights: {
+    low:     1.0,
+    middle:  1.4,
+    highest: 2.0,
+  },
+  shootingRate:      2500,
+  searchRotateSpeed: 0.6,
+  trackingRate:      500,
+  detection: {
+    range:            15,
+    angle:            35,
+    projectionOffset: 3.5,
+    projectionScale:  10,
+    raycastYOffset:   0.8,   // ← nuevo
+  },
+  lamp: {
+    muzzleOffset:     1.15,
+    diameterBottom:   0.3,
+    height:           0.4,
+    tessellationLamp: 8,
+    tessellationDisc: 64,
+    groundOffset:     0.02,
+    tilt:             Math.PI / 4,
+  },
+  colors: {
+    searching: {
+      lamp:          { r: 1.0, g: 0.9, b: 0.0 },
+      projDiffuse:   { r: 1.0, g: 0.9, b: 0.0 },
+      projEmissive:  { r: 0.3, g: 0.25, b: 0.0 },
+      projAlpha:     0.15,
     },
-    shootingRate: 2500,
-    searchRotateSpeed: 0.6,
-    detection: {
-        range: 20,
-        angle: 45,
+    alert: {
+      lamp:          { r: 1.0, g: 0.1, b: 0.0 },
+      projDiffuse:   { r: 1.0, g: 0.1, b: 0.0 },
+      projEmissive:  { r: 0.4, g: 0.0, b: 0.0 },
+      projAlpha:     0.25,
     },
-    light: {
-        intensitySearching: 5,   // ← parametrizado
-        intensityAlert: 5,   // ← parametrizado
-    },
-    trackingRate: 500,   // ← ms entre recalculos de posición del jugador
+  },
 } as const;
-
 
 // ─────────────────────────────────────────────
 //  TIPOS DERIVADOS

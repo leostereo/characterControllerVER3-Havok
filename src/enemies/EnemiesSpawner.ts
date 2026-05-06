@@ -19,7 +19,8 @@ export class EnemiesSpawner {
   //  API PÚBLICA
   // ─────────────────────────────────────────────
   spawnAll(): void {
-
+    // this.spawnOne(); return;
+    
     const { groundSize, enemyCount, spawnSafeRadius, playerSpawn } = playgroundConfig;
     const halfSize = groundSize / 2;
 
@@ -55,7 +56,7 @@ export class EnemiesSpawner {
     const { groundSize } = playgroundConfig;
     const halfSize = groundSize / 2;
     const position = this.randomPosition(halfSize);
-    this.survillanceStations.push(new SurveillanceStation(this.scene, position, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "low"))
+    this.survillanceStations.push(new SurveillanceStation(this.scene, position, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "middle"))
     
   }
 

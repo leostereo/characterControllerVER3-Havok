@@ -1,7 +1,7 @@
 import {
   type Scene,
   Mesh,
-  type TransformNode,
+  TransformNode,
   type Observer,
   Vector3,
   Color3,
@@ -15,13 +15,20 @@ import { meshNames, playerConfig, surveillanceConfig } from "@/config/GameConfig
 export class SurveillanceController {
 
   private readonly SEARCH_ROTATE_SPEED = surveillanceConfig.searchRotateSpeed;
-  private readonly DETECTION_RANGE = surveillanceConfig.detection.range;
   private readonly DETECTION_ANGLE_RAD = (surveillanceConfig.detection.angle * Math.PI) / 180;
   private readonly TRACKING_RATE = surveillanceConfig.trackingRate;
+  private readonly PROJECTION_OFFSET = surveillanceConfig.detection.projectionOffset;
+  private readonly PROJECTION_SCALE = surveillanceConfig.detection.projectionScale;
+  private readonly RAYCAST_Y_OFFSET = surveillanceConfig.detection.raycastYOffset;
+  private readonly LAMP_MUZZLE_OFFSET = surveillanceConfig.lamp.muzzleOffset;
+  private readonly TILT = surveillanceConfig.lamp.tilt;
 
   private renderObserver: Observer<Scene> | null = null;
   private trackingElapsed = 0;
-  private visionCone: Mesh;
+
+  private lamp: Mesh;
+  private projection: Mesh;
+  private orbitPivot: TransformNode;
 
   constructor(
     private scene: Scene,
@@ -31,9 +38,14 @@ export class SurveillanceController {
     private meshForPositionTrackName: string,
     private meshForRayCastDetectionName: string,
     private sweepDirection: 1 | -1 = 1,
+    private barrelHeight: number = 3,
   ) {
-    this.visionCone = this.buildVisionCone();
-    this.stateMachine.onStateChange((state) => this.updateConeColor(state));
+    const { lamp, projection, orbitPivot } = this.buildVisionEffect(barrelHeight);
+    this.lamp = lamp;
+    this.projection = projection;
+    this.orbitPivot = orbitPivot;
+
+    this.stateMachine.onStateChange((state) => this.updateVisionColor(state));
   }
 
   // ─────────────────────────────────────────────
@@ -42,6 +54,9 @@ export class SurveillanceController {
   start(): void {
     this.renderObserver = this.scene.onBeforeRenderObservable.add(() => {
       if (this.stateMachine.isCollapsed()) return;
+
+      // Sincronizar rotación del orbitPivot con el rotationPivot
+      this.orbitPivot.rotation.y = this.rotationPivot.rotation.y;
 
       const dt = this.scene.getEngine().getDeltaTime();
       const playerInSight = this.hasLineOfSight();
@@ -70,31 +85,43 @@ export class SurveillanceController {
 
   dispose(): void {
     this.stop();
-    this.visionCone.dispose();
+    this.lamp.dispose();
+    this.projection.dispose();
+    this.orbitPivot.dispose();
   }
 
   // ─────────────────────────────────────────────
-  //  DETECCIÓN — ángulo + distancia + raycast
+  //  DETECCIÓN — elipse en el suelo
   // ─────────────────────────────────────────────
   private hasLineOfSight(): boolean {
     const target = this.scene.getMeshByName(this.meshForPositionTrackName);
     if (!target) return false;
 
-    const origin = this.barrel.getAbsolutePosition();
+    const barrelPos = this.barrel.getAbsolutePosition();
+    const distToGround = this.barrelHeight / Math.tan(this.TILT);
     const forward = this.rotationPivot.forward.normalize();
-    const toTarget = target.position.subtract(origin);
-    const distance = toTarget.length();
 
-    if (distance > this.DETECTION_RANGE) return false;
+    const centerX = barrelPos.x + forward.x * distToGround * this.PROJECTION_OFFSET;
+    const centerZ = barrelPos.z + forward.z * distToGround * this.PROJECTION_OFFSET;
 
-    const dirToTarget = toTarget.normalize();
-    const dot = Vector3.Dot(forward, dirToTarget);
-    const angleToTarget = Math.acos(Math.min(1, Math.max(-1, dot)));
-    if (angleToTarget > this.DETECTION_ANGLE_RAD) return false;
+    const projRadius = this.PROJECTION_SCALE;
 
-    const rayOrigin = origin.clone();
-    rayOrigin.y += 0.8;
-    const ray = new Ray(rayOrigin, dirToTarget, distance);
+    const dx = target.position.x - centerX;
+    const dz = target.position.z - centerZ;
+    const angle = this.orbitPivot.rotation.y;
+
+    const localX = dx * Math.cos(-angle) + dz * Math.sin(-angle);
+    const localZ = -dx * Math.sin(-angle) + dz * Math.cos(-angle);
+
+    const inCircle = (localX ** 2 + localZ ** 2) <= projRadius ** 2;
+    if (!inCircle) return false;
+
+    const origin = barrelPos.clone();
+    origin.y += this.RAYCAST_Y_OFFSET;
+    const dirToTarget = target.position.subtract(origin).normalize();
+    const distance = Vector3.Distance(origin, target.position);
+
+    const ray = new Ray(origin, dirToTarget, distance);
     const hit = this.scene.pickWithRay(ray, (mesh) =>
       !mesh.name.startsWith("surveillance_") &&
       !mesh.name.startsWith(meshNames.projectile)
@@ -128,67 +155,106 @@ export class SurveillanceController {
   }
 
   // ─────────────────────────────────────────────
-  //  CONO DE VISIÓN
+  //  EFECTOS VISUALES
   // ─────────────────────────────────────────────
-private buildVisionCone(): Mesh {
-  const range      = this.DETECTION_RANGE;
-  const coneRadius = range * Math.tan(this.DETECTION_ANGLE_RAD);
+  private buildVisionEffect(barrelHeight: number): {
+    lamp: Mesh; projection: Mesh; orbitPivot: TransformNode;
+  } {
+    const distToGround = barrelHeight / Math.tan(this.TILT);
 
-  // Ángulo de inclinación hacia abajo — apunta levemente al suelo
-  const TILT = Math.PI / 6;  // 30° hacia abajo, tuneable
-
-  const cone = MeshBuilder.CreateCylinder(
-    `surveillance_cone_${this.rotationPivot.name}`,
+    const lamp = MeshBuilder.CreateCylinder(
+      `surveillance_lamp_${this.rotationPivot.name}`,
     {
-      diameterTop:     0,
-      diameterBottom:  coneRadius * 2,
-      height:          range,
-      tessellation:    24,
-      cap:             Mesh.NO_CAP,
-      sideOrientation: Mesh.DOUBLESIDE,
+      diameterTop: 0,
+      diameterBottom: surveillanceConfig.lamp.diameterBottom,
+      height: surveillanceConfig.lamp.height,
+      tessellation: surveillanceConfig.lamp.tessellationLamp,
+      cap: Mesh.NO_CAP,
     },
     this.scene
   );
+    lamp.rotation.x = -(Math.PI / 2) + this.TILT;
+    lamp.position = new Vector3(0, 0, this.LAMP_MUZZLE_OFFSET);
+    lamp.parent = this.rotationPivot;
+    lamp.isPickable = false;
 
-  // ✅ Posicionar el centro del cono en dirección del eje inclinado
-  // igual que en el playground — offset según cos/sin del tilt
-  cone.position.z =  (range / 2) * Math.cos(TILT);  // adelante en Z
-  cone.position.y = -(range / 2) * Math.sin(TILT);  // abajo en Y
+    const lampMat = new StandardMaterial(`surveillance_lamp_mat_${this.rotationPivot.name}`, this.scene);
+    lampMat.emissiveColor = new Color3(
+      surveillanceConfig.colors.searching.lamp.r,
+      surveillanceConfig.colors.searching.lamp.g,
+      surveillanceConfig.colors.searching.lamp.b,
+    );
+    lampMat.disableLighting = true;
+    lamp.material = lampMat;
 
-  // Rotar para apuntar en Z+ con inclinación hacia abajo
-  cone.rotation.x = -(Math.PI / 2) + TILT;
+    const barrelWorldPos = this.barrel.getAbsolutePosition();
+    const orbitPivot = new TransformNode(
+      `surveillance_orbit_pivot_${this.rotationPivot.name}`,
+      this.scene
+    );
+    orbitPivot.position.x = barrelWorldPos.x;
+    orbitPivot.position.y = 0;
+    orbitPivot.position.z = barrelWorldPos.z;
 
-  cone.parent     = this.rotationPivot;
-  cone.isPickable = false;
+    const projection = MeshBuilder.CreateDisc(
+      `surveillance_projection_${this.rotationPivot.name}`,
+      { radius: 1, tessellation: surveillanceConfig.lamp.tessellationDisc, sideOrientation: Mesh.DOUBLESIDE },
+      this.scene
+    );
+    projection.rotation.x = Math.PI / 2;
+    projection.scaling.x = this.PROJECTION_SCALE;
+    projection.scaling.y = this.PROJECTION_SCALE;
+    projection.scaling.z = 1;
+    projection.position = new Vector3(0, surveillanceConfig.lamp.groundOffset, distToGround * this.PROJECTION_OFFSET);
+    projection.parent = orbitPivot;
+    projection.isPickable = false;
 
-  const mat           = new StandardMaterial(`surveillance_cone_mat_${this.rotationPivot.name}`, this.scene);
-  mat.diffuseColor    = new Color3(1.0, 0.9, 0.0);
-  mat.emissiveColor   = new Color3(0.8, 0.7, 0.0);
-  mat.alpha           = 0.12;
-  mat.backFaceCulling = false;
-  mat.disableLighting = true;
-  cone.material       = mat;
+    const projMat = new StandardMaterial(`surveillance_proj_mat_${this.rotationPivot.name}`, this.scene);
+    projMat.diffuseColor = new Color3(
+      surveillanceConfig.colors.searching.projDiffuse.r,
+      surveillanceConfig.colors.searching.projDiffuse.g,
+      surveillanceConfig.colors.searching.projDiffuse.b,
+    );
+    projMat.emissiveColor = new Color3(
+      surveillanceConfig.colors.searching.projEmissive.r,
+      surveillanceConfig.colors.searching.projEmissive.g,
+      surveillanceConfig.colors.searching.projEmissive.b,
+    );
+    projMat.alpha = surveillanceConfig.colors.searching.projAlpha;
+    projMat.backFaceCulling = false;
+    projMat.disableLighting = true;
+    projection.material = projMat;
 
-  return cone;
+    return { lamp, projection, orbitPivot };
 }
 
-  private updateConeColor(state: SurveillanceState): void {
-    const mat = this.visionCone.material as StandardMaterial;
-    if (!mat) return;
+  private updateVisionColor(state: SurveillanceState): void {
+    const lampMat = this.lamp.material as StandardMaterial;
+    const projMat = this.projection.material as StandardMaterial;
+    const colors = surveillanceConfig.colors;
 
     switch (state) {
       case "searching":
-        mat.diffuseColor = new Color3(1.0, 0.9, 0.0);
-        mat.emissiveColor = new Color3(0.8, 0.7, 0.0);
-        mat.alpha = 0.12;
+        if (lampMat) lampMat.emissiveColor = new Color3(colors.searching.lamp.r, colors.searching.lamp.g, colors.searching.lamp.b);
+        if (projMat) {
+          projMat.diffuseColor = new Color3(colors.searching.projDiffuse.r, colors.searching.projDiffuse.g, colors.searching.projDiffuse.b);
+          projMat.emissiveColor = new Color3(colors.searching.projEmissive.r, colors.searching.projEmissive.g, colors.searching.projEmissive.b);
+          projMat.alpha = colors.searching.projAlpha;
+        }
         break;
+
       case "alert":
-        mat.diffuseColor = new Color3(1.0, 0.1, 0.0);
-        mat.emissiveColor = new Color3(0.8, 0.0, 0.0);
-        mat.alpha = 0.20;
+        if (lampMat) lampMat.emissiveColor = new Color3(colors.alert.lamp.r, colors.alert.lamp.g, colors.alert.lamp.b);
+        if (projMat) {
+          projMat.diffuseColor = new Color3(colors.alert.projDiffuse.r, colors.alert.projDiffuse.g, colors.alert.projDiffuse.b);
+          projMat.emissiveColor = new Color3(colors.alert.projEmissive.r, colors.alert.projEmissive.g, colors.alert.projEmissive.b);
+          projMat.alpha = colors.alert.projAlpha;
+        }
         break;
+
       case "collapsed":
-        this.visionCone.setEnabled(false);
+        this.lamp.setEnabled(false);
+        this.projection.setEnabled(false);
         break;
     }
   }
