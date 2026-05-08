@@ -184,4 +184,72 @@ export class ParticlesManager {
     }, 1000);
   }
 
+
+  public createFreesbeImpact(position: Vector3, forward: Vector3): void {
+    const impactPoint = position.clone();
+    const blastDirection = forward.clone().negate();
+
+    const perpA = Vector3.Cross(forward, Vector3.Up()).normalize();
+    const perpB = Vector3.Cross(forward, perpA).normalize();
+
+    // ── ONDA DE IMPACTO ────────────────────────────────────────────────────
+    const blast = new ParticleSystem("freesbe_blast", 40, this.scene);
+    blast.particleTexture = this.particlesEmiterTexture;
+
+    blast.emitter = impactPoint.clone();
+    blast.minEmitBox = new Vector3(-0.05, -0.05, -0.05);
+    blast.maxEmitBox = new Vector3(0.05, 0.05, 0.05);
+
+    blast.color1 = new Color4(0.2, 0.5, 1.0, 1.0);
+    blast.color2 = new Color4(0.2, 0.5, 1.0, 1.0);
+    blast.colorDead = new Color4(0.0, 0.2, 0.5, 0.0);
+
+    blast.minSize = 0.1;
+    blast.maxSize = 0.4;
+    blast.minLifeTime = 0.1;
+    blast.maxLifeTime = 0.3;
+    blast.emitRate = 300;
+
+    blast.minEmitPower = 1;
+    blast.maxEmitPower = 2;
+    blast.updateSpeed = 0.015;
+    blast.gravity = new Vector3(0, -4, 0);
+
+    blast.direction1 = blastDirection.scale(8).add(perpA.scale(5)).add(perpB.scale(3));
+    blast.direction2 = blastDirection.scale(12).add(perpA.scale(-5)).add(perpB.scale(-3));
+
+    blast.start();
+    setTimeout(() => blast.stop(), 50);
+
+    // ── FRAGMENTOS ─────────────────────────────────────────────────────────
+    const fragments = new ParticleSystem("freesbe_fragments", 20, this.scene);
+    fragments.particleTexture = this.particlesEmiterTexture;
+
+    fragments.emitter = impactPoint.clone();
+    fragments.minEmitBox = new Vector3(-0.1, -0.1, -0.1);
+    fragments.maxEmitBox = new Vector3(0.1, 0.1, 0.1);
+
+    fragments.color1 = new Color4(0.2, 0.5, 1.0, 1.0);
+    fragments.color2 = new Color4(0.2, 0.5, 1.0, 1.0);
+    fragments.colorDead = new Color4(0.0, 0.0, 0.2, 0.0);
+
+    fragments.minSize = 0.1;
+    fragments.maxSize = 0.5;
+    fragments.minLifeTime = 0.2;
+    fragments.maxLifeTime = 0.6;
+    fragments.emitRate = 150;
+
+    fragments.minEmitPower = 2;
+    fragments.maxEmitPower = 5;
+    fragments.updateSpeed = 0.008;
+    fragments.gravity = new Vector3(0, -6, 0);
+
+    fragments.direction1 = blastDirection.scale(3).add(perpA.scale(4)).add(perpB.scale(4));
+    fragments.direction2 = blastDirection.scale(6).add(perpA.scale(-4)).add(perpB.scale(-4));
+
+    fragments.start();
+    setTimeout(() => fragments.stop(), 50);
+  }
+
+
 }
