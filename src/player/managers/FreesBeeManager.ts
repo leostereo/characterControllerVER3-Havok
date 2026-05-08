@@ -50,7 +50,9 @@ export class FreesBeManager {
             
             const metadata = hitNode?.metadata as MeshMetadata | null;
             
-            this.particlesManager.createFreesbeImpact(event.point!, forward)
+            if(event.point){
+                this.particlesManager.createFreesbeImpact(event.point, forward)
+            }
 
             // ✅ Emitir evento según el tipo de mesh golpeado
             if (metadata?.type === meshMetadata.types.enemy) {
