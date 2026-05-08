@@ -1,5 +1,5 @@
 import { cameraConfig } from "@/config/GameConfig";
-import { FollowCamera, Vector3, type Scene, type AbstractMesh, type KeyboardInfo, type ArcRotateCamera } from "@babylonjs/core";
+import { FollowCamera, Vector3, type Scene, type AbstractMesh, type KeyboardInfo, type ArcRotateCamera, HemisphericLight } from "@babylonjs/core";
 
 export class CameraController {
   private readonly camera: FollowCamera;
@@ -25,6 +25,9 @@ export class CameraController {
     scene.activeCamera = this.camera;
 
     this.camera.attachControl(true);
+
+    const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
+    light.intensity = 0.5;
 
     scene.onKeyboardObservable.add((kbInfo: KeyboardInfo) => this.onDebugKeyboard(kbInfo, scene))
 

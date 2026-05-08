@@ -1,3 +1,4 @@
+import { playerConfig } from "@/config/GameConfig";
 import { AssetsManager, type Scene, type AbstractMesh, type AnimationGroup, type Texture, type AbstractAssetTask } from "@babylonjs/core";
 
 export interface LoadedAssets {
@@ -99,6 +100,11 @@ export class AssetLoader {
     }
   }
 
+  addDefaultTasks(): void {
+    this._addCharacterTask();
+    this._addParticleTextureTask();
+  }
+
   /**
    * Inicia la carga de todos los assets.
    */
@@ -129,4 +135,36 @@ export class AssetLoader {
     this.assetsManager.reset();
     this.loadedAssets = { meshes: {}, animations: {}, textures: {}, binaries: {} };
   }
+
+  private _addCharacterTask(): void {
+    this.addMeshTask(
+      "characterTask",
+      "",
+      "",
+      "./model/ybotV10.glb",
+      (meshes) => {
+        const detectableName = playerConfig.player1.player1RaycastDetectableName;
+        const alphaJoints = meshes.find(m => m.name === "Alpha_Joints");
+        if (alphaJoints) alphaJoints.name = detectableName;
+
+        const alphaSurface = meshes.find(m => m.name === "Alpha_Surface");
+        if (alphaSurface) alphaSurface.name = detectableName;
+      },
+      (message, exception) => {
+        console.error("[AssetLoader] Error cargando personaje:", message, exception);
+      }
+    );
+  }
+
+  private _addParticleTextureTask(): void {
+    this.addTextureTask(
+      "emiterTextureTask",
+      "https://assets.babylonjs.com/textures/flare.png",
+      undefined,
+      (message, exception) => {
+        console.error("[AssetLoader] Error cargando textura:", message, exception);
+      }
+    );
+  }
+
 }
