@@ -44,7 +44,6 @@ class App {
     new MainScene(this.scene, this.canvas, this.engine);
 
     await this._config();
-    this._renderer();
   }
 
   async initWebGPU(): Promise<void> {
@@ -63,7 +62,6 @@ class App {
     new MainScene(this.scene, this.canvas, this.engine);
 
     await this._config();
-    this._renderer();
   }
 
   async _setPhysics(): Promise<void> {
@@ -127,12 +125,6 @@ class App {
     await this._bindEvent();
   }
 
-  _renderer(): void {
-    this.engine.runRenderLoop(() => {
-      this._fps();
-      this.scene.render();
-    });
-  }
 }
 
 new App();

@@ -45,10 +45,15 @@ export class FreesBeManager {
         freesbeAggregate.body.setCollisionCallbackEnabled(true);
         const collisionObserver = freesbeAggregate.body.getCollisionObservable().add((event) => {
 
-const hitNode  = event.collidedAgainst?.transformNode;  // ← ya no castear a Mesh
+            const hitNode  = event.collidedAgainst?.transformNode;  // ← ya no castear a Mesh
             if (!hitNode) return;
+            
+            const metadata = hitNode?.metadata as MeshMetadata | null;
+            
+            if(event.point){
+                this.particlesManager.createFreesbeImpact(event.point, forward)
+            }
 
-const metadata = hitNode?.metadata as MeshMetadata | null;
             // ✅ Emitir evento según el tipo de mesh golpeado
             if (metadata?.type === meshMetadata.types.enemy) {
                 freesbeAggregate.body.getCollisionObservable().remove(collisionObserver);

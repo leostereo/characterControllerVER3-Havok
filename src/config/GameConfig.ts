@@ -9,8 +9,12 @@ export const playerConfig = {
     speedOnGround: 10.0,
     speedInAir: 8.0,
     jumpHeight: 3.5,
+    gravity: -18,
     rotateSpeed: 2.0,
+    rotateStepDeg: 1.0,
+    rotateAccumulatorMaxSteps: 10,
     runMultiplier: 1.8,
+    knockbackForce: 5.0,
     backwardsMultiplier: 0.3,
     aimHeightMultiplier: 0.5,
     player1: {
