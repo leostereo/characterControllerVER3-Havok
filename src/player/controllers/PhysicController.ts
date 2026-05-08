@@ -14,18 +14,21 @@ import { type PhysicState }          from "../statemachines/PhysicState";
 import { type AnimationStateMachine } from "../statemachines/AnimationState";
 import { playerConfig }              from "@/config/GameConfig";
 
-const ON_GROUND_SPEED  = 10.0;
-const IN_AIR_SPEED     = 8.0;
-const JUMP_HEIGHT      = 3.5;
-const GRAVITY          = new Vector3(0, -18, 0);
-const ROTATE_SPEED     = 2;
-const RUN_MULTIPLIER   = 1.8;
-const KNOCKBACK_FORCE  = 5.0;
+const ON_GROUND_SPEED = playerConfig.speedOnGround;
+const IN_AIR_SPEED = playerConfig.speedInAir;
+const JUMP_HEIGHT = playerConfig.jumpHeight;
+const GRAVITY = new Vector3(0, playerConfig.gravity, 0);
+const ROTATE_SPEED = playerConfig.rotateSpeed;
+const RUN_MULTIPLIER = playerConfig.runMultiplier;
+const KNOCKBACK_FORCE = playerConfig.knockbackForce;
+const ROTATE_STEP_RAD = (playerConfig.rotateStepDeg * Math.PI) / 180;
+const ROTATE_ACCUMULATOR_MAX = ROTATE_STEP_RAD * 10; // evita overflow si hay lag
 
 type CharacterState = "IN_AIR" | "ON_GROUND" | "START_JUMP";
 
 export class PhysicController {
 
+  private rotAccumulator = 0;
   private controller:     PhysicsCharacterController;
   private characterMesh:  AbstractMesh;
   private raycastCapsule: Mesh;
@@ -210,18 +213,32 @@ export class PhysicController {
 
     // Rotación del personaje
     scene.onBeforeRenderObservable.add(() => {
-      const dt   = scene.getEngine().getDeltaTime() / 1000;
+      const dt = scene.getEngine().getDeltaTime() / 1000;
       const turn = this.inputState.turn;
 
       if (turn !== 0) {
         this.characterMesh.rotationQuaternion ??= Quaternion.FromEulerAngles(
           0, this.characterMesh.rotation.y, 0
         );
-        const deltaRot = Quaternion.RotationAxis(Vector3.Up(), turn * ROTATE_SPEED * dt);
-        this.characterMesh.rotationQuaternion = deltaRot.multiply(
-          this.characterMesh.rotationQuaternion
-        );
-      }
+
+    // Acumulamos tiempo de giro
+    this.rotAccumulator += Math.abs(turn) * ROTATE_SPEED * dt;
+    // Cap para evitar saltos grandes si hay un frame muy largo
+    this.rotAccumulator = Math.min(this.rotAccumulator, ROTATE_ACCUMULATOR_MAX);
+
+    // Aplicamos solo pasos discretos
+    while (this.rotAccumulator >= ROTATE_STEP_RAD) {
+      const direction = turn > 0 ? 1 : -1;
+      const deltaRot = Quaternion.RotationAxis(Vector3.Up(), direction * ROTATE_STEP_RAD);
+      this.characterMesh.rotationQuaternion = deltaRot.multiply(
+        this.characterMesh.rotationQuaternion
+      );
+      this.rotAccumulator -= ROTATE_STEP_RAD;
+    }
+  } else {
+    // Al soltar la tecla, descartamos el acumulador
+    this.rotAccumulator = 0;
+  }
 
       // Sincronizar posición visual con el controller
       const physPos = this.controller.getPosition();

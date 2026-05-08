@@ -3,7 +3,7 @@ import type { Engine } from "@babylonjs/core/Engines/engine";
 import type { WebGPUEngine } from "@babylonjs/core/Engines/webgpuEngine";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 
-import { AssetLoader, type LoadedAssets } from "@/utils/AssetsLoader";
+import { type LoadedAssets } from "@/utils/AssetsLoader";
 import { Player } from "@/player/Player";
 import { PlayGround } from "@/playground/PlayGround";
 import { ParticlesManager } from "@/game/effects/ParticlesManager";
@@ -12,66 +12,32 @@ import { playerConfig } from "@/config/GameConfig";
 import { GameStateMachine } from "./stateMachines/GameStateMachine";
 import { GameController } from "./controllers/GameController";
 import { GameState } from "./types/GameState";
-import { LoadingScreen } from "@/screens/LoadingScreen";
-import { SplashScreen } from "@/screens/SplashScreen";
 
 export class Game {
-  private stateMachine  = new GameStateMachine();
-  private controller:   GameController;
-  private assetLoader:  AssetLoader;
-  private player:       Player | null = null;
-
-  private loadingScreen = new LoadingScreen();
-  private splashScreen  = new SplashScreen();
+  private stateMachine = new GameStateMachine();
+  private controller:  GameController;
+  private player:      Player | null = null;
 
   constructor(
     private scene:  Scene,
-    private engine: Engine | WebGPUEngine
+    private engine: Engine | WebGPUEngine,
+    assets: LoadedAssets
   ) {
-    this.controller  = new GameController(scene, engine, this.stateMachine);
-    this.assetLoader = new AssetLoader(scene);
+    this.controller = new GameController(scene, engine, this.stateMachine);
     this._registerStateHandlers();
-    void this.init();
-  }
-
-  // ── Punto de entrada ──────────────────────────────────────────
-
-  async init(): Promise<void> {
-    this._registerSplashCallback();
-    await this.loadComponents();
-  }
-
-  async loadComponents(): Promise<void> {
-    this.assetLoader.addDefaultTasks();
-    this.assetLoader.load(
-      (assets) => this._onAssetsLoaded(assets),
-      (remaining, total) => this._onLoadingProgress(remaining, total)
-    );
+    this._initGame(assets);
   }
 
   // ── API pública ───────────────────────────────────────────────
 
-  start(): void { this.controller.start(); }
-  pause(): void { this.controller.pause(); }
-  resume(): void { this.controller.resume(); }
-  gameOver(): void { this.controller.gameOver(); }
+  start():void    { this.controller.start();    }
+  pause():void    { this.controller.pause();    }
+  resume():void   { this.controller.resume();   }
+  gameOver():void { this.controller.gameOver(); }
 
   getState(): GameState { return this.stateMachine.current; }
 
-  // ── Callbacks del loader ──────────────────────────────────────
-
-  private _onLoadingProgress(remaining: number, total: number): void {
-    const percent = ((total - remaining) / total) * 100;
-    this.loadingScreen.setProgress(percent);
-  }
-
-  private _onAssetsLoaded(assets: LoadedAssets): void {
-    this._initGame(assets);
-    this.loadingScreen.hide();
-    this.splashScreen.show();
-  }
-
-  // ── Inicialización del juego ──────────────────────────────────
+  // ── Inicialización ────────────────────────────────────────────
 
   private _initGame(assets: LoadedAssets): void {
     const characterMeshes     = assets.meshes["characterTask"];
@@ -106,9 +72,7 @@ export class Game {
     this.stateMachine.onEnter(GameState.GAME_OVER, () => this._onGameOver());
   }
 
-  private _onReady(): void {
-    // Espera que SplashScreen llame a start() via onContinue
-  }
+  private _onReady(): void { }
 
   private _onPlaying(): void {
     console.warn("[Game] Jugando");
@@ -120,13 +84,5 @@ export class Game {
 
   private _onGameOver(): void {
     console.warn("[Game] Game Over");
-  }
-
-  // ── Splash ────────────────────────────────────────────────────
-
-  private _registerSplashCallback(): void {
-    this.splashScreen.onContinue(() => {
-      this.start();
-    });
   }
 }

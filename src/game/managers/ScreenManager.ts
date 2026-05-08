@@ -1,52 +1,42 @@
 import { LoadingScreen } from "@/screens/LoadingScreen";
-import { SplashScreen } from "@/screens/SplashScreen";
 
-type CurrentScreen = "loading" | "splash" | "none";
+type CurrentScreen = "loading" | "splash" | "game_over" | "none";
 
 export class ScreenManager {
-    private static _instance: ScreenManager;
+  private static _instance: ScreenManager;
 
-    private loadingScreen = new LoadingScreen();
-    private splashScreen = new SplashScreen();
-    private _current: CurrentScreen = "loading";
+  private loadingScreen = new LoadingScreen();
+  private _current: CurrentScreen = "none";
 
-    private constructor() { }
+  private constructor() {}
 
-    static getInstance(): ScreenManager {
-        if (!ScreenManager._instance) {
-            ScreenManager._instance = new ScreenManager();
-        }
-        return ScreenManager._instance;
+  static getInstance(): ScreenManager {
+    if (!ScreenManager._instance) {
+      ScreenManager._instance = new ScreenManager();
     }
+    return ScreenManager._instance;
+  }
 
-    // ── API pública ───────────────────────────────────────────────
+  // ── API pública ───────────────────────────────────────────────
 
-    setProgress(percent: number): void {
-        this.loadingScreen.setProgress(percent);
-    }
+  displayLoadingScreen(): void {
+    this._current = "loading";
+    // La LoadingScreen se monta en el DOM desde su constructor,
+    // este método existe para el estado explícito y futuros usos
+  }
 
-    // Fade out loading → fade in splash → resuelve cuando el usuario presiona tecla
-    async transitionToSplash(): Promise<void> {
-        this.loadingScreen.hide();
-        this._current = "splash";
-        await this._waitForSplash();
-    }
+  setProgress(percent: number): void {
+    this.loadingScreen.setProgress(percent);
+  }
 
-    // Fade out splash (por si se necesita ocultar programáticamente)
-    async transitionToNone(): Promise<void> {
-        if (this._current === "splash") {
-            this.splashScreen.hide();
-        }
-        this._current = "none";
-    }
+  // Transiciona de progreso a controles + press any key
+  showSplash(): void {
+    this._current = "splash";
+    this.loadingScreen.showSplash();
+  }
 
-    // ── Privados ──────────────────────────────────────────────────
-
-    // Muestra el splash y retorna Promise que resuelve cuando el usuario presiona tecla
-    private _waitForSplash(): Promise<void> {
-        return new Promise((resolve) => {
-            this.splashScreen.onContinue(() => resolve()); // resuelve después del fade
-            this.splashScreen.show();
-        });
-    }
+  hideLoadingScreen(): void {
+    this._current = "none";
+    this.loadingScreen.hide();
+  }
 }

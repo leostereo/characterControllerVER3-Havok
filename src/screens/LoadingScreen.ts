@@ -1,43 +1,56 @@
 export class LoadingScreen {
-  private container: HTMLDivElement;
-  private progressBar: HTMLDivElement;
+  private container:    HTMLDivElement;
+  private progressWrap: HTMLDivElement;
+  private progressBar:  HTMLDivElement;
   private percentLabel: HTMLSpanElement;
+  private splashWrap:   HTMLDivElement;
 
   constructor() {
-    this.container     = document.createElement("div");
-    this.progressBar   = document.createElement("div");
-    this.percentLabel  = document.createElement("span");
+    this.container    = document.createElement("div");
+    this.progressWrap = document.createElement("div");
+    this.progressBar  = document.createElement("div");
+    this.percentLabel = document.createElement("span");
+    this.splashWrap   = document.createElement("div");
     this._build();
   }
 
   private _build(): void {
+    // ── Contenedor principal ────────────────────────────────────
     Object.assign(this.container.style, {
-      position:        "fixed",
-      inset:           "0",
-      background:      "#0a0a0f",
-      display:         "flex",
-      flexDirection:   "column",
-      alignItems:      "center",
-      justifyContent:  "center",
-      gap:             "32px",
-      fontFamily:      "monospace",
-      color:           "#e0e0e0",
-      zIndex:          "100",
-      transition:      "opacity 0.6s ease",
+      position:       "fixed",
+      inset:          "0",
+      background:     "linear-gradient(160deg, #0a0a0f 60%, #12102a 100%)",
+      display:        "flex",
+      flexDirection:  "column",
+      alignItems:     "center",
+      justifyContent: "center",
+      gap:            "32px",
+      fontFamily:     "monospace",
+      color:          "#e0e0e0",
+      zIndex:         "100",
     });
 
-    // ── Título ──────────────────────────────────────────────────
+    // ── Título (siempre visible) ─────────────────────────────────
     const title = document.createElement("h1");
     title.textContent = "MY GAME";
     Object.assign(title.style, {
-      fontSize:      "3rem",
-      letterSpacing: "0.4em",
+      fontSize:      "3.5rem",
+      letterSpacing: "0.5em",
       color:         "#ffffff",
       margin:        "0",
       textTransform: "uppercase",
     });
 
-    // ── Barra de progreso ───────────────────────────────────────
+    // ── Sección de progreso ─────────────────────────────────────
+    Object.assign(this.progressWrap.style, {
+      display:        "flex",
+      flexDirection:  "column",
+      alignItems:     "center",
+      gap:            "12px",
+      opacity:        "1",
+      transition:     "opacity 0.4s ease",
+    });
+
     const track = document.createElement("div");
     Object.assign(track.style, {
       width:        "340px",
@@ -55,64 +68,112 @@ export class LoadingScreen {
       transition:   "width 0.2s ease",
     });
 
-    track.appendChild(this.progressBar);
-
-    // ── Porcentaje ──────────────────────────────────────────────
     Object.assign(this.percentLabel.style, {
       fontSize: "0.85rem",
       color:    "#888",
     });
     this.percentLabel.textContent = "0%";
 
-    // ── Controles ───────────────────────────────────────────────
-    const controls = document.createElement("div");
-    Object.assign(controls.style, {
-      display:       "flex",
-      gap:           "24px",
-      marginTop:     "16px",
-      fontSize:      "0.75rem",
-      color:         "#555",
-      letterSpacing: "0.05em",
+    track.appendChild(this.progressBar);
+    this.progressWrap.append(track, this.percentLabel);
+
+    // ── Sección splash (controles + press any key) ──────────────
+    Object.assign(this.splashWrap.style, {
+      display:        "flex",
+      flexDirection:  "column",
+      alignItems:     "center",
+      gap:            "24px",
+      opacity:        "0",
+      transition:     "opacity 0.4s ease",
+      pointerEvents:  "none",
     });
 
-    const keys = [
-      { key: "W A S D", action: "Mover" },
-      { key: "SPACE",   action: "Saltar" },
-      { key: "SHIFT",   action: "Correr" },
-      { key: "ESC",     action: "Pausa"  },
+    const grid = document.createElement("div");
+    Object.assign(grid.style, {
+      display:             "grid",
+      gridTemplateColumns: "auto auto",
+      gap:                 "10px 32px",
+      fontSize:            "0.82rem",
+    });
+
+    const controls = [
+      { key: "W A S D", action: "Moverse"        },
+      { key: "SPACE",   action: "Saltar"          },
+      { key: "SHIFT",   action: "Correr"          },
+      { key: "ESC",     action: "Pausar"          },
+      { key: "MOUSE",   action: "Apuntar / girar" },
+      { key: "LMB",     action: "Atacar"          },
     ];
 
-    keys.forEach(({ key, action }) => {
-      const item = document.createElement("div");
-      item.style.textAlign = "center";
-      item.innerHTML = `
-        <span style="
-          display: block;
-          background: #1a1a2e;
-          border: 1px solid #333;
-          border-radius: 4px;
-          padding: 4px 10px;
-          margin-bottom: 6px;
-          color: #aaa;
-          font-size: 0.8rem;
-        ">${key}</span>
-        <span style="color: #555">${action}</span>
-      `;
-      controls.appendChild(item);
+    controls.forEach(({ key, action }) => {
+      const keyEl = document.createElement("span");
+      keyEl.textContent = key;
+      Object.assign(keyEl.style, {
+        background:   "#1a1a2e",
+        border:       "1px solid #2a2a4a",
+        borderRadius: "4px",
+        padding:      "3px 10px",
+        color:        "#aaa",
+        textAlign:    "center",
+        fontSize:     "0.78rem",
+      });
+
+      const actionEl = document.createElement("span");
+      actionEl.textContent = action;
+      actionEl.style.color = "#666";
+
+      grid.append(keyEl, actionEl);
     });
 
-    this.container.append(title, track, this.percentLabel, controls);
+    const prompt = document.createElement("p");
+    prompt.textContent = "PRESS ANY KEY TO CONTINUE";
+    Object.assign(prompt.style, {
+      fontSize:      "0.75rem",
+      letterSpacing: "0.3em",
+      color:         "#6c63ff",
+      margin:        "0",
+      animation:     "blink 1.4s ease-in-out infinite",
+    });
+
+    if (!document.getElementById("screen-styles")) {
+      const style = document.createElement("style");
+      style.id = "screen-styles";
+      style.textContent = `
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50%       { opacity: 0.2; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    this.splashWrap.append(grid, prompt);
+    this.container.append(title, this.progressWrap, this.splashWrap);
     document.body.appendChild(this.container);
   }
 
+  // ── API pública ───────────────────────────────────────────────
+
   setProgress(percent: number): void {
     const clamped = Math.min(100, Math.max(0, percent));
-    this.progressBar.style.width    = `${clamped}%`;
-    this.percentLabel.textContent   = `${Math.floor(clamped)}%`;
+    this.progressBar.style.width  = `${clamped}%`;
+    this.percentLabel.textContent = `${Math.floor(clamped)}%`;
+  }
+
+  // Fade out progreso → fade in controles
+  showSplash(): void {
+    this.progressWrap.style.opacity = "0";
+    this.progressWrap.addEventListener("transitionend", () => {
+      this.progressWrap.style.display = "none";
+      this.splashWrap.style.opacity   = "1";
+    }, { once: true });
   }
 
   hide(): void {
     this.container.style.opacity = "0";
-    setTimeout(() => this.container.remove(), 600);
+    this.container.style.transition = "opacity 0.5s ease";
+    this.container.addEventListener("transitionend", () => {
+      this.container.remove();
+    }, { once: true });
   }
 }
