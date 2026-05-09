@@ -136,6 +136,7 @@ export const meshMetadata = {
         player: "player",
         terrain: "terrain",
         cover: "cover",
+        wall: "wall"
     },
     enemyClasses: {
         canion: "canion",
@@ -146,7 +147,7 @@ export const meshMetadata = {
 export const playgroundConfig = {
     groundSize: 60,
     wallCount: 50,
-    enemyCount: 6,
+    enemyCount: 0,
     spawnSafeRadius: 8,
     playerSpawn: { x: 0, z: 0 },
 } as const;
@@ -191,6 +192,50 @@ export const surveillanceConfig = {
     },
   },
 } as const;
+
+
+export const unitBlockConfig = {
+  size: 1.0,
+  physics: {
+    normal:       { mass: 0, restitution: 0.6, friction: 0.4 },
+    destructible: { mass: 0, restitution: 0.4, friction: 0.5 },
+    heavy:        { mass: 0, restitution: 0.2, friction: 0.9 },
+  },
+  material: {
+    normal:       { diffuse: { r: 0.07, g: 0.09, b: 0.13 }, emissive: { r: 0.00, g: 0.15, b: 0.35 }, specular: { r: 0.80, g: 0.80, b: 0.80 }, alpha: 1.00 },
+    destructible: { diffuse: { r: 0.07, g: 0.09, b: 0.13 }, emissive: { r: 0.00, g: 0.15, b: 0.35 }, specular: { r: 0.80, g: 0.80, b: 0.80 }, alpha: 0.55 },
+    heavy:        { diffuse: { r: 0.07, g: 0.09, b: 0.13 }, emissive: { r: 0.00, g: 0.15, b: 0.35 }, specular: { r: 0.80, g: 0.80, b: 0.80 }, alpha: 1.00 },
+  },
+  pipe: {
+    diameter:     0.06,
+    tessellation: 8,
+    color:        { r: 0.00, g: 0.40, b: 1.00 },
+  },
+} as const;
+
+export const wallShapes = {
+  I:      [[1], [1], [1]],
+  L:      [[1, 0], [1, 0], [1, 1]],
+  T:      [[1, 1, 1], [0, 1, 0]],
+  Z:      [[1, 1, 0], [0, 1, 1]],
+  elbow:  [[1, 0], [1, 1]],
+  square: [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+  cross:  [[0, 1, 0], [1, 1, 1], [0, 1, 0]],
+} as const;
+
+export type ShapeName = keyof typeof wallShapes;
+
+export const wallsBuilderConfig = {
+  wallGroupCount:  40,
+  maxTramLength:   16,
+  minTramLength:   2,
+  spawnSafeRadius: 8,
+  minGroupSpacing: 5,
+  groundMargin:    2,
+} as const;
+
+// En meshMetadata.types agregar:
+// wall: "wall",
 
 // ─────────────────────────────────────────────
 //  TIPOS DERIVADOS

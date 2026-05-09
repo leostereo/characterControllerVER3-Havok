@@ -7,7 +7,7 @@ import {
   PhysicsShapeType,
 } from "@babylonjs/core";
 import { WallsBuilder }     from "./builders/WallsBuilder";
-import { playgroundConfig, meshNames } from "@/config/GameConfig";
+import { meshNames, groundConfig } from "@/config/GameConfig";
 import { EnemiesSpawner } from "@/enemies/EnemiesSpawner";
 
 export class PlayGround {
@@ -31,11 +31,10 @@ export class PlayGround {
   //  GROUND
   // ─────────────────────────────────────────────
   private buildGround(): void {
-    const { groundSize } = playgroundConfig;
 
     const ground = MeshBuilder.CreateGround(
       meshNames.ground,
-      { width: groundSize, height: groundSize, subdivisions: 2 },
+      { width: groundConfig.width, height: groundConfig.height, subdivisions: 2 },
       this.scene
     );
 
