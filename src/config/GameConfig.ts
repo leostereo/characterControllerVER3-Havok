@@ -142,11 +142,15 @@ export const meshMetadata = {
         canion: "canion",
         surveillance: "surveillance",
     },
+    wallClasses: {
+        basic: "basic",
+        heavy: "heavy",
+    },
 } as const;
 
 export const playgroundConfig = {
     groundSize: 60,
-    wallCount: 50,
+    // wallCount: 50,
     enemyCount: 0,
     spawnSafeRadius: 8,
     playerSpawn: { x: 0, z: 0 },
@@ -226,16 +230,16 @@ export const wallShapes = {
 export type ShapeName = keyof typeof wallShapes;
 
 export const wallsBuilderConfig = {
-  wallGroupCount:  40,
-  maxTramLength:   16,
-  minTramLength:   2,
-  spawnSafeRadius: 8,
-  minGroupSpacing: 5,
-  groundMargin:    2,
-} as const;
 
-// En meshMetadata.types agregar:
-// wall: "wall",
+    wallGroupCount: 40,     // grupos a generar
+    maxTramLength: 16,     // largo máximo del tramo I en bloques
+    minTramLength: 2,     // largo mínimo antes de descartar el grupo
+    wallHeights: [1, 2, 3, 4],   // ← reemplaza wallHeight
+    spawnSafeRadius: 8,
+    minGroupSpacing: 5,
+    groundMargin:    2,
+
+} as const;
 
 // ─────────────────────────────────────────────
 //  TIPOS DERIVADOS
@@ -252,6 +256,7 @@ export type UiConfig = typeof uiConfig;
 export type MeshMetadata = {
     type: typeof meshMetadata.types[keyof typeof meshMetadata.types];
     enemyClass?: typeof meshMetadata.enemyClasses[keyof typeof meshMetadata.enemyClasses];
+    wallClass?:  typeof meshMetadata.wallClasses[keyof typeof meshMetadata.wallClasses];
     canionId?: string;
     stationId?: string;
 };

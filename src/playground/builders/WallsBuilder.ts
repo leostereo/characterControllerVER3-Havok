@@ -1,14 +1,16 @@
-import { type Scene, Vector3, KeyboardEventTypes } from "@babylonjs/core";
+import { type Scene, Vector3, KeyboardEventTypes, PhysicsAggregate, PhysicsShapeType } from "@babylonjs/core";
 import {
   wallsBuilderConfig,
   groundConfig,
   playgroundConfig,
+  meshMetadata,
 } from "@/config/GameConfig";
 import { WallGroup } from "./WallGroup";
 
 export class WallsBuilder {
 
   private groups: WallGroup[] = [];
+  private groupCounter = 0;
 
   constructor(private scene: Scene) {
     this.registerDebugKeys();
@@ -28,6 +30,7 @@ export class WallsBuilder {
     );
 
     const placedPositions: Vector3[] = [];
+    this.groupCounter = 0;
     let placed   = 0;
     let attempts = 0;
     const maxAttempts = cfg.wallGroupCount * 20;
@@ -59,12 +62,14 @@ export class WallsBuilder {
       }
 
       group.applyTransform(position, rotSteps);
+      this.setupMesh(group);
+      this.addPhysics(group);
       this.groups.push(group);
       placedPositions.push(position);
       placed++;
     }
 
-    // console.warn(`WallsBuilder: ${placed}/${cfg.wallGroupCount} grupos colocados en ${attempts} intentos`);
+    console.log(`WallsBuilder: ${placed}/${cfg.wallGroupCount} grupos colocados en ${attempts} intentos`);
   }
 
   dispose(): void {
@@ -82,11 +87,34 @@ export class WallsBuilder {
         kbInfo.type === KeyboardEventTypes.KEYDOWN &&
         kbInfo.event.key.toLowerCase() === "t"
       ) {
-        // console.warn("WallsBuilder: regenerando muros...");
+        console.log("WallsBuilder: regenerando muros...");
         this.dispose();
         this.build();
       }
     });
+  }
+
+  // ─────────────────────────────────────────────
+  //  FÍSICA
+  // ─────────────────────────────────────────────
+
+  private setupMesh(group: WallGroup): void {
+    if (!group.mesh) return;
+    group.mesh.name     = `wall_group_${this.groupCounter++}`;
+    group.mesh.metadata = {
+      type:      meshMetadata.types.wall,
+      wallClass: meshMetadata.wallClasses.basic,
+    };
+  }
+
+  private addPhysics(group: WallGroup): void {
+    if (!group.mesh) return;
+    new PhysicsAggregate(
+      group.mesh,
+      PhysicsShapeType.MESH,
+      { mass: 0, restitution: 0.4, friction: 0.6 },
+      this.scene
+    );
   }
 
   // ─────────────────────────────────────────────
