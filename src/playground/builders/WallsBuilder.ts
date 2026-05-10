@@ -69,7 +69,7 @@ export class WallsBuilder {
       placed++;
     }
 
-    console.log(`WallsBuilder: ${placed}/${cfg.wallGroupCount} grupos colocados en ${attempts} intentos`);
+    console.warn(`WallsBuilder: ${placed}/${cfg.wallGroupCount} grupos colocados en ${attempts} intentos`);
   }
 
   dispose(): void {
@@ -87,7 +87,7 @@ export class WallsBuilder {
         kbInfo.type === KeyboardEventTypes.KEYDOWN &&
         kbInfo.event.key.toLowerCase() === "t"
       ) {
-        console.log("WallsBuilder: regenerando muros...");
+        console.warn("WallsBuilder: regenerando muros...");
         this.dispose();
         this.build();
       }

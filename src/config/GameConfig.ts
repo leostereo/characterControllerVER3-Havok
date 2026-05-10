@@ -150,8 +150,7 @@ export const meshMetadata = {
 
 export const playgroundConfig = {
     groundSize: 60,
-    // wallCount: 50,
-    enemyCount: 0,
+    enemyCount: 5,
     spawnSafeRadius: 8,
     playerSpawn: { x: 0, z: 0 },
 } as const;
