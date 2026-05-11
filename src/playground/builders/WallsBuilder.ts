@@ -6,11 +6,13 @@ import {
   meshMetadata,
 } from "@/config/GameConfig";
 import { WallGroup } from "./WallGroup";
+import { computeBuildMap, renderEmptyUnits, areaAssignment, renderAreas, type BuildMap } from "./BuildMap";
 
 export class WallsBuilder {
 
   private groups: WallGroup[] = [];
   private groupCounter = 0;
+  private zoneMeshes: import("@babylonjs/core").Mesh[] = [];
 
   constructor(private scene: Scene) {
     this.registerDebugKeys();
@@ -20,7 +22,7 @@ export class WallsBuilder {
   //  API PÚBLICA
   // ─────────────────────────────────────────────
 
-  build(): void {
+  build(): BuildMap {
     const cfg      = wallsBuilderConfig;
     const limitX   = groundConfig.width  / 2 - cfg.groundMargin;
     const limitZ   = groundConfig.height / 2 - cfg.groundMargin;
@@ -70,9 +72,18 @@ export class WallsBuilder {
     }
 
     console.warn(`WallsBuilder: ${placed}/${cfg.wallGroupCount} grupos colocados en ${attempts} intentos`);
+    const buildMap = computeBuildMap(this.groups);
+    const areas = areaAssignment(buildMap);
+    this.zoneMeshes = [
+      ...renderEmptyUnits(buildMap, this.scene),
+      ...renderAreas(areas, this.scene),
+    ];
+    return buildMap;
   }
 
   dispose(): void {
+    this.zoneMeshes.forEach(m => m.dispose());
+    this.zoneMeshes = [];
     this.groups.forEach(g => g.dispose());
     this.groups = [];
   }
