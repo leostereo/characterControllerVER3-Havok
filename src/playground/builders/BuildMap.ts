@@ -6,18 +6,15 @@ import {
   type Scene,
   type Mesh,
 } from "@babylonjs/core";
-import { groundConfig } from "@/config/GameConfig";
+import { groundConfig, playGroundStateConfig } from "@/config/GameConfig";
 import { type WallGroup } from "./WallGroup";
 
 const CELL_SIZE = 1; // 1x1 unidades de mundo
 
 export interface BuildMap {
-  emptyUnits: Vector3[]; // centros de celdas vacías en coordenadas mundo
+  emptyUnits: Vector3[];
 }
 
-/**
- * Divide el ground en celdas 1x1 y detecta las que no tienen WallGroup.
- */
 export function computeBuildMap(groups: WallGroup[]): BuildMap {
 
   const halfX = groundConfig.width  / 2;
@@ -25,13 +22,12 @@ export function computeBuildMap(groups: WallGroup[]): BuildMap {
   const cols  = Math.ceil(groundConfig.width  / CELL_SIZE);
   const rows  = Math.ceil(groundConfig.height / CELL_SIZE);
 
-  // ── Marcar celdas ocupadas ──
   const occupied: boolean[][] = Array.from(
     { length: rows }, () => Array(cols).fill(false)
   );
 
-  const toCol = (wx: number):number => Math.floor((wx + halfX) / CELL_SIZE);
-  const toRow = (wz: number):number => Math.floor((wz + halfZ) / CELL_SIZE);
+  const toCol = (wx: number): number => Math.floor((wx + halfX) / CELL_SIZE);
+  const toRow = (wz: number): number => Math.floor((wz + halfZ) / CELL_SIZE);
 
   groups.forEach(group => {
     if (!group.mesh) return;
@@ -52,13 +48,11 @@ export function computeBuildMap(groups: WallGroup[]): BuildMap {
         occupied[r][c] = true;
   });
 
-  // ── Recopilar celdas vacías ──
   const emptyUnits: Vector3[] = [];
 
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       if (occupied[r][c]) continue;
-      // Centro de la celda en coordenadas mundo
       const wx = (c * CELL_SIZE) - halfX + CELL_SIZE / 2;
       const wz = (r * CELL_SIZE) - halfZ + CELL_SIZE / 2;
       emptyUnits.push(new Vector3(wx, 0, wz));
@@ -76,7 +70,7 @@ export function computeBuildMap(groups: WallGroup[]): BuildMap {
  */
 export function renderEmptyUnits(buildMap: BuildMap, scene: Scene): Mesh[] {
   const mat = new StandardMaterial("empty_unit_mat", scene);
-  mat.diffuseColor    = new Color3(0.0, 0.6, 1.0);  // azul claro
+  mat.diffuseColor    = new Color3(0.0, 0.6, 1.0);
   mat.emissiveColor   = new Color3(0.0, 0.2, 0.4);
   mat.alpha           = 0.3;
   mat.backFaceCulling = false;
@@ -88,15 +82,12 @@ export function renderEmptyUnits(buildMap: BuildMap, scene: Scene): Mesh[] {
       scene
     );
     plane.position.x = pos.x;
-    plane.position.y = 0.05;  // sobre el suelo para evitar z-fighting
+    plane.position.y = 0.05;
     plane.position.z = pos.z;
     plane.material   = mat;
     return plane;
   });
 }
-
-const MIN_SIDE    = 3;   // lado mínimo del rectángulo
-const MAX_AREAS   = 10;  // máximo de áreas a retornar
 
 export interface Area {
   minX:    number;
@@ -109,18 +100,17 @@ export interface Area {
   center:  Vector3;
 }
 
-/**
- * Encuentra hasta MAX_AREAS rectángulos no superpuestos de mayor superficie,
- * con lado mínimo MIN_SIDE, usando el algoritmo de histograma greedy.
- */
 export function areaAssignment(buildMap: BuildMap): Area[] {
+
+  // Valores desde config
+  const MIN_SIDE  = playGroundStateConfig.minAreaSide;
+  const MAX_AREAS = playGroundStateConfig.maxAreas;
 
   const halfX = groundConfig.width  / 2;
   const halfZ = groundConfig.height / 2;
   const cols  = Math.ceil(groundConfig.width  / CELL_SIZE);
   const rows  = Math.ceil(groundConfig.height / CELL_SIZE);
 
-  // Grilla mutable — true = disponible
   const available: boolean[][] = Array.from(
     { length: rows }, () => Array(cols).fill(false)
   );
@@ -135,45 +125,43 @@ export function areaAssignment(buildMap: BuildMap): Area[] {
 
   for (let iter = 0; iter < MAX_AREAS; iter++) {
 
-    // ── Calcular alturas acumuladas ──
     const heights: number[] = Array(cols).fill(0);
     let bestArea  = -1;
     let bestR0 = 0, bestR1 = 0, bestC0 = 0, bestC1 = 0;
 
     for (let r = 0; r < rows; r++) {
-      // Actualizar histograma
       for (let c = 0; c < cols; c++)
         heights[c] = available[r][c] ? heights[c] + 1 : 0;
 
-      // Largest rectangle in histogram con restricción de lado mínimo
-      const stack: number[] = []; // índices de columna
+      const stack: number[] = [];
       for (let c = 0; c <= cols; c++) {
         const h = c < cols ? heights[c] : 0;
         while (stack.length > 0 && h < heights[stack[stack.length - 1]]) {
-            const top    = stack.pop()!;
-            const height = heights[top];
-            const left   = stack.length > 0 ? stack[stack.length - 1] + 1 : 0;
-            const width  = c - left;
-            
-            if (height < MIN_SIDE || width < MIN_SIDE) continue;
-            
-            const area = height * width;
-            if (area > bestArea) {
-              bestArea = area;
-              bestC0   = left;
-              bestC1   = c - 1;
-              bestR1   = r;
-              bestR0   = r - height + 1;
-            }
-          
+          if(stack.pop === undefined){
+            break;
+          }
+          const top    = stack.pop() as number;
+          const height = heights[top];
+          const left   = stack.length > 0 ? stack[stack.length - 1] + 1 : 0;
+          const width  = c - left;
+
+          if (height < MIN_SIDE || width < MIN_SIDE) continue;
+
+          const area = height * width;
+          if (area > bestArea) {
+            bestArea = area;
+            bestC0   = left;
+            bestC1   = c - 1;
+            bestR1   = r;
+            bestR0   = r - height + 1;
+          }
         }
         stack.push(c);
       }
     }
 
-    if (bestArea < MIN_SIDE * MIN_SIDE) break; // no quedan rectángulos válidos
+    if (bestArea < MIN_SIDE * MIN_SIDE) break;
 
-    // ── Convertir índices → coordenadas mundo ──
     const wMinX = bestC0 * CELL_SIZE - halfX;
     const wMaxX = (bestC1 + 1) * CELL_SIZE - halfX;
     const wMinZ = bestR0 * CELL_SIZE - halfZ;
@@ -186,13 +174,11 @@ export function areaAssignment(buildMap: BuildMap): Area[] {
 
     results.push({ minX: wMinX, maxX: wMaxX, minZ: wMinZ, maxZ: wMaxZ, width, depth, surface, center });
 
-    // ── Marcar celdas del rectángulo como ocupadas ──
     for (let r = bestR0; r <= bestR1; r++)
       for (let c = bestC0; c <= bestC1; c++)
         available[r][c] = false;
   }
 
-  // Ordenar por superficie descendente
   results.sort((a, b) => b.surface - a.surface);
 
   console.warn("── areaAssignment ────────────────────────");
@@ -206,22 +192,20 @@ export function areaAssignment(buildMap: BuildMap): Area[] {
 
 /**
  * Renderiza las áreas detectadas como planos semitransparentes.
- * Cada área tiene un color diferente según su índice para distinguirlas.
  * Retorna los meshes para poder hacer dispose al regenerar.
  */
 export function renderAreas(areas: Area[], scene: Scene): Mesh[] {
-  // Paleta de colores para diferenciar áreas
   const palette: [number, number, number][] = [
-    [0.2, 0.8, 0.2],  // verde
-    [0.2, 0.4, 1.0],  // azul
-    [1.0, 0.8, 0.0],  // amarillo
-    [0.8, 0.2, 0.8],  // violeta
-    [0.0, 0.9, 0.9],  // cyan
-    [1.0, 0.4, 0.0],  // naranja
-    [0.9, 0.1, 0.3],  // rojo
-    [0.5, 1.0, 0.0],  // verde lima
-    [0.0, 0.5, 0.5],  // teal
-    [1.0, 0.5, 0.8],  // rosa
+    [0.2, 0.8, 0.2],
+    [0.2, 0.4, 1.0],
+    [1.0, 0.8, 0.0],
+    [0.8, 0.2, 0.8],
+    [0.0, 0.9, 0.9],
+    [1.0, 0.4, 0.0],
+    [0.9, 0.1, 0.3],
+    [0.5, 1.0, 0.0],
+    [0.0, 0.5, 0.5],
+    [1.0, 0.5, 0.8],
   ];
 
   return areas.map((area, i) => {
@@ -239,7 +223,7 @@ export function renderAreas(areas: Area[], scene: Scene): Mesh[] {
       scene
     );
     plane.position.x = area.center.x;
-    plane.position.y = 0.06;  // ligeramente sobre emptyUnits (0.05)
+    plane.position.y = 0.06;
     plane.position.z = area.center.z;
     plane.material   = mat;
 

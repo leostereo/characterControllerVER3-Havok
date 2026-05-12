@@ -1,4 +1,4 @@
-import { type Scene, Vector3, KeyboardEventTypes, PhysicsAggregate, PhysicsShapeType } from "@babylonjs/core";
+import { type Scene, Vector3, KeyboardEventTypes, PhysicsAggregate, PhysicsShapeType, type Mesh } from "@babylonjs/core";
 import {
   wallsBuilderConfig,
   groundConfig,
@@ -6,13 +6,14 @@ import {
   meshMetadata,
 } from "@/config/GameConfig";
 import { WallGroup } from "./WallGroup";
-import { computeBuildMap, renderEmptyUnits, areaAssignment, renderAreas, type BuildMap } from "./BuildMap";
+import { computeBuildMap, areaAssignment, type BuildMap } from "./BuildMap";
+import { PlayGroundState } from "../state/PlayGroundState";
 
 export class WallsBuilder {
 
   private groups: WallGroup[] = [];
   private groupCounter = 0;
-  private zoneMeshes: import("@babylonjs/core").Mesh[] = [];
+  private zoneMeshes: Mesh[] = [];
 
   constructor(private scene: Scene) {
     this.registerDebugKeys();
@@ -74,10 +75,13 @@ export class WallsBuilder {
     console.warn(`WallsBuilder: ${placed}/${cfg.wallGroupCount} grupos colocados en ${attempts} intentos`);
     const buildMap = computeBuildMap(this.groups);
     const areas = areaAssignment(buildMap);
-    this.zoneMeshes = [
-      ...renderEmptyUnits(buildMap, this.scene),
-      ...renderAreas(areas, this.scene),
-    ];
+    PlayGroundState.getInstance().update(areas);
+
+    // this.zoneMeshes = [
+    //   ...renderEmptyUnits(buildMap, this.scene),
+    //   ...renderAreas(areas, this.scene),
+    // ];
+
     return buildMap;
   }
 

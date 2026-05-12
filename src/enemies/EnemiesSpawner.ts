@@ -2,6 +2,8 @@ import { type KeyboardInfo, type Scene, Vector3 } from "@babylonjs/core";
 import { playerConfig, playgroundConfig } from "@/config/GameConfig";
 import { type FixedCanionEnemy } from "./fixedCannion/FixedCanionEnemy";
 import { SurveillanceStation } from "./surveillanceStation/SurveillanceStation";
+import { PlayGroundState } from "@/playground/state/PlayGroundState";
+import { classifyAreas } from "@/utils/ClassifyAreas";
 
 export class EnemiesSpawner {
 
@@ -15,10 +17,18 @@ export class EnemiesSpawner {
 
   }
 
+    spawnAll(): void {
+
+    const areas = PlayGroundState.getInstance().getAreas();
+    const { squares, rectangles, corridors } = classifyAreas(areas);
+    console.warn(squares,rectangles,corridors);
+  
+    }
   // ─────────────────────────────────────────────
   //  API PÚBLICA
   // ─────────────────────────────────────────────
-  spawnAll(): void {
+  spawnAll_back(): void {
+
     // this.spawnOne(); return;
     
     const { groundSize, enemyCount, spawnSafeRadius, playerSpawn } = playgroundConfig;

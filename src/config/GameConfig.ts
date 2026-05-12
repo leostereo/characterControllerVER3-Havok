@@ -240,6 +240,12 @@ export const wallsBuilderConfig = {
 
 } as const;
 
+export const playGroundStateConfig = {
+  maxAreas:          12,
+  minAreaSide:        3,
+  squareMaxRatio:   1.5,
+  corridorMinRatio: 3.5,
+} as const;
 // ─────────────────────────────────────────────
 //  TIPOS DERIVADOS
 // ─────────────────────────────────────────────
