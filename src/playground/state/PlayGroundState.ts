@@ -1,3 +1,4 @@
+import { Vector3 } from "@babylonjs/core";
 import { type Area } from "../builders/BuildMap";
 
 export class PlayGroundState {
@@ -19,4 +20,15 @@ export class PlayGroundState {
   getAreas(): Area[] {
     return this._areas;
   }
+
+  getCharacterInitialAssignedPosition(): Vector3 {
+    const smallest = this._areas.pop()?.center;
+    console.warn('smallest',smallest);
+    if (smallest) {
+      smallest._y += 5;
+      return smallest;
+    }
+    return new Vector3(0, 0.9, 0);
+  }
+
 }

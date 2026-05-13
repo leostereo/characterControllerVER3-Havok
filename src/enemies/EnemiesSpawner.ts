@@ -22,7 +22,15 @@ export class EnemiesSpawner {
     const areas = PlayGroundState.getInstance().getAreas();
     const { squares, rectangles, corridors } = classifyAreas(areas);
     console.warn(squares,rectangles,corridors);
-  
+
+      squares.forEach((square) => {
+        this.survillanceStations.push(new SurveillanceStation(this.scene, square.center, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "middle"))
+      })
+      rectangles.forEach((rectangle) => {
+        this.survillanceStations.push(new SurveillanceStation(this.scene, rectangle.center, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "highest"))
+      })
+
+
     }
   // ─────────────────────────────────────────────
   //  API PÚBLICA
