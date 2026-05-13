@@ -4,6 +4,7 @@ import { type FixedCanionEnemy } from "./fixedCannion/FixedCanionEnemy";
 import { SurveillanceStation } from "./surveillanceStation/SurveillanceStation";
 import { PlayGroundState } from "@/playground/state/PlayGroundState";
 import { classifyAreas } from "@/utils/ClassifyAreas";
+import { getRectangleEnemyPosition } from "@/utils/getRectangleEnemyPosition";
 
 export class EnemiesSpawner {
 
@@ -21,54 +22,23 @@ export class EnemiesSpawner {
 
     const areas = PlayGroundState.getInstance().getAreas();
     const { squares, rectangles, corridors } = classifyAreas(areas);
-    console.warn(squares,rectangles,corridors);
 
       squares.forEach((square) => {
         this.survillanceStations.push(new SurveillanceStation(this.scene, square.center, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "middle"))
       })
+
       rectangles.forEach((rectangle) => {
-        this.survillanceStations.push(new SurveillanceStation(this.scene, rectangle.center, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "highest"))
-      })
-
-
-    }
-  // ─────────────────────────────────────────────
-  //  API PÚBLICA
-  // ─────────────────────────────────────────────
-  spawnAll_back(): void {
-
-    // this.spawnOne(); return;
-    
-    const { groundSize, enemyCount, spawnSafeRadius, playerSpawn } = playgroundConfig;
-    const halfSize = groundSize / 2;
-
-    let placed = 0;
-    let attempts = 0;
-    const maxAttempts = enemyCount * 10;
-
-    while (placed < enemyCount && attempts < maxAttempts) {
-      attempts++;
-
-      const position = this.randomPosition(halfSize);
-
-      // Respetar zona libre alrededor del spawn del jugador
-      const distToSpawn = Vector3.Distance(
-        position,
-        new Vector3(playerSpawn.x, 0, playerSpawn.z)
-      );
-      if (distToSpawn < spawnSafeRadius) continue;
-
-      if (attempts % 2 === 0) {
-        this.survillanceStations.push(new SurveillanceStation(this.scene, position, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "low"))
-      } else if (attempts % 3 === 0) {
-        this.survillanceStations.push(new SurveillanceStation(this.scene, position, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "middle"))
-      } else {
+        const {position} = getRectangleEnemyPosition(rectangle)
         this.survillanceStations.push(new SurveillanceStation(this.scene, position, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "highest"))
-        // //this.fixedCanions.push(new FixedCanionEnemy(this.scene, position, playerConfig.player1.positionTrackeableMeshName,playerConfig.player1.player1RaycastDetectableName))
-      }
-      placed++;
+      })
+      
+      corridors.forEach((corridor)=>{
+        const {position} = getRectangleEnemyPosition(corridor)
+        this.survillanceStations.push(new SurveillanceStation(this.scene, position, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "low"))
+      })
+      
     }
-  }
+
 
   spawnOne(): void {
     const { groundSize } = playgroundConfig;

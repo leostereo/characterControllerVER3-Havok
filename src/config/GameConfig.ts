@@ -246,6 +246,10 @@ export const playGroundStateConfig = {
   squareMaxRatio:   1.5,
   corridorMinRatio: 3.5,
 } as const;
+
+export const enemyPlacementConfig = {
+    offsetPercentage: 0.1,
+} as const;
 // ─────────────────────────────────────────────
 //  TIPOS DERIVADOS
 // ─────────────────────────────────────────────
