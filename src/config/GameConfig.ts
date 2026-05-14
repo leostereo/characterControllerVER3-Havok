@@ -6,7 +6,7 @@
 export const playerConfig = {
     height: 1.8,
     capsuleRadius: 0.4,
-    speedOnGround: 10.0,
+    speedOnGround: 6.0,
     speedInAir: 8.0,
     jumpHeight: 3.5,
     gravity: -18,
@@ -60,6 +60,7 @@ export const enemiesConfig = {
 export const projectilesConfig = {
     canion: {
         speed: 300,
+        speed_2: 500,
         mass: 5,
         radius: 0.2,
         restitution: 0.0,
@@ -250,6 +251,12 @@ export const playGroundStateConfig = {
 export const enemyPlacementConfig = {
     offsetPercentage: 0.1,
 } as const;
+
+export const corridorSurveillanceConfig = {
+    burstCount: 3,      // proyectiles por ráfaga
+    burstDelay: 120,    // ms entre proyectiles de la misma ráfaga
+} as const;
+
 // ─────────────────────────────────────────────
 //  TIPOS DERIVADOS
 // ─────────────────────────────────────────────

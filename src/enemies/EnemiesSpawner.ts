@@ -5,10 +5,12 @@ import { SurveillanceStation } from "./surveillanceStation/SurveillanceStation";
 import { PlayGroundState } from "@/playground/state/PlayGroundState";
 import { classifyAreas } from "@/utils/ClassifyAreas";
 import { getRectangleEnemyPosition } from "@/utils/getRectangleEnemyPosition";
+import { CorridorSurveillanceStation } from "./corridorSurveillanceStation/CorridorSurveillanceStation";
 
 export class EnemiesSpawner {
 
   private survillanceStations: SurveillanceStation[] = [];
+  private corridorSurveillanceStations: CorridorSurveillanceStation[] = [];
   private fixedCanions: FixedCanionEnemy[] = []
 
   constructor(
@@ -33,8 +35,7 @@ export class EnemiesSpawner {
       })
       
       corridors.forEach((corridor)=>{
-        const {position} = getRectangleEnemyPosition(corridor)
-        this.survillanceStations.push(new SurveillanceStation(this.scene, position, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "low"))
+        this.corridorSurveillanceStations.push(new CorridorSurveillanceStation(this.scene,playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName,corridor))
       })
       
     }
@@ -51,6 +52,8 @@ export class EnemiesSpawner {
   dispose(): void {
     this.survillanceStations.forEach(e => e.dispose());  // ← llama dispose en cada enemigo
     this.survillanceStations = [];
+    this.corridorSurveillanceStations.forEach(e => e.dispose());  // ← llama dispose en cada enemigo
+    this.corridorSurveillanceStations = [];
   }
 
   private keyboardSpawn(kbInfo: KeyboardInfo): void {
