@@ -6,7 +6,7 @@
 export const playerConfig = {
     height: 1.8,
     capsuleRadius: 0.4,
-    speedOnGround: 10.0,
+    speedOnGround: 6.0,
     speedInAir: 8.0,
     jumpHeight: 3.5,
     gravity: -18,
@@ -60,6 +60,7 @@ export const enemiesConfig = {
 export const projectilesConfig = {
     canion: {
         speed: 300,
+        speed_2: 500,
         mass: 5,
         radius: 0.2,
         restitution: 0.0,
@@ -136,17 +137,21 @@ export const meshMetadata = {
         player: "player",
         terrain: "terrain",
         cover: "cover",
+        wall: "wall"
     },
     enemyClasses: {
         canion: "canion",
         surveillance: "surveillance",
     },
+    wallClasses: {
+        basic: "basic",
+        heavy: "heavy",
+    },
 } as const;
 
 export const playgroundConfig = {
     groundSize: 60,
-    wallCount: 50,
-    enemyCount: 6,
+    enemyCount: 0,
     spawnSafeRadius: 8,
     playerSpawn: { x: 0, z: 0 },
 } as const;
@@ -192,6 +197,66 @@ export const surveillanceConfig = {
   },
 } as const;
 
+
+export const unitBlockConfig = {
+  size: 1.0,
+  physics: {
+    normal:       { mass: 0, restitution: 0.6, friction: 0.4 },
+    destructible: { mass: 0, restitution: 0.4, friction: 0.5 },
+    heavy:        { mass: 0, restitution: 0.2, friction: 0.9 },
+  },
+  material: {
+    normal:       { diffuse: { r: 0.07, g: 0.09, b: 0.13 }, emissive: { r: 0.00, g: 0.15, b: 0.35 }, specular: { r: 0.80, g: 0.80, b: 0.80 }, alpha: 1.00 },
+    destructible: { diffuse: { r: 0.07, g: 0.09, b: 0.13 }, emissive: { r: 0.00, g: 0.15, b: 0.35 }, specular: { r: 0.80, g: 0.80, b: 0.80 }, alpha: 0.55 },
+    heavy:        { diffuse: { r: 0.07, g: 0.09, b: 0.13 }, emissive: { r: 0.00, g: 0.15, b: 0.35 }, specular: { r: 0.80, g: 0.80, b: 0.80 }, alpha: 1.00 },
+  },
+  pipe: {
+    diameter:     0.06,
+    tessellation: 8,
+    color:        { r: 0.00, g: 0.40, b: 1.00 },
+  },
+} as const;
+
+export const wallShapes = {
+  I:      [[1], [1], [1]],
+  L:      [[1, 0], [1, 0], [1, 1]],
+  T:      [[1, 1, 1], [0, 1, 0]],
+  Z:      [[1, 1, 0], [0, 1, 1]],
+  elbow:  [[1, 0], [1, 1]],
+  square: [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+  cross:  [[0, 1, 0], [1, 1, 1], [0, 1, 0]],
+} as const;
+
+export type ShapeName = keyof typeof wallShapes;
+
+export const wallsBuilderConfig = {
+
+    wallGroupCount: 40,     // grupos a generar
+    maxTramLength: 16,     // largo máximo del tramo I en bloques
+    minTramLength: 2,     // largo mínimo antes de descartar el grupo
+    wallHeights: [1, 2, 3, 4],   // ← reemplaza wallHeight
+    spawnSafeRadius: 8,
+    minGroupSpacing: 5,
+    groundMargin:    2,
+
+} as const;
+
+export const playGroundStateConfig = {
+  maxAreas:          12,
+  minAreaSide:        3,
+  squareMaxRatio:   1.5,
+  corridorMinRatio: 3.5,
+} as const;
+
+export const enemyPlacementConfig = {
+    offsetPercentage: 0.1,
+} as const;
+
+export const corridorSurveillanceConfig = {
+    burstCount: 3,      // proyectiles por ráfaga
+    burstDelay: 120,    // ms entre proyectiles de la misma ráfaga
+} as const;
+
 // ─────────────────────────────────────────────
 //  TIPOS DERIVADOS
 // ─────────────────────────────────────────────
@@ -207,6 +272,7 @@ export type UiConfig = typeof uiConfig;
 export type MeshMetadata = {
     type: typeof meshMetadata.types[keyof typeof meshMetadata.types];
     enemyClass?: typeof meshMetadata.enemyClasses[keyof typeof meshMetadata.enemyClasses];
+    wallClass?:  typeof meshMetadata.wallClasses[keyof typeof meshMetadata.wallClasses];
     canionId?: string;
     stationId?: string;
 };

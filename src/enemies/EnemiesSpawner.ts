@@ -2,10 +2,15 @@ import { type KeyboardInfo, type Scene, Vector3 } from "@babylonjs/core";
 import { playerConfig, playgroundConfig } from "@/config/GameConfig";
 import { type FixedCanionEnemy } from "./fixedCannion/FixedCanionEnemy";
 import { SurveillanceStation } from "./surveillanceStation/SurveillanceStation";
+import { PlayGroundState } from "@/playground/state/PlayGroundState";
+import { classifyAreas } from "@/utils/ClassifyAreas";
+import { getRectangleEnemyPosition } from "@/utils/getRectangleEnemyPosition";
+import { CorridorSurveillanceStation } from "./corridorSurveillanceStation/CorridorSurveillanceStation";
 
 export class EnemiesSpawner {
 
   private survillanceStations: SurveillanceStation[] = [];
+  private corridorSurveillanceStations: CorridorSurveillanceStation[] = [];
   private fixedCanions: FixedCanionEnemy[] = []
 
   constructor(
@@ -15,42 +20,26 @@ export class EnemiesSpawner {
 
   }
 
-  // ─────────────────────────────────────────────
-  //  API PÚBLICA
-  // ─────────────────────────────────────────────
-  spawnAll(): void {
-    // this.spawnOne(); return;
-    
-    const { groundSize, enemyCount, spawnSafeRadius, playerSpawn } = playgroundConfig;
-    const halfSize = groundSize / 2;
+    spawnAll(): void {
 
-    let placed = 0;
-    let attempts = 0;
-    const maxAttempts = enemyCount * 10;
+    const areas = PlayGroundState.getInstance().getAreas();
+    const { squares, rectangles, corridors } = classifyAreas(areas);
 
-    while (placed < enemyCount && attempts < maxAttempts) {
-      attempts++;
+      squares.forEach((square) => {
+        this.survillanceStations.push(new SurveillanceStation(this.scene, square.center, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "middle"))
+      })
 
-      const position = this.randomPosition(halfSize);
-
-      // Respetar zona libre alrededor del spawn del jugador
-      const distToSpawn = Vector3.Distance(
-        position,
-        new Vector3(playerSpawn.x, 0, playerSpawn.z)
-      );
-      if (distToSpawn < spawnSafeRadius) continue;
-
-      if (attempts % 2 === 0) {
-        this.survillanceStations.push(new SurveillanceStation(this.scene, position, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "low"))
-      } else if (attempts % 3 === 0) {
-        this.survillanceStations.push(new SurveillanceStation(this.scene, position, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "middle"))
-      } else {
+      rectangles.forEach((rectangle) => {
+        const {position} = getRectangleEnemyPosition(rectangle)
         this.survillanceStations.push(new SurveillanceStation(this.scene, position, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "highest"))
-        // //this.fixedCanions.push(new FixedCanionEnemy(this.scene, position, playerConfig.player1.positionTrackeableMeshName,playerConfig.player1.player1RaycastDetectableName))
-      }
-      placed++;
+      })
+      
+      corridors.forEach((corridor)=>{
+        this.corridorSurveillanceStations.push(new CorridorSurveillanceStation(this.scene,playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName,corridor))
+      })
+      
     }
-  }
+
 
   spawnOne(): void {
     const { groundSize } = playgroundConfig;
@@ -63,6 +52,8 @@ export class EnemiesSpawner {
   dispose(): void {
     this.survillanceStations.forEach(e => e.dispose());  // ← llama dispose en cada enemigo
     this.survillanceStations = [];
+    this.corridorSurveillanceStations.forEach(e => e.dispose());  // ← llama dispose en cada enemigo
+    this.corridorSurveillanceStations = [];
   }
 
   private keyboardSpawn(kbInfo: KeyboardInfo): void {
