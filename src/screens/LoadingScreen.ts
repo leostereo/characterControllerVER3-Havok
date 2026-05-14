@@ -32,7 +32,7 @@ export class LoadingScreen {
 
     // ── Título (siempre visible) ─────────────────────────────────
     const title = document.createElement("h1");
-    title.textContent = "MY GAME";
+    title.textContent = "Space Freesbe";
     Object.assign(title.style, {
       fontSize:      "3.5rem",
       letterSpacing: "0.5em",
@@ -97,12 +97,12 @@ export class LoadingScreen {
     });
 
     const controls = [
-      { key: "W A S D", action: "Moverse"        },
-      { key: "SPACE",   action: "Saltar"          },
-      { key: "SHIFT",   action: "Correr"          },
-      { key: "ESC",     action: "Pausar"          },
-      { key: "MOUSE",   action: "Apuntar / girar" },
-      { key: "LMB",     action: "Atacar"          },
+      { key: "W A S D", action: "Move / Moverser"            },
+      { key: "SPACE",   action: "Jump / Saltar"              },
+      { key: "SHIFT",   action: "Run / Correr"               },
+      { key: "j",     action: "Throw / Lanzar"               },
+      { key: "k",     action: "Crounch / Agacharse"          },
+      { key: "1,2",     action: "View / Vista"               },
     ];
 
     controls.forEach(({ key, action }) => {
@@ -150,6 +150,16 @@ export class LoadingScreen {
     this.splashWrap.append(grid, prompt);
     this.container.append(title, this.progressWrap, this.splashWrap);
     document.body.appendChild(this.container);
+
+    // ── Event listener para click (una sola vez) ─────────────────
+    this.container.addEventListener("click", () => this._handleClick(), { once: true });
+  }
+
+  private _handleClick(): void {
+    const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
+    if (canvas) {
+      canvas.focus();
+    }
   }
 
   // ── API pública ───────────────────────────────────────────────
