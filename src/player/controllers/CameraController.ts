@@ -15,7 +15,7 @@ export class CameraController {
 
   }
 
-  private init_followCamera(scene: Scene, targetMesh: AbstractMesh) {
+  private init_followCamera(scene: Scene, targetMesh: AbstractMesh): void {
     this.followCamera = new FollowCamera('FollowCam', new Vector3(0, 10, 0), scene);
     this.followCamera.radius = cameraConfig.followCamera.radius;
     // The goal height of camera above local oriin (centre) of target
@@ -32,7 +32,7 @@ export class CameraController {
 
   }
 
-  private init_arcRotateCamera(scene: Scene) {
+  private init_arcRotateCamera(scene: Scene): void {
     this.arcRotateCamera = new ArcRotateCamera(
       'arcRotateCamera', 0, 0, 100, Vector3.Zero(), scene)
   } 
