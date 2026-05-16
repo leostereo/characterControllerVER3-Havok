@@ -8,9 +8,10 @@ import {
   CharacterSupportedState,
   type CharacterSurfaceInfo,
   Quaternion,
+  PhysicsShapeCapsule,
 } from "@babylonjs/core";
 import { type InputState }           from "../statemachines/InputState";
-import { type PhysicState }          from "../statemachines/PhysicState";
+import type { CharacterPhysicCapsuleState, PhysicState } from "../statemachines/PhysicState";
 import { type AnimationStateMachine } from "../statemachines/AnimationState";
 import { playerConfig }              from "@/config/GameConfig";
 
@@ -26,8 +27,9 @@ const ROTATE_ACCUMULATOR_MAX = ROTATE_STEP_RAD * 10; // evita overflow si hay la
 
 type CharacterState = "IN_AIR" | "ON_GROUND" | "START_JUMP";
 
-export class PhysicController {
+type CharacterCapsuleHeight = Record<CharacterPhysicCapsuleState, number>; 
 
+export class PhysicController {
   private rotAccumulator = 0;
   private controller:     PhysicsCharacterController;
   private characterMesh:  AbstractMesh;
@@ -35,13 +37,22 @@ export class PhysicController {
   private startPosition:  Vector3;
   private meshOffset      = new Vector3(0, 0, 0);
 
+  private characterCapsuleHeight: CharacterCapsuleHeight = {
+    standing: playerConfig.height,
+    body_to_ground: playerConfig.height / 3,
+    crouch: playerConfig.height / 2
+  };
+
+  private standing_physicCapsule: PhysicsShapeCapsule;
+  private crouched_physicCapsule: PhysicsShapeCapsule;
+
   private state:         CharacterState = "IN_AIR";
   private wantJump       = false;
   private localVelocity  = Vector3.Zero();
   private grounded       = false;
 
   constructor(
-    scene: Scene,
+    private scene: Scene,  // ← agregar
     startPosition: Vector3,
     mesh: AbstractMesh | null,
     private inputState:     InputState,
@@ -53,22 +64,15 @@ export class PhysicController {
     // Cápsula principal — maneja rotación y modelo
     this.characterMesh = MeshBuilder.CreateCapsule(
       "playerCapsule",
-      { height: playerConfig.height, radius: playerConfig.capsuleRadius },
+      { height: this.characterCapsuleHeight.standing, radius: playerConfig.capsuleRadius },
       scene
     );
     this.characterMesh.isVisible = false;
     this.characterMesh.position.copyFrom(this.startPosition);
 
-    this.controller = new PhysicsCharacterController(
-      this.startPosition,
-      { capsuleHeight: playerConfig.height, capsuleRadius: playerConfig.capsuleRadius },
-      scene
-    );
+    this.createBodyCapsules();
+    this.controller = this.createController(this.startPosition, this.standing_physicCapsule);
 
-    const ccTransformNode = scene.getTransformNodeByName('CCTransformNode');
-    if (ccTransformNode) {
-      ccTransformNode.name = playerConfig.player1.player1CollisionDetectableName;
-    }
 
     // Cápsula invisible para detección por raycast
     this.raycastCapsule = MeshBuilder.CreateCapsule(
@@ -85,6 +89,35 @@ export class PhysicController {
     }
 
     this.setupGameLoop(scene);
+  }
+
+  private createBodyCapsules(): void {
+    this.standing_physicCapsule = new PhysicsShapeCapsule(
+      new Vector3(0, playerConfig.capsuleBottomPoint, 0),
+      new Vector3(0, playerConfig.capsuleStandingTopPoint, 0),
+      playerConfig.capsuleRadius,
+      this.scene
+    );
+
+    this.crouched_physicCapsule = new PhysicsShapeCapsule(
+      new Vector3(0, playerConfig.capsuleBottomPoint, 0),
+      new Vector3(0, playerConfig.capsuleCrouchTopPoint, 0),
+      playerConfig.capsuleRadius,
+      this.scene
+    );
+  }
+
+  private createController(position: Vector3, shape: PhysicsShapeCapsule): PhysicsCharacterController {
+    const newController = new PhysicsCharacterController(
+      position,
+      { shape },
+      this.scene
+    );
+    const ccTransformNode = this.scene.getTransformNodeByName('CCTransformNode');
+    if (ccTransformNode) {
+      ccTransformNode.name = playerConfig.player1.player1CollisionDetectableName;
+    }
+    return newController;
   }
 
   // ─────────────────────────────────────────────
@@ -240,6 +273,14 @@ export class PhysicController {
     this.rotAccumulator = 0;
   }
 
+      if (this.animationState.current === 'standing_to_crunch' && this.physicState.getCharacterPhysicCapsuleState() !== 'crouch') {
+        this.standingTocrouch_updateCapsule()
+      }
+
+      if (this.animationState.current === 'crouched_to_standing' && this.physicState.getCharacterPhysicCapsuleState() !== 'standing') {
+        this.crouchToStanding_updateCapsule()
+      }
+
       // Sincronizar posición visual con el controller
       const physPos = this.controller.getPosition();
       this.characterMesh.position.copyFrom(physPos.add(this.meshOffset));
@@ -283,6 +324,7 @@ export class PhysicController {
     });
   }
 
+
   // ─────────────────────────────────────────────
   //  API PÚBLICA
   // ─────────────────────────────────────────────
@@ -307,6 +349,27 @@ export class PhysicController {
   get speed():      number {
     return new Vector3(this.localVelocity.x, 0, this.localVelocity.z).length();
   }
+
+
+  public standingTocrouch_updateCapsule(): void {
+    this.physicState.setCharacterPhysicCapsuleState('crouch');
+    const pos = this.controller.getPosition();
+    const vel = this.controller.getVelocity();
+    this.controller.dispose();
+    this.controller = this.createController(pos, this.crouched_physicCapsule);
+    this.controller.setVelocity(vel);
+  }
+
+  public crouchToStanding_updateCapsule(): void {
+    this.physicState.setCharacterPhysicCapsuleState('standing');
+    const pos = this.controller.getPosition();
+    const vel = this.controller.getVelocity();
+    this.controller.dispose();
+    this.controller = this.createController(pos, this.standing_physicCapsule);
+    this.controller.setVelocity(vel);
+  }
+
+
 
   dispose(): void {
     this.characterMesh.dispose();

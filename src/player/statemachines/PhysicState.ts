@@ -1,6 +1,8 @@
 import { EventManager } from "@/game/eventManager/eventManager";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 
+export type CharacterPhysicCapsuleState = 'standing' | 'crouch' | 'body_to_ground';
+
 export interface PhysicState {
   grounded: boolean;
   velocity: Vector3;
@@ -8,6 +10,7 @@ export interface PhysicState {
   position: Vector3;
   speed: number;
   eventManager: EventManager;
+  characterPhysicCapsuleState:CharacterPhysicCapsuleState
 }
 
 export class PhysicState implements PhysicState {
@@ -19,17 +22,24 @@ export class PhysicState implements PhysicState {
   speed = 0;
   apply_hit_impulse = false;
   projectile_direction = Vector3.Zero(); // ← inicializada
-
-
+  characterPhysicCapsuleState: CharacterPhysicCapsuleState = 'standing';
 
   constructor() {
     this.eventManager.subscribe((event) => {
       if (event.type === "projectile_hit" && event.sourceType === 'enemy') {
         const data = event.data as { direction: Vector3; hitMeshName: string };
         this.apply_hit_impulse = true;
-        this.projectile_direction          = data.direction;
+        this.projectile_direction = data.direction;
       }
     });
+  }
+
+  setCharacterPhysicCapsuleState(state: CharacterPhysicCapsuleState): void {
+    this.characterPhysicCapsuleState = state;
+  }
+
+  getCharacterPhysicCapsuleState():CharacterPhysicCapsuleState{
+    return this.characterPhysicCapsuleState;
   }
 
   setVelocity(velocity: Vector3): void {

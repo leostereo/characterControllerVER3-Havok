@@ -6,6 +6,10 @@
 export const playerConfig = {
     height: 1.8,
     capsuleRadius: 0.4,
+    aimHeightMultiplier: 0.5,
+    capsuleBottomPoint: -0.5,
+    capsuleCrouchTopPoint: 0.1,
+    capsuleStandingTopPoint: 0.5,
     speedOnGround: 6.0,
     speedInAir: 8.0,
     jumpHeight: 3.5,
@@ -16,7 +20,6 @@ export const playerConfig = {
     runMultiplier: 1.8,
     knockbackForce: 5.0,
     backwardsMultiplier: 0.3,
-    aimHeightMultiplier: 0.5,
     player1: {
         positionTrackeableMeshName: 'player1_trackeable',
         name: 'player1',
