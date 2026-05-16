@@ -20,6 +20,7 @@ export type AnimationStateValue =
   | "crouched_to_standing"
   | "impact_force_applied"
   | "impact_recibed"
+  | "impact_recibed_crouched"
   | "none"
 
 export interface AnimationState {
