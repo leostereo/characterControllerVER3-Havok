@@ -173,8 +173,8 @@ export const surveillanceConfig = {
     angle:            35,
     projectionOffset: 3.5,
     projectionScale:  10,
-    raycastOrigingYOffset:   0.8,   // ← nuevo
-    raycastEndingYOffsetMultiplier:   0.85,   // ← nuevo
+    raycastOrigingYOffset: 0.8,  
+    raycastEndingYOffsetMultiplier: 0.85,  
   },
   lamp: {
     muzzleOffset:     1.15,
@@ -229,6 +229,7 @@ export const wallShapes = {
   elbow:  [[1, 0], [1, 1]],
   square: [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
   cross:  [[0, 1, 0], [1, 1, 1], [0, 1, 0]],
+  n:  [[1, 1, 1], [1, 0, 1], [1, 0, 1]],
 } as const;
 
 export type ShapeName = keyof typeof wallShapes;
