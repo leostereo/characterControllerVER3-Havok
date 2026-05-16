@@ -19,7 +19,8 @@ export class SurveillanceController {
   private readonly TRACKING_RATE = surveillanceConfig.trackingRate;
   private readonly PROJECTION_OFFSET = surveillanceConfig.detection.projectionOffset;
   private readonly PROJECTION_SCALE = surveillanceConfig.detection.projectionScale;
-  private readonly RAYCAST_Y_OFFSET = surveillanceConfig.detection.raycastYOffset;
+  private readonly RAYCAST_ORIGIN_Y_OFFSET = surveillanceConfig.detection.raycastOrigingYOffset;
+  private readonly RAYCAST_ENDING_YOFFSET_MULTIPLIER = surveillanceConfig.detection.raycastEndingYOffsetMultiplier
   private readonly LAMP_MUZZLE_OFFSET = surveillanceConfig.lamp.muzzleOffset;
   private readonly TILT = surveillanceConfig.lamp.tilt;
 
@@ -117,9 +118,20 @@ export class SurveillanceController {
     if (!inCircle) return false;
 
     const origin = barrelPos.clone();
-    origin.y += this.RAYCAST_Y_OFFSET;
-    const dirToTarget = target.position.subtract(origin).normalize();
-    const distance = Vector3.Distance(origin, target.position);
+    origin.y += this.RAYCAST_ORIGIN_Y_OFFSET;
+
+    // raycast to %of iths heigh -> charcater can hide behind walls.
+    const targetPos = target.position.clone();
+    const raycastMesh = this.scene.getMeshByName(this.meshForRayCastDetectionName);
+    if (raycastMesh) {
+      const boundingBox = raycastMesh.getBoundingInfo().boundingBox;
+      const characterBaseY = boundingBox.minimumWorld.y;
+      const characterHeight = boundingBox.maximumWorld.y - characterBaseY;
+      targetPos.y = characterBaseY + characterHeight * this.RAYCAST_ENDING_YOFFSET_MULTIPLIER;
+    }
+
+    const dirToTarget = targetPos.subtract(origin).normalize();
+    const distance = Vector3.Distance(origin, targetPos);
 
     const ray = new Ray(origin, dirToTarget, distance);
     const hit = this.scene.pickWithRay(ray, (mesh) =>

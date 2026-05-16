@@ -20,7 +20,7 @@ export class CorridorSurveillanceController {
   private readonly TRACKING_RATE = surveillanceConfig.trackingRate;
   private readonly PROJECTION_OFFSET = surveillanceConfig.detection.projectionOffset;
   private readonly PROJECTION_SCALE = surveillanceConfig.detection.projectionScale;
-  private readonly RAYCAST_Y_OFFSET = surveillanceConfig.detection.raycastYOffset;
+  private readonly RAYCAST_Y_OFFSET = surveillanceConfig.detection.raycastOrigingYOffset;
   private readonly LAMP_MUZZLE_OFFSET = surveillanceConfig.lamp.muzzleOffset;
   private readonly TILT = surveillanceConfig.lamp.tilt;
 

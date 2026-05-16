@@ -126,7 +126,7 @@ export class LoadingScreen {
     });
 
     const prompt = document.createElement("p");
-    prompt.textContent = "PRESS ANY KEY TO CONTINUE";
+    prompt.textContent = "PRESS ANY KEY TO CONTINUE (or doble TAB)";
     Object.assign(prompt.style, {
       fontSize:      "0.75rem",
       letterSpacing: "0.3em",
