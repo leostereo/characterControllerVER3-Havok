@@ -317,6 +317,11 @@ export class PhysicController {
       const physPos = this.controller.getPosition();
       this.raycastCapsule.position.copyFrom(physPos);
 
+      //raycast capsule position when crouched.
+      if (this.physicState.characterPhysicCapsuleState === 'crouch') {
+        this.raycastCapsule.position.y = this.raycastCapsule.position.y + this.meshOffset.y/2
+      }
+
       this.grounded = support.supportedState === CharacterSupportedState.SUPPORTED;
       this.localVelocity.copyFrom(desiredVelocity);
       this.physicState.setGrounded(this.grounded);
@@ -360,8 +365,7 @@ export class PhysicController {
     this.controller.dispose();
     this.controller = this.createController(pos, this.crouched_physicCapsule);
     this.controller.setVelocity(vel);
-    this.raycastCapsule.scaling._y = 0.5
-
+    this.raycastCapsule.scaling._y = 0.4
   }
 
   public crouchToStanding_updateCapsule(): void {

@@ -173,7 +173,8 @@ export const surveillanceConfig = {
     angle:            35,
     projectionOffset: 3.5,
     projectionScale:  10,
-    raycastYOffset:   0.8,   // ← nuevo
+    raycastOrigingYOffset:   0.8,   // ← nuevo
+    raycastEndingYOffsetMultiplier:   0.85,   // ← nuevo
   },
   lamp: {
     muzzleOffset:     1.15,

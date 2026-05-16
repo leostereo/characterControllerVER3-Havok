@@ -145,10 +145,10 @@ export class AssetLoader {
       (meshes) => {
         const detectableName = playerConfig.player1.player1RaycastDetectableName;
         const alphaJoints = meshes.find(m => m.name === "Alpha_Joints");
-        if (alphaJoints) alphaJoints.name = detectableName;
+        if (alphaJoints) alphaJoints.name = `${detectableName}_Alpha_Joints`;
 
         const alphaSurface = meshes.find(m => m.name === "Alpha_Surface");
-        if (alphaSurface) alphaSurface.name = detectableName;
+        if (alphaSurface) alphaSurface.name = `${detectableName}_Alpha_Surface`;
       },
       (message, exception) => {
         console.error("[AssetLoader] Error cargando personaje:", message, exception);
