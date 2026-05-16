@@ -308,6 +308,9 @@ export class PhysicController {
         desiredVelocity = desiredVelocity.add(knockback);
         this.physicState.clearHitImpulse();
         this.animationState.setState('impact_force_applied');
+        if(this.physicState.getCharacterPhysicCapsuleState() === 'crouch'){
+          this.animationState.blockingAnimationIsPlaying = false;
+        }
       }
 
       this.controller.setVelocity(desiredVelocity);

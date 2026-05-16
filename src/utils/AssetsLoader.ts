@@ -141,7 +141,7 @@ export class AssetLoader {
       "characterTask",
       "",
       "",
-      "./model/ybotV10.glb",
+      "./model/ybotV11.glb",
       (meshes) => {
         const detectableName = playerConfig.player1.player1RaycastDetectableName;
         const alphaJoints = meshes.find(m => m.name === "Alpha_Joints");

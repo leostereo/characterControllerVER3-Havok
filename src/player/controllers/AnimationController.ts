@@ -98,8 +98,12 @@ export class AnimationController {
       
       if(this.animationState.current === 'impact_force_applied'){
         next = 'impact_recibed'
+        if(this.physicState.getCharacterPhysicCapsuleState()==='crouch'){
+          next = 'impact_recibed_crouched';
+        }
         this.animationState.blockingAnimationIsPlaying = true;
       }
+     
       
     }
     

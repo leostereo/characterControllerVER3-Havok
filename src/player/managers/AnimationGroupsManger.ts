@@ -24,6 +24,7 @@ export class AnimationGroupsManager {
         rolling: undefined,
         impact_force_applied: undefined,
         impact_recibed: undefined,
+        impact_recibed_crouched: undefined,
         none: undefined
     };
 
@@ -169,7 +170,18 @@ export class AnimationGroupsManager {
         }
         const impact_recibed_anim = this.groups.impact_recibed?.targetedAnimations[0].animation;
         impact_recibed_anim?.addEvent(impact_recibed_finish_event)
-
+        
+        //projectile hit crouched
+        this.groups.impact_recibed_crouched = animationGroups.find((item) => item.name === 'crouch death');
+        const impact_recibed_crouched_finish_event = new AnimationEvent(140, () => {
+            this.animationState.blockingAnimationIsPlaying = false;
+        }, true);
+        if (this.groups.impact_recibed_crouched) {
+            this.groups.impact_recibed_crouched.speedRatio = 1.5;
+            this.groups.impact_recibed_crouched.from = 30;
+        }
+        const impact_recibed_crouched_anim = this.groups.impact_recibed_crouched?.targetedAnimations[0].animation;
+        impact_recibed_crouched_anim?.addEvent(impact_recibed_crouched_finish_event)
         //
         console.warn("Animation groups set:", Object.keys(this.groups).filter(k => this.groups[k as AnimationStateValue]));
     }
