@@ -59,39 +59,30 @@ export class PhysicController {
     private physicState:    PhysicState,
     private animationState: AnimationStateMachine,
   ) {
+
     this.startPosition = startPosition.clone();
-
-    // Cápsula principal — maneja rotación y modelo
-    this.characterMesh = MeshBuilder.CreateCapsule(
-      "playerCapsule",
-      { height: this.characterCapsuleHeight.standing, radius: playerConfig.capsuleRadius },
-      scene
-    );
-    this.characterMesh.isVisible = false;
-    this.characterMesh.position.copyFrom(this.startPosition);
-
-    this.createBodyCapsules();
+    this.createPlayerCapsules();
     this.controller = this.createController(this.startPosition, this.standing_physicCapsule);
-
-
-    // Cápsula invisible para detección por raycast
-    this.raycastCapsule = MeshBuilder.CreateCapsule(
-      playerConfig.player1.player1RaycastDetectableName,
-      { height: playerConfig.height, radius: playerConfig.capsuleRadius },
-      scene
-    );
-    this.raycastCapsule.isVisible  = false;
-    this.raycastCapsule.isPickable = true;
-    this.raycastCapsule.position.copyFrom(this.startPosition);
 
     if (mesh) {
       this.setCharacterModel(mesh);
     }
 
     this.setupGameLoop(scene);
+
   }
 
-  private createBodyCapsules(): void {
+
+  private createPlayerCapsules(): void {
+    // Cápsula principal — maneja rotación y modelo
+    this.characterMesh = MeshBuilder.CreateCapsule(
+      "playerCapsule",
+      { height: this.characterCapsuleHeight.standing, radius: playerConfig.capsuleRadius },
+      this.scene
+    );
+    this.characterMesh.isVisible = false;
+    this.characterMesh.position.copyFrom(this.startPosition);
+
     this.standing_physicCapsule = new PhysicsShapeCapsule(
       new Vector3(0, playerConfig.capsuleBottomPoint, 0),
       new Vector3(0, playerConfig.capsuleStandingTopPoint, 0),
@@ -105,6 +96,17 @@ export class PhysicController {
       playerConfig.capsuleRadius,
       this.scene
     );
+
+    // Cápsula invisible para detección por raycast
+    this.raycastCapsule = MeshBuilder.CreateCapsule(
+      playerConfig.player1.player1RaycastDetectableName,
+      { height: playerConfig.height, radius: playerConfig.capsuleRadius },
+      this.scene
+    );
+    this.raycastCapsule.isVisible = false;
+    this.raycastCapsule.isPickable = true;
+    this.raycastCapsule.position.copyFrom(this.startPosition);
+
   }
 
   private createController(position: Vector3, shape: PhysicsShapeCapsule): PhysicsCharacterController {
@@ -358,6 +360,8 @@ export class PhysicController {
     this.controller.dispose();
     this.controller = this.createController(pos, this.crouched_physicCapsule);
     this.controller.setVelocity(vel);
+    this.raycastCapsule.scaling._y = 0.5
+
   }
 
   public crouchToStanding_updateCapsule(): void {
@@ -367,9 +371,8 @@ export class PhysicController {
     this.controller.dispose();
     this.controller = this.createController(pos, this.standing_physicCapsule);
     this.controller.setVelocity(vel);
+    this.raycastCapsule.scaling._y = 1
   }
-
-
 
   dispose(): void {
     this.characterMesh.dispose();
