@@ -81,3 +81,15 @@ caminar agachado.
 roll , solo mientras corre.
 encoger la capsula fisica.
 animaciones de impacto segun direccion.
+
+Proximo proyecto.
+
+Estructura del proyecto. (definir al princio)
+nombre de directorios y archivos , mayusculas , use de guiones , etc.
+nombre de clases.
+sufijos/prefijos: 'class', 'service', 'singleton' , etc.
+
+Constructor de todos los Mesh en un solo lugar.
+
+Preparar el modelo.(unificar)
+Sincronizar capsulas de raycas, movimiento , colision y sus centros y offsets.

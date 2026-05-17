@@ -75,7 +75,8 @@ export class WallsBuilder {
     console.warn(`WallsBuilder: ${placed}/${cfg.wallGroupCount} grupos colocados en ${attempts} intentos`);
     const buildMap = computeBuildMap(this.groups);
     const areas = areaAssignment(buildMap);
-    PlayGroundState.getInstance().update(areas);
+    PlayGroundState.getInstance().updateOpenAreas(areas);
+    PlayGroundState.getInstance().updateEmptyPoints(buildMap.emptyUnits)
 
     // this.zoneMeshes = [
     //   ...renderEmptyUnits(buildMap, this.scene),

@@ -9,6 +9,7 @@ import {
 import { WallsBuilder }     from "./builders/WallsBuilder";
 import { meshNames, groundConfig } from "@/config/GameConfig";
 import { EnemiesSpawner } from "@/enemies/EnemiesSpawner";
+import { NavMeshService } from "./NavMeshService";
 
 export class PlayGround {
 
@@ -24,6 +25,13 @@ export class PlayGround {
 
     this.buildGround();
     this.wallsBuilder.build();
+
+    void this.createNavMesh(scene);
+  }
+
+  private async createNavMesh(scene: Scene):Promise<void> {
+    const navMeshService = NavMeshService.getInstance(scene);
+    await navMeshService.build();
     this.enemiesSpawner.spawnAll();
   }
 

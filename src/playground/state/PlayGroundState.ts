@@ -4,7 +4,8 @@ import { type Area } from "../builders/BuildMap";
 export class PlayGroundState {
 
   private static _instance: PlayGroundState | null = null;
-  private _areas: Area[] = [];
+  private _openAreas: Area[] = [];
+  private _emptyPoints: Vector3[] = [];
 
   private constructor() {}
 
@@ -13,16 +14,24 @@ export class PlayGroundState {
     return PlayGroundState._instance;
   }
 
-  update(areas: Area[]): void {
-    this._areas = areas;
+  updateOpenAreas(areas: Area[]): void {
+    this._openAreas = areas;
+  }
+
+  updateEmptyPoints(points: Vector3[]): void {
+    this._emptyPoints = points;
   }
 
   getAreas(): Area[] {
-    return this._areas;
+    return this._openAreas;
+  }
+
+  getEmptyPoints(): Vector3[] {
+    return this._emptyPoints;
   }
 
   getCharacterInitialAssignedPosition(): Vector3 {
-    const smallest = this._areas.pop()?.center;
+    const smallest = this._openAreas.pop()?.center;
     console.warn('smallest',smallest);
     if (smallest) {
       smallest._y += 5;
