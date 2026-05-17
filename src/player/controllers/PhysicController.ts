@@ -10,10 +10,10 @@ import {
   Quaternion,
   PhysicsShapeCapsule,
 } from "@babylonjs/core";
-import { type InputState }           from "../statemachines/InputState";
+import { type InputState } from "../statemachines/InputState";
 import type { CharacterPhysicCapsuleState, PhysicState } from "../statemachines/PhysicState";
 import { type AnimationStateMachine } from "../statemachines/AnimationState";
-import { playerConfig }              from "@/config/GameConfig";
+import { playerConfig } from "@/config/GameConfig";
 
 const ON_GROUND_SPEED = playerConfig.speedOnGround;
 const IN_AIR_SPEED = playerConfig.speedInAir;
@@ -27,15 +27,15 @@ const ROTATE_ACCUMULATOR_MAX = ROTATE_STEP_RAD * 10; // evita overflow si hay la
 
 type CharacterState = "IN_AIR" | "ON_GROUND" | "START_JUMP";
 
-type CharacterCapsuleHeight = Record<CharacterPhysicCapsuleState, number>; 
+type CharacterCapsuleHeight = Record<CharacterPhysicCapsuleState, number>;
 
 export class PhysicController {
   private rotAccumulator = 0;
-  private controller:     PhysicsCharacterController;
-  private characterMesh:  AbstractMesh;
+  private controller: PhysicsCharacterController;
+  private characterMesh: AbstractMesh;
   private raycastCapsule: Mesh;
-  private startPosition:  Vector3;
-  private meshOffset      = new Vector3(0, 0, 0);
+  private startPosition: Vector3;
+  private meshOffset = new Vector3(0, 0, 0);
 
   private characterCapsuleHeight: CharacterCapsuleHeight = {
     standing: playerConfig.height,
@@ -46,17 +46,17 @@ export class PhysicController {
   private standing_physicCapsule: PhysicsShapeCapsule;
   private crouched_physicCapsule: PhysicsShapeCapsule;
 
-  private state:         CharacterState = "IN_AIR";
-  private wantJump       = false;
-  private localVelocity  = Vector3.Zero();
-  private grounded       = false;
+  private state: CharacterState = "IN_AIR";
+  private wantJump = false;
+  private localVelocity = Vector3.Zero();
+  private grounded = false;
 
   constructor(
     private scene: Scene,  // ← agregar
     startPosition: Vector3,
     mesh: AbstractMesh | null,
-    private inputState:     InputState,
-    private physicState:    PhysicState,
+    private inputState: InputState,
+    private physicState: PhysicState,
     private animationState: AnimationStateMachine,
   ) {
 
@@ -163,10 +163,10 @@ export class PhysicController {
     const characterOrientation = this.characterMesh.rotationQuaternion
       ?? Quaternion.FromEulerAngles(0, this.characterMesh.rotation.y, 0);
 
-    const running      = this.inputState.run === true;
+    const running = this.inputState.run === true;
     const forwardSpeed = this.inputState.moveZ;
-    const speed        = this.state === "IN_AIR"
-      ? IN_AIR_SPEED  * (running ? RUN_MULTIPLIER : 1)
+    const speed = this.state === "IN_AIR"
+      ? IN_AIR_SPEED * (running ? RUN_MULTIPLIER : 1)
       : ON_GROUND_SPEED * (running ? RUN_MULTIPLIER : 1);
 
     const backWardsSpeedMultiplicator = forwardSpeed < 0 ? 0.3 : 1;
@@ -205,11 +205,12 @@ export class PhysicController {
 
       if (forwardSpeed === 0 || this.animationState.blockingAnimationIsPlaying) {
         let slowDownFactor = 0.8;
-        if (forwardSpeed === 0)                                                           slowDownFactor = 0.1;
-        if (this.animationState.current === 'rolling')                                    slowDownFactor = 1;
-        if (this.animationState.current === 'impact_recibed')                             slowDownFactor = 0.6;
+        if (forwardSpeed === 0) slowDownFactor = 0.1;
+        if (this.animationState.current === 'rolling') slowDownFactor = 1;
+        if (this.animationState.current === 'impact_recibed') slowDownFactor = 0.6;
         if (this.animationState.current === 'crunch_idle' ||
-            this.animationState.current === 'crashing_flat')                              slowDownFactor = 0;
+          this.animationState.current === 'impact_recibed_crouched' ||
+          this.animationState.current === 'crashing_flat') slowDownFactor = 0;
 
         outputVelocity = new Vector3(
           outputVelocity._x * slowDownFactor,
@@ -221,10 +222,10 @@ export class PhysicController {
       outputVelocity.subtractInPlace(support.averageSurfaceVelocity);
       const inv1k = 1e-3;
       if (outputVelocity.dot(upWorld) > inv1k) {
-        const velLen   = outputVelocity.length();
+        const velLen = outputVelocity.length();
         outputVelocity.normalizeFromLength(velLen);
         const horizLen = velLen / support.averageSurfaceNormal.dot(upWorld);
-        const c        = support.averageSurfaceNormal.cross(outputVelocity);
+        const c = support.averageSurfaceNormal.cross(outputVelocity);
         outputVelocity = c.cross(upWorld);
         outputVelocity.scaleInPlace(horizLen);
       }
@@ -233,8 +234,8 @@ export class PhysicController {
     }
 
     if (this.state === "START_JUMP") {
-      const u          = Math.sqrt(2 * GRAVITY.length() * JUMP_HEIGHT);
-      const curRelVel  = currentVelocity.dot(upWorld);
+      const u = Math.sqrt(2 * GRAVITY.length() * JUMP_HEIGHT);
+      const curRelVel = currentVelocity.dot(upWorld);
       return currentVelocity.add(upWorld.scale(u - curRelVel));
     }
 
@@ -256,24 +257,24 @@ export class PhysicController {
           0, this.characterMesh.rotation.y, 0
         );
 
-    // Acumulamos tiempo de giro
-    this.rotAccumulator += Math.abs(turn) * ROTATE_SPEED * dt;
-    // Cap para evitar saltos grandes si hay un frame muy largo
-    this.rotAccumulator = Math.min(this.rotAccumulator, ROTATE_ACCUMULATOR_MAX);
+        // Acumulamos tiempo de giro
+        this.rotAccumulator += Math.abs(turn) * ROTATE_SPEED * dt;
+        // Cap para evitar saltos grandes si hay un frame muy largo
+        this.rotAccumulator = Math.min(this.rotAccumulator, ROTATE_ACCUMULATOR_MAX);
 
-    // Aplicamos solo pasos discretos
-    while (this.rotAccumulator >= ROTATE_STEP_RAD) {
-      const direction = turn > 0 ? 1 : -1;
-      const deltaRot = Quaternion.RotationAxis(Vector3.Up(), direction * ROTATE_STEP_RAD);
-      this.characterMesh.rotationQuaternion = deltaRot.multiply(
-        this.characterMesh.rotationQuaternion
-      );
-      this.rotAccumulator -= ROTATE_STEP_RAD;
-    }
-  } else {
-    // Al soltar la tecla, descartamos el acumulador
-    this.rotAccumulator = 0;
-  }
+        // Aplicamos solo pasos discretos
+        while (this.rotAccumulator >= ROTATE_STEP_RAD) {
+          const direction = turn > 0 ? 1 : -1;
+          const deltaRot = Quaternion.RotationAxis(Vector3.Up(), direction * ROTATE_STEP_RAD);
+          this.characterMesh.rotationQuaternion = deltaRot.multiply(
+            this.characterMesh.rotationQuaternion
+          );
+          this.rotAccumulator -= ROTATE_STEP_RAD;
+        }
+      } else {
+        // Al soltar la tecla, descartamos el acumulador
+        this.rotAccumulator = 0;
+      }
 
       if (this.animationState.current === 'standing_to_crunch' && this.physicState.getCharacterPhysicCapsuleState() !== 'crouch') {
         this.standingTocrouch_updateCapsule()
@@ -294,7 +295,7 @@ export class PhysicController {
       const dt = scene.deltaTime / 1000;
       if (dt === 0) return;
 
-      const down    = new Vector3(0, -1, 0);
+      const down = new Vector3(0, -1, 0);
       const support = this.controller.checkSupport(dt, down);
 
       this.wantJump = this.animationState.current === "jump_impulse_is_over";
@@ -308,7 +309,7 @@ export class PhysicController {
         desiredVelocity = desiredVelocity.add(knockback);
         this.physicState.clearHitImpulse();
         this.animationState.setState('impact_force_applied');
-        if(this.physicState.getCharacterPhysicCapsuleState() === 'crouch'){
+        if (this.physicState.getCharacterPhysicCapsuleState() === 'crouch') {
           this.animationState.blockingAnimationIsPlaying = false;
         }
       }
@@ -322,7 +323,7 @@ export class PhysicController {
 
       //raycast capsule position when crouched.
       if (this.physicState.characterPhysicCapsuleState === 'crouch') {
-        this.raycastCapsule.position.y = this.raycastCapsule.position.y + this.meshOffset.y/2
+        this.raycastCapsule.position.y = this.raycastCapsule.position.y + this.meshOffset.y / 2
       }
 
       this.grounded = support.supportedState === CharacterSupportedState.SUPPORTED;
@@ -343,7 +344,7 @@ export class PhysicController {
     mesh.rotation.copyFrom(this.characterMesh.rotation);
     mesh.scaling.copyFrom(this.characterMesh.scaling);
     this.characterMesh.dispose();
-    this.characterMesh      = mesh;
+    this.characterMesh = mesh;
     this.characterMesh.name = playerConfig.player1.positionTrackeableMeshName;
     this.controller.setPosition(mesh.position.clone());
   }
@@ -352,11 +353,11 @@ export class PhysicController {
     this.meshOffset.y = y;
   }
 
-  get targetMesh(): AbstractMesh  { return this.characterMesh; }
-  get position():   Vector3       { return this.characterMesh.position; }
-  get isGrounded(): boolean       { return this.grounded; }
-  get velocity():   Vector3       { return this.localVelocity; }
-  get speed():      number {
+  get targetMesh(): AbstractMesh { return this.characterMesh; }
+  get position(): Vector3 { return this.characterMesh.position; }
+  get isGrounded(): boolean { return this.grounded; }
+  get velocity(): Vector3 { return this.localVelocity; }
+  get speed(): number {
     return new Vector3(this.localVelocity.x, 0, this.localVelocity.z).length();
   }
 

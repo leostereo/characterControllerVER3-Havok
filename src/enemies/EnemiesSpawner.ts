@@ -1,17 +1,20 @@
 import { type KeyboardInfo, type Scene, Vector3 } from "@babylonjs/core";
-import { playerConfig, playgroundConfig } from "@/config/GameConfig";
+import { playerConfig } from "@/config/GameConfig";
 import { type FixedCanionEnemy } from "./fixedCannion/FixedCanionEnemy";
 import { SurveillanceStation } from "./surveillanceStation/SurveillanceStation";
 import { PlayGroundState } from "@/playground/state/PlayGroundState";
 import { classifyAreas } from "@/utils/ClassifyAreas";
 import { getRectangleEnemyPosition } from "@/utils/getRectangleEnemyPosition";
 import { CorridorSurveillanceStation } from "./corridorSurveillanceStation/CorridorSurveillanceStation";
+import { SentinelMain } from "./sentinelV1/SentinelMain";
 
 export class EnemiesSpawner {
 
   private survillanceStations: SurveillanceStation[] = [];
   private corridorSurveillanceStations: CorridorSurveillanceStation[] = [];
-  private fixedCanions: FixedCanionEnemy[] = []
+  private fixedCanions: FixedCanionEnemy[] = [];
+  private sentinels: SentinelMain[] = [];  // ← nuevo
+
 
   constructor(
     private scene: Scene
@@ -30,6 +33,16 @@ export class EnemiesSpawner {
       })
 
       rectangles.forEach((rectangle) => {
+
+        const sentinel = new SentinelMain(
+          this.scene,
+          rectangle.center,
+          playerConfig.player1.positionTrackeableMeshName,
+          playerConfig.player1.player1RaycastDetectableName,
+        );
+        sentinel.start();
+        this.sentinels.push(sentinel);
+
         const {position} = getRectangleEnemyPosition(rectangle)
         this.survillanceStations.push(new SurveillanceStation(this.scene, position, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "highest"))
       })
@@ -42,11 +55,14 @@ export class EnemiesSpawner {
 
 
   spawnOne(): void {
-    const { groundSize } = playgroundConfig;
-    const halfSize = groundSize / 2;
-    const position = this.randomPosition(halfSize);
-    this.survillanceStations.push(new SurveillanceStation(this.scene, position, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "middle"))
-    
+    const sentinel = new SentinelMain(
+      this.scene,
+      Vector3.Zero(),
+      playerConfig.player1.positionTrackeableMeshName,
+      playerConfig.player1.player1RaycastDetectableName,
+    );
+    sentinel.start();
+    this.sentinels.push(sentinel);
   }
 
   dispose(): void {
@@ -54,6 +70,8 @@ export class EnemiesSpawner {
     this.survillanceStations = [];
     this.corridorSurveillanceStations.forEach(e => e.dispose());  // ← llama dispose en cada enemigo
     this.corridorSurveillanceStations = [];
+    this.sentinels.forEach(e => e.dispose());              // ← nuevo
+    this.sentinels = [];
   }
 
   private keyboardSpawn(kbInfo: KeyboardInfo): void {
