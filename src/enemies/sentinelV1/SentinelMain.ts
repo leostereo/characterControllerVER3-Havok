@@ -166,7 +166,7 @@ export class SentinelMain implements IBaseEnemy {
 
         const trackRearLeft = MeshBuilder.CreateCylinder(
             `sentinel_track_rear_left_${this.uniqueId}`,
-            { diameter: 0.50, height: 0.5, tessellation: 10 }, this.scene
+            { diameter: 0.60, height: 0.5, tessellation: 10 }, this.scene
         );
         trackRearLeft.rotation.z = Math.PI / 2;
         trackRearLeft.position = new Vector3(-0.45, 0.15, -0.35);
@@ -176,7 +176,7 @@ export class SentinelMain implements IBaseEnemy {
 
         const trackRearRight = MeshBuilder.CreateCylinder(
             `sentinel_track_rear_right_${this.uniqueId}`,
-            { diameter: 0.50, height: 0.5, tessellation: 10 }, this.scene
+            { diameter: 0.60, height: 0.5, tessellation: 10 }, this.scene
         );
         trackRearRight.rotation.z = Math.PI / 2;
         trackRearRight.position = new Vector3(0.45, 0.15, -0.35);
