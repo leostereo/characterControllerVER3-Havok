@@ -166,9 +166,9 @@ export const surveillanceConfig = {
     middle:  1.4,
     highest: 2.0,
   },
-  shootingRate:      2500,
+  shootingRate:      800,
   searchRotateSpeed: 0.6,
-  trackingRate:      500,
+  trackingRate:      100,
   detection: {
     range:            15,
     angle:            35,
