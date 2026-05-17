@@ -21,9 +21,9 @@ import { meshMetadata, type MeshMetadata } from "@/config/GameConfig";
 
 export class SentinelMain implements IBaseEnemy {
 
-    private fsm: SentinelFSM;                                   // ← concreto
-    private controller: IBaseController;         // ← interfaz
-    private sentinelController: SentinelController;             // ← concreto
+    private fsm: SentinelFSM;
+    private controller: IBaseController;
+    private sentinelController: SentinelController;
     private projectileManager: ProjectileManager;
     private rootNode: TransformNode;
     private rotationPivot: TransformNode;
@@ -42,8 +42,6 @@ export class SentinelMain implements IBaseEnemy {
     private bodyMesh: Mesh;
     private upperTowerMesh: Mesh;
     private headMesh: Mesh;
-
-
 
     private readonly uniqueId = `sentinel_${Math.random().toString(36).slice(2, 7)}`;
     private readonly SHOOTING_RATE = 800; // ms — vendrá de gameConfig.sentinel
@@ -148,7 +146,7 @@ export class SentinelMain implements IBaseEnemy {
         // ── Tracks ────────────────────────────────
         const trackFrontLeft = MeshBuilder.CreateCylinder(
             `sentinel_track_front_left_${this.uniqueId}`,
-            { diameter: 0.30, height: 0.9, tessellation: 10 }, this.scene
+            { diameter: 0.30, height: 0.5, tessellation: 10 }, this.scene
         );
         trackFrontLeft.rotation.z = Math.PI / 2;
         trackFrontLeft.position = new Vector3(-0.45, 0.15, 0.35);
@@ -158,7 +156,7 @@ export class SentinelMain implements IBaseEnemy {
 
         const trackFrontRight = MeshBuilder.CreateCylinder(
             `sentinel_track_front_right_${this.uniqueId}`,
-            { diameter: 0.30, height: 0.9, tessellation: 10 }, this.scene
+            { diameter: 0.30, height: 0.5, tessellation: 10 }, this.scene
         );
         trackFrontRight.rotation.z = Math.PI / 2;
         trackFrontRight.position = new Vector3(0.45, 0.15, 0.35);
@@ -168,7 +166,7 @@ export class SentinelMain implements IBaseEnemy {
 
         const trackRearLeft = MeshBuilder.CreateCylinder(
             `sentinel_track_rear_left_${this.uniqueId}`,
-            { diameter: 0.30, height: 0.9, tessellation: 10 }, this.scene
+            { diameter: 0.50, height: 0.5, tessellation: 10 }, this.scene
         );
         trackRearLeft.rotation.z = Math.PI / 2;
         trackRearLeft.position = new Vector3(-0.45, 0.15, -0.35);
@@ -178,7 +176,7 @@ export class SentinelMain implements IBaseEnemy {
 
         const trackRearRight = MeshBuilder.CreateCylinder(
             `sentinel_track_rear_right_${this.uniqueId}`,
-            { diameter: 0.30, height: 0.9, tessellation: 10 }, this.scene
+            { diameter: 0.50, height: 0.5, tessellation: 10 }, this.scene
         );
         trackRearRight.rotation.z = Math.PI / 2;
         trackRearRight.position = new Vector3(0.45, 0.15, -0.35);
@@ -361,16 +359,16 @@ export class SentinelMain implements IBaseEnemy {
     // ─────────────────────────────────────────────
     private buildMaterial(): StandardMaterial {
         const mat = new StandardMaterial(`sentinel_mat_${this.uniqueId}`, this.scene);
-        mat.diffuseColor = new Color3(0.08, 0.08, 0.10);
-        mat.emissiveColor = new Color3(0.0, 0.8, 1.0);
-        mat.specularColor = new Color3(1, 1, 1);
+        mat.diffuseColor = new Color3(0.10, 0.12, 0.20);   // azul-gris oscuro
+        mat.emissiveColor = new Color3(0.05, 0.10, 0.35);   // azul-violeta suave
+        mat.specularColor = new Color3(0.9, 0.9, 1.0);    // brillo frío
         return mat;
     }
 
     private buildAccentMaterial(): StandardMaterial {
         const mat = new StandardMaterial(`sentinel_accent_mat_${this.uniqueId}`, this.scene);
-        mat.diffuseColor = new Color3(0.6, 0, 0.8);
-        mat.emissiveColor = new Color3(0.8, 0, 1.0);
+        mat.diffuseColor = new Color3(0.0, 0.55, 0.70);   // cian medio
+        mat.emissiveColor = new Color3(0.0, 0.70, 0.90);   // cian brillante — nariz + barrel
         return mat;
     }
 }
