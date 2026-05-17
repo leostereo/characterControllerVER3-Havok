@@ -263,6 +263,57 @@ export const corridorSurveillanceConfig = {
     burstDelay: 120,    // ms entre proyectiles de la misma ráfaga
 } as const;
 
+
+// src/config/GameConfig.ts — agregar junto a surveillanceConfig
+
+export const sentinelConfig = {
+    shootingRate: 800,
+
+    fsm: {
+        intensiveSearchTimeout: 5000,
+    },
+
+    detection: {
+        tilt: 0.4,
+        projectionScale: 3,
+        projectionOffset: 1,
+        raycastYOffset: 0.5,
+        aimHeightMult: 0.8,
+        lampMuzzleOffset: 0.5,
+    },
+
+    sweep: {
+        angle: Math.PI / 6,
+        speed: 1.2,
+    },
+
+    tracking: {
+        rate: 100,
+    },
+
+    agent: {
+        speedPatrol: 2.0,
+        speedSearch: 3.5,
+        radius: 0.3,
+        height: 1.0,
+        maxAcceleration: 4.0,
+        collisionQueryRange: 0.5,
+        separationWeight: 1.0,
+    },
+
+    colors: {
+        main: {
+            diffuse: { r: 0.10, g: 0.12, b: 0.20 },
+            emissive: { r: 0.05, g: 0.10, b: 0.35 },
+            specular: { r: 0.90, g: 0.90, b: 1.00 },
+        },
+        accent: {
+            diffuse: { r: 0.0, g: 0.55, b: 0.70 },
+            emissive: { r: 0.0, g: 0.70, b: 0.90 },
+        },
+    },
+} as const;
+
 // ─────────────────────────────────────────────
 //  TIPOS DERIVADOS
 // ─────────────────────────────────────────────

@@ -12,20 +12,13 @@ import {
 import type { IBaseController } from "../interfaces";
 import { VisionCone } from "./VisionCone";
 import { NavMeshService } from "@/playground/NavMeshService";
-import { meshNames } from "@/config/GameConfig";
+import { meshNames, sentinelConfig } from "@/config/GameConfig";
 import type { SentinelFSM } from "./SentinelFSM";
 
 // ─────────────────────────────────────────────
 //  CONFIG — vendrá de gameConfig.sentinel
 // ─────────────────────────────────────────────
 const TRACKING_RATE = 100;       // ms
-const TILT = 0.4;
-const PROJECTION_SCALE = 3;
-const PROJECTION_OFFSET = 1;
-const RAYCAST_Y_OFFSET = 0.5;
-const AIM_HEIGHT_MULT = 0.8;
-const SWEEP_ANGLE = Math.PI / 6;  // 30 grados en radianes
-const SWEEP_SPEED = 1.2;          // radianes por segundo
 
 export class SentinelController implements IBaseController {
 
@@ -53,8 +46,17 @@ export class SentinelController implements IBaseController {
         this.visionCone = new VisionCone(scene, rotationPivot, barrel, barrelHeight);
         this.visionCone.buildVisuals();
 
-        this.agentId = this.navMesh.addAgent(rootNode.position);
-        this.trackedMesh = this.resolveTrackedMesh();
+        this.agentId = this.navMesh.addAgent(
+            rootNode.position,
+            {
+                radius: sentinelConfig.agent.radius,
+                height: sentinelConfig.agent.height,
+                maxAcceleration: sentinelConfig.agent.maxAcceleration,
+                maxSpeed: sentinelConfig.agent.speedPatrol,
+                collisionQueryRange: sentinelConfig.agent.collisionQueryRange,
+                separationWeight: sentinelConfig.agent.separationWeight,
+            }
+        ); this.trackedMesh = this.resolveTrackedMesh();
 
     }
 
@@ -153,15 +155,17 @@ export class SentinelController implements IBaseController {
     //  DETECCIÓN
     // ─────────────────────────────────────────────
     private hasLineOfSight(): boolean {
+
+
         const target = this.resolveTrackedMesh();
         if (!target) return false;
 
         const barrelPos = this.barrel.getAbsolutePosition();
-        const distToGround = this.barrelHeight / Math.tan(TILT);
+        const distToGround = this.barrelHeight / Math.tan(sentinelConfig.detection.tilt);
         const forward = this.rotationPivot.forward.normalize();
 
-        const centerX = barrelPos.x + forward.x * distToGround * PROJECTION_OFFSET;
-        const centerZ = barrelPos.z + forward.z * distToGround * PROJECTION_OFFSET;
+        const centerX = barrelPos.x + forward.x * distToGround * sentinelConfig.detection.projectionOffset;
+        const centerZ = barrelPos.z + forward.z * distToGround * sentinelConfig.detection.projectionOffset;
 
         const dx = target.position.x - centerX;
         const dz = target.position.z - centerZ;
@@ -170,11 +174,11 @@ export class SentinelController implements IBaseController {
         const localX = dx * Math.cos(-angle) + dz * Math.sin(-angle);
         const localZ = -dx * Math.sin(-angle) + dz * Math.cos(-angle);
 
-        const inCircle = (localX ** 2 + localZ ** 2) <= PROJECTION_SCALE ** 2;
+        const inCircle = (localX ** 2 + localZ ** 2) <= sentinelConfig.detection.projectionScale ** 2;
         if (!inCircle) return false;
 
         const origin = barrelPos.clone();
-        origin.y += RAYCAST_Y_OFFSET;
+        origin.y += sentinelConfig.detection.raycastYOffset;
 
         const dirToTarget = target.position.subtract(origin).normalize();
         const distance = Vector3.Distance(origin, target.position);
@@ -202,8 +206,9 @@ export class SentinelController implements IBaseController {
         if (!target) return;
 
         const origin = this.barrel.getAbsolutePosition();
-        const aimTarget = target.position.add(new Vector3(0, AIM_HEIGHT_MULT, 0));
-        const direction = aimTarget.subtract(origin).normalize();
+        const aimTarget = target.position.add(
+            new Vector3(0, sentinelConfig.detection.aimHeightMult, 0)
+        ); const direction = aimTarget.subtract(origin).normalize();
 
         this.rotationPivot.rotation.y = Math.atan2(direction.x, direction.z);
         this.rotationPivot.rotation.x = -Math.asin(
@@ -215,17 +220,16 @@ export class SentinelController implements IBaseController {
     //  SWEEP
     // ─────────────────────────────────────────────
     private sweep(dt: number): void {
-        this.sweepAngle += SWEEP_SPEED * this.sweepDirection * (dt / 1000);
+        this.sweepAngle += sentinelConfig.sweep.speed * this.sweepDirection * (dt / 1000);
 
-        if (this.sweepAngle >= SWEEP_ANGLE) {
-            this.sweepAngle = SWEEP_ANGLE;
+        if (this.sweepAngle >= sentinelConfig.sweep.angle) {
+            this.sweepAngle = sentinelConfig.sweep.angle;
             this.sweepDirection = -1;
-        } else if (this.sweepAngle <= -SWEEP_ANGLE) {
-            this.sweepAngle = -SWEEP_ANGLE;
+        } else if (this.sweepAngle <= -sentinelConfig.sweep.angle) {
+            this.sweepAngle = -sentinelConfig.sweep.angle;
             this.sweepDirection = 1;
         }
 
-        // ← relativo al forward del rootNode
         this.rotationPivot.rotation.y = this.rootNode.rotation.y + this.sweepAngle;
     }
 

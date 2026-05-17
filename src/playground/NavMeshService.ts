@@ -10,6 +10,16 @@ import { init, type NavMesh, Crowd, NavMeshQuery, type CrowdAgent } from "recast
 import { generateTiledNavMesh } from "recast-navigation/generators";
 import { PlayGroundState } from "./state/PlayGroundState";
 
+
+export interface AgentConfig {
+    radius: number;
+    height: number;
+    maxAcceleration: number;
+    maxSpeed: number;
+    collisionQueryRange: number;
+    separationWeight: number;
+}
+
 const NAVMESH_TILED_CONFIG = {
     cs: 0.2,
     ch: 0.2,
@@ -75,21 +85,6 @@ export class NavMeshService {
         }
 
         const { navMesh } = navMeshResult;
-        // verificar tiles generados
-        // const tileCount = navMesh.getMaxTiles();
-        // console.warn("NavMesh max tiles:", tileCount);
-
-        // // verificar con navMeshQuery
-        // const query = new NavMeshQuery(navMesh);
-        // const nearestResult = query.findClosestPoint({ x: 0, y: 0, z: 0 });
-        // console.warn("Closest point to origin:", nearestResult);
-
-        // const nearestResult2 = query.findClosestPoint({ x: -49.5, y: 0, z: -49.5 });
-        // console.warn("Closest point to first emptyPoint:", nearestResult2);
-
-
-
-
 
         this.navMesh = navMesh;
         this.navMeshQuery = new NavMeshQuery(navMesh);
@@ -105,26 +100,25 @@ export class NavMeshService {
     // ─────────────────────────────────────────────
     //  API PÚBLICA
     // ─────────────────────────────────────────────
-    addAgent(position: Vector3): number {
+    addAgent(position: Vector3, config: AgentConfig): number {
         this.assertReady();
         const agent = this.crowd.addAgent(
             { x: position.x, y: 0, z: position.z },
             {
-                radius: 0.3,
-                height: 1,
-                maxAcceleration: 4.0,
-                maxSpeed: 2.0,
-                collisionQueryRange: 0.5,
-                pathOptimizationRange: 0,
-                separationWeight: 1.0,
-            }
-        );
+        radius: config.radius,
+        height: config.height,
+        maxAcceleration: config.maxAcceleration,
+        maxSpeed: config.maxSpeed,
+        collisionQueryRange: config.collisionQueryRange,
+        pathOptimizationRange: 0,
+          separationWeight: config.separationWeight,
+      }
+  );
 
-        const agentId = this.nextAgentId++;
-        this.agents.set(agentId, agent);
-
-        return agentId;
-    }
+    const agentId = this.nextAgentId++;
+    this.agents.set(agentId, agent);
+    return agentId;
+}
 
     removeAgent(index: number): void {
         this.assertReady();

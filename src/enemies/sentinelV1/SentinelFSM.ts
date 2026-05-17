@@ -1,6 +1,9 @@
 // src/enemies/sentinelV1/SentinelFSM.ts
 
 import { BaseStateMachine } from "../abstract/BaseStateMachine";
+import { sentinelConfig } from "@/config/GameConfig";
+
+
 
 export type SentinelState =
   | "patrolling"
@@ -10,8 +13,8 @@ export type SentinelState =
 
 export class SentinelFSM extends BaseStateMachine<SentinelState> {
 
-  private intensiveSearchTimer  = 0;
-  private intensiveSearchTimeout = 5000; // ms — luego vendrá de gameConfig
+  private intensiveSearchTimer = 0;
+  private intensiveSearchTimeout = sentinelConfig.fsm.intensiveSearchTimeout;
 
   constructor() {
     super();
