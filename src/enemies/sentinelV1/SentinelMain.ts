@@ -17,7 +17,7 @@ import { SentinelFSM } from "./SentinelFSM";
 import { SentinelController } from "./SentinelController";
 import { ProjectileManager } from "./ProjectileManager";
 import { EventManager } from "@/game/eventManager/eventManager";
-import { meshMetadata, type MeshMetadata } from "@/config/GameConfig";
+import { meshMetadata, type MeshMetadata, sentinelConfig } from "@/config/GameConfig";
 
 export class SentinelMain implements IBaseEnemy {
 
@@ -111,8 +111,6 @@ export class SentinelMain implements IBaseEnemy {
     // ─────────────────────────────────────────────
     //  GEOMETRÍA
     // ─────────────────────────────────────────────
-    // src/enemies/sentinelV1/SentinelMain.ts
-    // reemplazar buildGeometry() completo
 
     private buildGeometry(): {
         rotationPivot: TransformNode;
@@ -308,6 +306,7 @@ export class SentinelMain implements IBaseEnemy {
         this.collapsed = true;
         this.controller.stop();
         this.controller.removeAgent();
+        this.controller.disposeVisionCone();   // ← nuevo
 
         const bodyPos = this.bodyMesh.getAbsolutePosition();
         const towerPos = this.upperTowerMesh.getAbsolutePosition();
@@ -358,17 +357,21 @@ export class SentinelMain implements IBaseEnemy {
     //  MATERIALES
     // ─────────────────────────────────────────────
     private buildMaterial(): StandardMaterial {
+        const { main } = sentinelConfig.colors;
+
         const mat = new StandardMaterial(`sentinel_mat_${this.uniqueId}`, this.scene);
-        mat.diffuseColor = new Color3(0.10, 0.12, 0.20);   // azul-gris oscuro
-        mat.emissiveColor = new Color3(0.05, 0.10, 0.35);   // azul-violeta suave
-        mat.specularColor = new Color3(0.9, 0.9, 1.0);    // brillo frío
+        mat.diffuseColor = new Color3(main.diffuse.r, main.diffuse.g, main.diffuse.b);
+        mat.emissiveColor = new Color3(main.emissive.r, main.emissive.g, main.emissive.b);
+        mat.specularColor = new Color3(main.specular.r, main.specular.g, main.specular.b);
+
         return mat;
     }
 
     private buildAccentMaterial(): StandardMaterial {
+        const { accent } = sentinelConfig.colors;
         const mat = new StandardMaterial(`sentinel_accent_mat_${this.uniqueId}`, this.scene);
-        mat.diffuseColor = new Color3(0.0, 0.55, 0.70);   // cian medio
-        mat.emissiveColor = new Color3(0.0, 0.70, 0.90);   // cian brillante — nariz + barrel
+        mat.diffuseColor = new Color3(accent.diffuse.r, accent.diffuse.g, accent.diffuse.b);
+        mat.emissiveColor = new Color3(accent.emissive.r, accent.emissive.g, accent.emissive.b);
         return mat;
     }
 }

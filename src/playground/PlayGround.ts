@@ -33,6 +33,7 @@ export class PlayGround {
     const navMeshService = NavMeshService.getInstance(scene);
     await navMeshService.build();
     this.enemiesSpawner.spawnAll();
+    //this.enemiesSpawner.spawnOne();
   }
 
   // ─────────────────────────────────────────────

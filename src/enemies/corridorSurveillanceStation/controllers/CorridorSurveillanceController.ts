@@ -64,14 +64,18 @@ export class CorridorSurveillanceController {
 
       if (playerInSight) {
         this.stateMachine.setState("alert");
+
+        // tracking con rate — pero apuntamos ANTES de chequear el rate
+        // para que el cañón siempre esté orientado al jugador
+        this.trackTarget();                    // ← movido fuera del rate limit
+
         this.trackingElapsed += dt;
         if (this.trackingElapsed >= this.TRACKING_RATE) {
           this.trackingElapsed = 0;
-          this.trackTarget();
+          // aquí podrían ir acciones con rate limit — sonidos, efectos, etc.
         }
       } else {
         this.trackingElapsed = 0;
-        //this.sweep(dt);
         this.stateMachine.setState("searching");
       }
     });

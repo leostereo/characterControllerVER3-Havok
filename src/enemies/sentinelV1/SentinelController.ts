@@ -12,20 +12,13 @@ import {
 import type { IBaseController } from "../interfaces";
 import { VisionCone } from "./VisionCone";
 import { NavMeshService } from "@/playground/NavMeshService";
-import { meshNames } from "@/config/GameConfig";
+import { meshNames, sentinelConfig } from "@/config/GameConfig";
 import type { SentinelFSM } from "./SentinelFSM";
 
 // ─────────────────────────────────────────────
 //  CONFIG — vendrá de gameConfig.sentinel
 // ─────────────────────────────────────────────
 const TRACKING_RATE = 100;       // ms
-const TILT = 0.4;
-const PROJECTION_SCALE = 3;
-const PROJECTION_OFFSET = 1;
-const RAYCAST_Y_OFFSET = 0.5;
-const AIM_HEIGHT_MULT = 0.8;
-const SWEEP_ANGLE = Math.PI / 6;  // 30 grados en radianes
-const SWEEP_SPEED = 1.2;          // radianes por segundo
 
 export class SentinelController implements IBaseController {
 
@@ -53,8 +46,17 @@ export class SentinelController implements IBaseController {
         this.visionCone = new VisionCone(scene, rotationPivot, barrel, barrelHeight);
         this.visionCone.buildVisuals();
 
-        this.agentId = this.navMesh.addAgent(rootNode.position);
-        this.trackedMesh = this.resolveTrackedMesh();
+        this.agentId = this.navMesh.addAgent(
+            rootNode.position,
+            {
+                radius: sentinelConfig.agent.radius,
+                height: sentinelConfig.agent.height,
+                maxAcceleration: sentinelConfig.agent.maxAcceleration,
+                maxSpeed: sentinelConfig.agent.speedPatrol,
+                collisionQueryRange: sentinelConfig.agent.collisionQueryRange,
+                separationWeight: sentinelConfig.agent.separationWeight,
+            }
+        ); this.trackedMesh = this.resolveTrackedMesh();
 
     }
 
@@ -149,84 +151,95 @@ export class SentinelController implements IBaseController {
         this.navMesh.removeAgent(this.agentId);
     }
 
+    disposeVisionCone(): void {
+        this.visionCone.dispose();
+    }
+
     // ─────────────────────────────────────────────
     //  DETECCIÓN
     // ─────────────────────────────────────────────
     private hasLineOfSight(): boolean {
-        const target = this.resolveTrackedMesh();
-        if (!target) return false;
+    const target = this.scene.getMeshByName(this.meshForPositionTrackName);
+    if (!target) return false;
 
-        const barrelPos = this.barrel.getAbsolutePosition();
-        const distToGround = this.barrelHeight / Math.tan(TILT);
-        const forward = this.rotationPivot.forward.normalize();
+    const barrelPos = this.barrel.getAbsolutePosition();
+    const distToGround = this.barrelHeight / Math.tan(sentinelConfig.detection.tilt);
+    const forward = this.rotationPivot.forward.normalize();
 
-        const centerX = barrelPos.x + forward.x * distToGround * PROJECTION_OFFSET;
-        const centerZ = barrelPos.z + forward.z * distToGround * PROJECTION_OFFSET;
+    const centerX = barrelPos.x + forward.x * distToGround * sentinelConfig.detection.projectionOffset;
+    const centerZ = barrelPos.z + forward.z * distToGround * sentinelConfig.detection.projectionOffset;
 
-        const dx = target.position.x - centerX;
-        const dz = target.position.z - centerZ;
-        const angle = this.rotationPivot.rotation.y;
+    const dx = target.position.x - centerX;
+    const dz = target.position.z - centerZ;
 
-        const localX = dx * Math.cos(-angle) + dz * Math.sin(-angle);
-        const localZ = -dx * Math.sin(-angle) + dz * Math.cos(-angle);
+    // ← ángulo world extraído del forward, no rotation.y local
+    const worldAngle = Math.atan2(forward.x, forward.z);
 
-        const inCircle = (localX ** 2 + localZ ** 2) <= PROJECTION_SCALE ** 2;
-        if (!inCircle) return false;
+    const localX = dx * Math.cos(-worldAngle) + dz * Math.sin(-worldAngle);
+    const localZ = -dx * Math.sin(-worldAngle) + dz * Math.cos(-worldAngle);
 
-        const origin = barrelPos.clone();
-        origin.y += RAYCAST_Y_OFFSET;
+    const inCircle = (localX ** 2 + localZ ** 2) <=
+        sentinelConfig.detection.projectionScale ** 2;
+    if (!inCircle) return false;
 
-        const dirToTarget = target.position.subtract(origin).normalize();
-        const distance = Vector3.Distance(origin, target.position);
-        const ray = new Ray(origin, dirToTarget, distance);
+    const origin = barrelPos.clone();
+    origin.y += sentinelConfig.detection.raycastYOffset;
 
-        const hit = this.scene.pickWithRay(ray, (mesh) =>
-            !mesh.name.startsWith("sentinel_") &&
-            !mesh.name.startsWith(meshNames.projectile)
-        );
+    const dirToTarget = target.position.subtract(origin).normalize();
+    const distance = Vector3.Distance(origin, target.position);
+    const ray = new Ray(origin, dirToTarget, distance);
 
-        const detected = hit?.pickedMesh?.name === this.meshForRayCastDetectionName;
+    const hit = this.scene.pickWithRay(ray, (mesh) =>
+        !mesh.name.startsWith("sentinel_") &&
+        !mesh.name.startsWith(meshNames.projectile)
+    );
 
-        if (detected) {
-            this.lastKnownPosition = target.position.clone();
-        }
-
-        return detected;
-    }
+    const detected = hit?.pickedMesh?.name === this.meshForRayCastDetectionName;
+    if (detected) this.lastKnownPosition = target.position.clone();
+    return detected;
+}
 
     // ─────────────────────────────────────────────
     //  TRACKING
     // ─────────────────────────────────────────────
     private trackTarget(): void {
-        const target = this.resolveTrackedMesh();
-        if (!target) return;
+    const target = this.scene.getMeshByName(this.meshForPositionTrackName);
+    if (!target) return;
 
-        const origin = this.barrel.getAbsolutePosition();
-        const aimTarget = target.position.add(new Vector3(0, AIM_HEIGHT_MULT, 0));
-        const direction = aimTarget.subtract(origin).normalize();
+    const origin = this.barrel.getAbsolutePosition();
+    const aimTarget = target.position.add(
+        new Vector3(0, sentinelConfig.detection.aimHeightMult, 0)
+    );
+    const direction = aimTarget.subtract(origin).normalize();
 
-        this.rotationPivot.rotation.y = Math.atan2(direction.x, direction.z);
-        this.rotationPivot.rotation.x = -Math.asin(
-            Math.min(1, Math.max(-1, direction.y))
-        );
-    }
+    // ángulo world del target
+    const worldAngleY = Math.atan2(direction.x, direction.z);
+
+    // convertir a local restando la rotación del rootNode
+    const localAngleY = worldAngleY - this.rootNode.rotation.y;
+
+    this.rotationPivot.rotation.y = localAngleY;
+    this.rotationPivot.rotation.x = -Math.asin(
+        Math.min(1, Math.max(-1, direction.y))
+    );
+}
 
     // ─────────────────────────────────────────────
     //  SWEEP
     // ─────────────────────────────────────────────
     private sweep(dt: number): void {
-        this.sweepAngle += SWEEP_SPEED * this.sweepDirection * (dt / 1000);
+        this.sweepAngle += sentinelConfig.sweep.speed * this.sweepDirection * (dt / 1000);
 
-        if (this.sweepAngle >= SWEEP_ANGLE) {
-            this.sweepAngle = SWEEP_ANGLE;
+        if (this.sweepAngle >= sentinelConfig.sweep.angle) {
+            this.sweepAngle = sentinelConfig.sweep.angle;
             this.sweepDirection = -1;
-        } else if (this.sweepAngle <= -SWEEP_ANGLE) {
-            this.sweepAngle = -SWEEP_ANGLE;
+        } else if (this.sweepAngle <= -sentinelConfig.sweep.angle) {
+            this.sweepAngle = -sentinelConfig.sweep.angle;
             this.sweepDirection = 1;
         }
 
-        // ← relativo al forward del rootNode
-        this.rotationPivot.rotation.y = this.rootNode.rotation.y + this.sweepAngle;
+        // solo el sweep, sin sumar la rotación del rootNode
+        this.rotationPivot.rotation.y = this.sweepAngle;
     }
 
     // ─────────────────────────────────────────────
