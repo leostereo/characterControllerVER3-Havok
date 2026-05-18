@@ -134,25 +134,25 @@ export class VisionCone implements IBaseVisionCone<SentinelState> {
     this.projection.material = projMat;
   }
 
-  update(state: SentinelState): void {
-    // Sincronizar posición del orbitPivot con el rootNode
-    const barrelWorldPos = this.barrel.getAbsolutePosition();
-    this.orbitPivot.position.x = barrelWorldPos.x;
-    this.orbitPivot.position.z = barrelWorldPos.z;
+update(state: SentinelState): void {
+  const barrelWorldPos = this.barrel.getAbsolutePosition();
+  const forward        = this.rotationPivot.forward.normalize();
+  const worldAngle     = Math.atan2(forward.x, forward.z);   // ← consistente con hasLineOfSight
 
-    // Sincronizar rotación
-    this.orbitPivot.rotation.y = this.rotationPivot.rotation.y;
+  this.orbitPivot.position.x = barrelWorldPos.x;
+  this.orbitPivot.position.z = barrelWorldPos.z;
+  this.orbitPivot.rotation.y = worldAngle;
 
-    // Colores — igual que antes
-    const colors = COLORS[state];
-    const lampMat = this.lamp.material as StandardMaterial;
-    const projMat = this.projection.material as StandardMaterial;
+  // colores — igual que antes
+  const colors  = sentinelConfig.colors.cone[state];
+  const lampMat = this.lamp.material       as StandardMaterial;
+  const projMat = this.projection.material as StandardMaterial;
 
-    lampMat.emissiveColor = colors.lamp;
-    projMat.diffuseColor = colors.projDiffuse;
-    projMat.emissiveColor = colors.projEmissive;
-    projMat.alpha = colors.projAlpha;
-  }
+  lampMat.emissiveColor = new Color3(colors.lamp.r,         colors.lamp.g,         colors.lamp.b);
+  projMat.diffuseColor  = new Color3(colors.projDiffuse.r,  colors.projDiffuse.g,  colors.projDiffuse.b);
+  projMat.emissiveColor = new Color3(colors.projEmissive.r, colors.projEmissive.g, colors.projEmissive.b);
+  projMat.alpha         = colors.projAlpha;
+}
 
   dispose(): void {
     this.lamp.dispose();

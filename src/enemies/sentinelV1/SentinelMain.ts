@@ -306,6 +306,7 @@ export class SentinelMain implements IBaseEnemy {
         this.collapsed = true;
         this.controller.stop();
         this.controller.removeAgent();
+        this.controller.disposeVisionCone();   // ← nuevo
 
         const bodyPos = this.bodyMesh.getAbsolutePosition();
         const towerPos = this.upperTowerMesh.getAbsolutePosition();

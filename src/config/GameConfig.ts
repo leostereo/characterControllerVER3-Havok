@@ -301,16 +301,44 @@ export const sentinelConfig = {
         separationWeight: 1.0,
     },
 
+    // src/config/GameConfig.ts — sentinelConfig.colors
+
     colors: {
         main: {
-            diffuse: { r: 0.10, g: 0.12, b: 0.20 },
-            emissive: { r: 0.05, g: 0.10, b: 0.35 },
-            specular: { r: 0.90, g: 0.90, b: 1.00 },
+        diffuse: { r: 0.10, g: 0.12, b: 0.20 },
+        emissive: { r: 0.05, g: 0.10, b: 0.35 },
+        specular: { r: 0.90, g: 0.90, b: 1.00 },
+    },
+    accent: {
+        diffuse: { r: 0.0, g: 0.55, b: 0.70 },
+        emissive: { r: 0.0, g: 0.70, b: 0.90 },
+    },
+    cone: {
+        patrolling: {
+            lamp: { r: 1.0, g: 0.9, b: 0.0 },
+            projDiffuse: { r: 1.0, g: 0.9, b: 0.0 },
+            projEmissive: { r: 0.3, g: 0.25, b: 0.0 },
+            projAlpha: 0.15,
         },
-        accent: {
-            diffuse: { r: 0.0, g: 0.55, b: 0.70 },
-            emissive: { r: 0.0, g: 0.70, b: 0.90 },
+        shooting: {
+            lamp: { r: 1.0, g: 0.1, b: 0.0 },
+            projDiffuse: { r: 1.0, g: 0.1, b: 0.0 },
+            projEmissive: { r: 0.4, g: 0.0, b: 0.0 },
+            projAlpha: 0.25,
         },
+        searching: {
+            lamp: { r: 1.0, g: 0.5, b: 0.0 },
+            projDiffuse: { r: 1.0, g: 0.5, b: 0.0 },
+            projEmissive: { r: 0.3, g: 0.15, b: 0.0 },
+            projAlpha: 0.20,
+        },
+        intensiveSearch: {
+            lamp: { r: 1.0, g: 0.1, b: 0.0 },
+            projDiffuse: { r: 1.0, g: 0.0, b: 0.0 },
+            projEmissive: { r: 0.5, g: 0.0, b: 0.0 },
+            projAlpha: 0.35,
+        },
+    },
     },
 } as const;
 
