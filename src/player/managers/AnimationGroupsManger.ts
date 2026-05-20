@@ -25,6 +25,9 @@ export class AnimationGroupsManager {
         impact_force_applied: undefined,
         impact_recibed: undefined,
         impact_recibed_crouched: undefined,
+        sneaking_forward: undefined,
+        standing_to_sneaking: undefined,
+        sneaking_to_standing: undefined,
         none: undefined
     };
 
@@ -85,7 +88,7 @@ export class AnimationGroupsManager {
 
         this.groups.jump_impulse_is_over = this.groups.jumping;
 
-        //throwing
+        //throwing 
         this.groups.throwing = animationGroups.find((item) => item.name === 'fresbe throw');
         const throwing_event = new AnimationEvent(85, () => {
             this.animationState.current = "throwing_impulse_is_over";
@@ -182,7 +185,35 @@ export class AnimationGroupsManager {
         }
         const impact_recibed_crouched_anim = this.groups.impact_recibed_crouched?.targetedAnimations[0].animation;
         impact_recibed_crouched_anim?.addEvent(impact_recibed_crouched_finish_event)
-        //
+
+
+        //sneaking
+        this.groups.sneaking_forward = animationGroups.find((item) => item.name === "sneaking forward.001");
+        this.groups.standing_to_sneaking = this.groups.standing_to_crunch?.clone('standing_to_sneak');
+
+        const standing_to_sneaking_finish_event = new AnimationEvent(20, () => {
+            this.animationState.blockingAnimationIsPlaying = false;
+        }, true);
+        if (this.groups.standing_to_sneaking) {
+           this.groups.standing_to_sneaking.to = 25
+        }
+        const standing_to_sneaking_anim = this.groups.standing_to_sneaking?.targetedAnimations[0].animation;
+        standing_to_sneaking_anim?.addEvent(standing_to_sneaking_finish_event)
+
+
+        this.groups.sneaking_to_standing = this.groups.crouched_to_standing?.clone('sneaking_to_standing');
+        const sneaking_to_standing_finish_event = new AnimationEvent(38, () => {
+            this.animationState.blockingAnimationIsPlaying = false;
+        }, true);
+        if (this.groups.sneaking_to_standing) {
+           this.groups.sneaking_to_standing.from = 20;
+        }
+        const sneaking_to_standing_anim = this.groups.sneaking_to_standing?.targetedAnimations[0].animation;
+        sneaking_to_standing_anim?.addEvent(sneaking_to_standing_finish_event)
+
+
+
+
         console.warn("Animation groups set:", Object.keys(this.groups).filter(k => this.groups[k as AnimationStateValue]));
     }
 
