@@ -21,6 +21,9 @@ export type AnimationStateValue =
   | "impact_force_applied"
   | "impact_recibed"
   | "impact_recibed_crouched"
+  | "sneaking_forward"
+  | "standing_to_sneaking"
+  | "sneaking_to_standing"
   | "none"
 
 export interface AnimationState {

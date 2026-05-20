@@ -11,6 +11,7 @@ import {
     PhysicsAggregate,
     PhysicsShapeType,
     PhysicsMotionType,
+    type Observer,
 } from "@babylonjs/core";
 import type { IBaseEnemy, IBaseController } from "../interfaces";
 import { SentinelFSM } from "./SentinelFSM";
@@ -29,7 +30,6 @@ export class SentinelMain implements IBaseEnemy {
     private rotationPivot: TransformNode;
     private barrel: Mesh;
     private elapsed = 0;
-    // ── nuevas propiedades privadas ──
     private baseGroup: TransformNode;
     private towerGroup: TransformNode;
     private headGroup: TransformNode;
@@ -42,6 +42,7 @@ export class SentinelMain implements IBaseEnemy {
     private bodyMesh: Mesh;
     private upperTowerMesh: Mesh;
     private headMesh: Mesh;
+    private shootingObserver: Observer<Scene> | null = null;
 
     private readonly uniqueId = `sentinel_${Math.random().toString(36).slice(2, 7)}`;
     private readonly SHOOTING_RATE = 800; // ms — vendrá de gameConfig.sentinel
@@ -96,7 +97,7 @@ export class SentinelMain implements IBaseEnemy {
     //  LOOP DE DISPARO
     // ─────────────────────────────────────────────
     private setupShootingLoop(): void {
-        this.scene.onBeforeRenderObservable.add(() => {
+        this.shootingObserver = this.scene.onBeforeRenderObservable.add(() => {
             if (this.fsm.getState() !== "shooting") return;
 
             this.elapsed += this.scene.getEngine().getDeltaTime();
@@ -304,6 +305,12 @@ export class SentinelMain implements IBaseEnemy {
     // collapse simplificado
     private collapse(): void {
         this.collapsed = true;
+
+        if (this.shootingObserver) {
+            this.scene.onBeforeRenderObservable.remove(this.shootingObserver);
+            this.shootingObserver = null;
+        }
+
         this.controller.stop();
         this.controller.removeAgent();
         this.controller.disposeVisionCone();   // ← nuevo

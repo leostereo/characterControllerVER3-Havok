@@ -207,6 +207,7 @@ export class PhysicController {
         let slowDownFactor = 0.8;
         if (forwardSpeed === 0) slowDownFactor = 0.1;
         if (this.animationState.current === 'rolling') slowDownFactor = 1;
+        if (this.animationState.current === 'sneaking_forward') slowDownFactor = 0.95;
         if (this.animationState.current === 'impact_recibed') slowDownFactor = 0.6;
         if (this.animationState.current === 'crunch_idle' ||
           this.animationState.current === 'impact_recibed_crouched' ||
@@ -276,14 +277,15 @@ export class PhysicController {
         this.rotAccumulator = 0;
       }
 
-      if (this.animationState.current === 'standing_to_crunch' && this.physicState.getCharacterPhysicCapsuleState() !== 'crouch') {
+      const currentPCS = this.physicState.getCharacterPhysicCapsuleState();
+      if ((this.animationState.current === 'standing_to_crunch' || this.animationState.current === 'standing_to_sneaking') && currentPCS !== 'crouch') {
         this.standingTocrouch_updateCapsule()
       }
 
-      if (this.animationState.current === 'crouched_to_standing' && this.physicState.getCharacterPhysicCapsuleState() !== 'standing') {
+      if ((this.animationState.current === 'crouched_to_standing' || this.animationState.current === 'sneaking_to_standing') && currentPCS !== 'standing') {
         this.crouchToStanding_updateCapsule()
       }
-
+    
       // Sincronizar posición visual con el controller
       const physPos = this.controller.getPosition();
       this.characterMesh.position.copyFrom(physPos.add(this.meshOffset));

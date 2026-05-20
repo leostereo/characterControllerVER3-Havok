@@ -49,6 +49,7 @@ export class AnimationController {
         return;
       }
 
+      ///#region crouch
       if (this.inputState.moveZ === 0 && this.inputState.action === 'rollOrDuck') {
         next = "standing_to_crunch";
         this.animationState.blockingAnimationIsPlaying = true;
@@ -70,7 +71,7 @@ export class AnimationController {
 
       if (this.physicState.speed > 1 && this.inputState.moveZ > 0) {
         next = this.inputState.run ? "running" : "walking";
-        if(this.inputState.action === 'rollOrDuck' && this.animationState.current !== 'rolling'){
+        if (this.inputState.action === 'rollOrDuck' && this.animationState.current !== 'rolling' && this.inputState.run) {
           next = 'rolling';
           this.animationState.blockingAnimationIsPlaying = true;
         }
@@ -91,8 +92,13 @@ export class AnimationController {
         this.animationState.blockingAnimationIsPlaying = true;
       }
       
-      if (this.inputState.action === 'throw' && this.animationState.current !== 'throwing_impulse_is_over') {
+      if (!this.inputState.run && this.inputState.action === 'throw' && this.animationState.current !== 'throwing_impulse_is_over') {
         next = 'throwing'
+        this.animationState.blockingAnimationIsPlaying = true;
+      }
+
+      if (this.inputState.run && this.inputState.action === 'throw' && this.animationState.current !== 'air_throwing_impulse_is_over') {
+        next = 'air_throwing'
         this.animationState.blockingAnimationIsPlaying = true;
       }
       
@@ -103,7 +109,22 @@ export class AnimationController {
         }
         this.animationState.blockingAnimationIsPlaying = true;
       }
-     
+ 
+      //#region sneaking 
+      if (this.inputState.moveZ !== 0 && this.inputState.action === 'rollOrDuck' && !this.inputState.run) {
+        next = 'standing_to_sneaking';
+        this.animationState.blockingAnimationIsPlaying = true;
+      }
+
+      if(this.animationState.current === 'standing_to_sneaking'){
+        next = 'sneaking_forward'
+        this.animationState.blockingAnimationIsPlaying = true;
+      }
+
+      if(this.animationState.current === 'sneaking_forward'){
+        next = 'sneaking_to_standing'
+        this.animationState.blockingAnimationIsPlaying = true;
+      }
       
     }
     
