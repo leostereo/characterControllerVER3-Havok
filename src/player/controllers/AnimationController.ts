@@ -92,8 +92,13 @@ export class AnimationController {
         this.animationState.blockingAnimationIsPlaying = true;
       }
       
-      if (this.inputState.action === 'throw' && this.animationState.current !== 'throwing_impulse_is_over') {
+      if (!this.inputState.run && this.inputState.action === 'throw' && this.animationState.current !== 'throwing_impulse_is_over') {
         next = 'throwing'
+        this.animationState.blockingAnimationIsPlaying = true;
+      }
+
+      if (this.inputState.run && this.inputState.action === 'throw' && this.animationState.current !== 'air_throwing_impulse_is_over') {
+        next = 'air_throwing'
         this.animationState.blockingAnimationIsPlaying = true;
       }
       

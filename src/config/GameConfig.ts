@@ -161,76 +161,76 @@ export const playgroundConfig = {
 } as const;
 
 export const surveillanceConfig = {
-  heights: {
-    low:     1.0,
-    middle:  1.4,
-    highest: 2.0,
-  },
-  shootingRate:      800,
-  searchRotateSpeed: 0.6,
-  trackingRate:      100,
-  detection: {
-    range:            15,
-    angle:            35,
-    projectionOffset: 3.5,
-    projectionScale:  10,
-    raycastOrigingYOffset: 0.8,  
-    raycastEndingYOffsetMultiplier: 0.85,  
-  },
-  lamp: {
-    muzzleOffset:     1.15,
-    diameterBottom:   0.3,
-    height:           0.4,
-    tessellationLamp: 8,
-    tessellationDisc: 64,
-    groundOffset:     0.02,
-    tilt:             Math.PI / 4,
-  },
-  colors: {
-    searching: {
-      lamp:          { r: 1.0, g: 0.9, b: 0.0 },
-      projDiffuse:   { r: 1.0, g: 0.9, b: 0.0 },
-      projEmissive:  { r: 0.3, g: 0.25, b: 0.0 },
-      projAlpha:     0.15,
+    heights: {
+        low: 1.0,
+        middle: 1.4,
+        highest: 2.0,
     },
-    alert: {
-      lamp:          { r: 1.0, g: 0.1, b: 0.0 },
-      projDiffuse:   { r: 1.0, g: 0.1, b: 0.0 },
-      projEmissive:  { r: 0.4, g: 0.0, b: 0.0 },
-      projAlpha:     0.25,
+    shootingRate: 1000,
+    searchRotateSpeed: 0.6,
+    trackingRate: 200,
+    detection: {
+        range: 15,
+        angle: 35,
+        projectionOffset: 3.5,
+        projectionScale: 10,
+        raycastOrigingYOffset: 0.8,
+        raycastEndingYOffsetMultiplier: 0.85,
     },
-  },
+    lamp: {
+        muzzleOffset: 1.15,
+        diameterBottom: 0.3,
+        height: 0.4,
+        tessellationLamp: 8,
+        tessellationDisc: 64,
+        groundOffset: 0.02,
+        tilt: Math.PI / 4,
+    },
+    colors: {
+        searching: {
+            lamp: { r: 1.0, g: 0.9, b: 0.0 },
+            projDiffuse: { r: 1.0, g: 0.9, b: 0.0 },
+            projEmissive: { r: 0.3, g: 0.25, b: 0.0 },
+            projAlpha: 0.15,
+        },
+        alert: {
+            lamp: { r: 1.0, g: 0.1, b: 0.0 },
+            projDiffuse: { r: 1.0, g: 0.1, b: 0.0 },
+            projEmissive: { r: 0.4, g: 0.0, b: 0.0 },
+            projAlpha: 0.25,
+        },
+    },
 } as const;
 
 
 export const unitBlockConfig = {
-  size: 1.0,
-  physics: {
-    normal:       { mass: 0, restitution: 0.6, friction: 0.4 },
-    destructible: { mass: 0, restitution: 0.4, friction: 0.5 },
-    heavy:        { mass: 0, restitution: 0.2, friction: 0.9 },
-  },
-  material: {
-    normal:       { diffuse: { r: 0.07, g: 0.09, b: 0.13 }, emissive: { r: 0.00, g: 0.15, b: 0.35 }, specular: { r: 0.80, g: 0.80, b: 0.80 }, alpha: 1.00 },
-    destructible: { diffuse: { r: 0.07, g: 0.09, b: 0.13 }, emissive: { r: 0.00, g: 0.15, b: 0.35 }, specular: { r: 0.80, g: 0.80, b: 0.80 }, alpha: 0.55 },
-    heavy:        { diffuse: { r: 0.07, g: 0.09, b: 0.13 }, emissive: { r: 0.00, g: 0.15, b: 0.35 }, specular: { r: 0.80, g: 0.80, b: 0.80 }, alpha: 1.00 },
-  },
-  pipe: {
-    diameter:     0.06,
-    tessellation: 8,
-    color:        { r: 0.00, g: 0.40, b: 1.00 },
-  },
+    size: 1.0,
+    physics: {
+        normal: { mass: 0, restitution: 0.6, friction: 0.4 },
+        destructible: { mass: 0, restitution: 0.4, friction: 0.5 },
+        heavy: { mass: 0, restitution: 0.2, friction: 0.9 },
+    },
+    material: {
+        normal: { diffuse: { r: 0.07, g: 0.09, b: 0.13 }, emissive: { r: 0.00, g: 0.15, b: 0.35 }, specular: { r: 0.80, g: 0.80, b: 0.80 }, alpha: 1.00 },
+        destructible: { diffuse: { r: 0.07, g: 0.09, b: 0.13 }, emissive: { r: 0.00, g: 0.15, b: 0.35 }, specular: { r: 0.80, g: 0.80, b: 0.80 }, alpha: 0.55 },
+        heavy: { diffuse: { r: 0.07, g: 0.09, b: 0.13 }, emissive: { r: 0.00, g: 0.15, b: 0.35 }, specular: { r: 0.80, g: 0.80, b: 0.80 }, alpha: 1.00 },
+    },
+    pipe: {
+        diameter: 0.06,
+        tessellation: 8,
+        color: { r: 0.00, g: 0.40, b: 1.00 },
+    },
 } as const;
 
 export const wallShapes = {
-  I:      [[1], [1], [1]],
-  L:      [[1, 0], [1, 0], [1, 1]],
-  T:      [[1, 1, 1], [0, 1, 0]],
-  Z:      [[1, 1, 0], [0, 1, 1]],
-  elbow:  [[1, 0], [1, 1]],
-  square: [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
-  cross:  [[0, 1, 0], [1, 1, 1], [0, 1, 0]],
-  n:  [[1, 1, 1], [1, 0, 1], [1, 0, 1]],
+    I: [[1], [1], [1]],
+    L: [[1, 0], [1, 0], [1, 1]],
+    T: [[1, 1, 1], [0, 1, 0]],
+    Z: [[1, 1, 0], [0, 1, 1]],
+    elbow: [[1, 0], [1, 1]],
+    square: [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+    cross: [[0, 1, 0], [1, 1, 1], [0, 1, 0]],
+    n: [[1, 1, 1], [1, 0, 1], [1, 0, 1]],
 } as const;
 
 export type ShapeName = keyof typeof wallShapes;
@@ -243,15 +243,15 @@ export const wallsBuilderConfig = {
     wallHeights: [1, 2, 3, 4],   // ← reemplaza wallHeight
     spawnSafeRadius: 8,
     minGroupSpacing: 5,
-    groundMargin:    2,
+    groundMargin: 2,
 
 } as const;
 
 export const playGroundStateConfig = {
-  maxAreas:          12,
-  minAreaSide:        3,
-  squareMaxRatio:   1.5,
-  corridorMinRatio: 3.5,
+    maxAreas: 12,
+    minAreaSide: 3,
+    squareMaxRatio: 1.5,
+    corridorMinRatio: 3.5,
 } as const;
 
 export const enemyPlacementConfig = {
@@ -305,40 +305,40 @@ export const sentinelConfig = {
 
     colors: {
         main: {
-        diffuse: { r: 0.10, g: 0.12, b: 0.20 },
-        emissive: { r: 0.05, g: 0.10, b: 0.35 },
-        specular: { r: 0.90, g: 0.90, b: 1.00 },
-    },
-    accent: {
-        diffuse: { r: 0.0, g: 0.55, b: 0.70 },
-        emissive: { r: 0.0, g: 0.70, b: 0.90 },
-    },
-    cone: {
-        patrolling: {
-            lamp: { r: 1.0, g: 0.9, b: 0.0 },
-            projDiffuse: { r: 1.0, g: 0.9, b: 0.0 },
-            projEmissive: { r: 0.3, g: 0.25, b: 0.0 },
-            projAlpha: 0.15,
+            diffuse: { r: 0.10, g: 0.12, b: 0.20 },
+            emissive: { r: 0.05, g: 0.10, b: 0.35 },
+            specular: { r: 0.90, g: 0.90, b: 1.00 },
         },
-        shooting: {
-            lamp: { r: 1.0, g: 0.1, b: 0.0 },
-            projDiffuse: { r: 1.0, g: 0.1, b: 0.0 },
-            projEmissive: { r: 0.4, g: 0.0, b: 0.0 },
-            projAlpha: 0.25,
+        accent: {
+            diffuse: { r: 0.0, g: 0.55, b: 0.70 },
+            emissive: { r: 0.0, g: 0.70, b: 0.90 },
         },
-        searching: {
-            lamp: { r: 1.0, g: 0.5, b: 0.0 },
-            projDiffuse: { r: 1.0, g: 0.5, b: 0.0 },
-            projEmissive: { r: 0.3, g: 0.15, b: 0.0 },
-            projAlpha: 0.20,
+        cone: {
+            patrolling: {
+                lamp: { r: 1.0, g: 0.9, b: 0.0 },
+                projDiffuse: { r: 1.0, g: 0.9, b: 0.0 },
+                projEmissive: { r: 0.3, g: 0.25, b: 0.0 },
+                projAlpha: 0.15,
+            },
+            shooting: {
+                lamp: { r: 1.0, g: 0.1, b: 0.0 },
+                projDiffuse: { r: 1.0, g: 0.1, b: 0.0 },
+                projEmissive: { r: 0.4, g: 0.0, b: 0.0 },
+                projAlpha: 0.25,
+            },
+            searching: {
+                lamp: { r: 1.0, g: 0.5, b: 0.0 },
+                projDiffuse: { r: 1.0, g: 0.5, b: 0.0 },
+                projEmissive: { r: 0.3, g: 0.15, b: 0.0 },
+                projAlpha: 0.20,
+            },
+            intensiveSearch: {
+                lamp: { r: 1.0, g: 0.1, b: 0.0 },
+                projDiffuse: { r: 1.0, g: 0.0, b: 0.0 },
+                projEmissive: { r: 0.5, g: 0.0, b: 0.0 },
+                projAlpha: 0.35,
+            },
         },
-        intensiveSearch: {
-            lamp: { r: 1.0, g: 0.1, b: 0.0 },
-            projDiffuse: { r: 1.0, g: 0.0, b: 0.0 },
-            projEmissive: { r: 0.5, g: 0.0, b: 0.0 },
-            projAlpha: 0.35,
-        },
-    },
     },
 } as const;
 
@@ -357,7 +357,7 @@ export type UiConfig = typeof uiConfig;
 export type MeshMetadata = {
     type: typeof meshMetadata.types[keyof typeof meshMetadata.types];
     enemyClass?: typeof meshMetadata.enemyClasses[keyof typeof meshMetadata.enemyClasses];
-    wallClass?:  typeof meshMetadata.wallClasses[keyof typeof meshMetadata.wallClasses];
+    wallClass?: typeof meshMetadata.wallClasses[keyof typeof meshMetadata.wallClasses];
     canionId?: string;
     stationId?: string;
 };
