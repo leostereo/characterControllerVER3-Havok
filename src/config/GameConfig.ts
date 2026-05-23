@@ -256,6 +256,7 @@ export const playGroundStateConfig = {
 
 export const enemyPlacementConfig = {
     offsetPercentage: 0.1,
+    corridorWidthExpand:   0.3,   // ← nuevo — 30% más ancho
 } as const;
 
 export const corridorSurveillanceConfig = {

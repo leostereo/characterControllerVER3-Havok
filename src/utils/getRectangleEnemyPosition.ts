@@ -1,57 +1,77 @@
-import { enemyPlacementConfig } from "@/config/GameConfig";
+import { enemyPlacementConfig, groundConfig } from "@/config/GameConfig";
 import { type Area } from "@/playground/builders/BuildMap";
 import { Vector3 } from "@babylonjs/core";
 
 export interface EnemyPositionData {
     position: Vector3;
     forward: Vector3;
+    area: Area;    // ← nuevo
 }
 
 export function getRectangleEnemyPosition(area: Area): EnemyPositionData {
-    // Calcular dimensiones del área
     const width = area.maxX - area.minX;
     const depth = area.maxZ - area.minZ;
 
-    // Offset del 5% hacia el centro
     const offsetPercentage = enemyPlacementConfig.offsetPercentage;
-
-    // Seleccionar aleatoriamente entre los lados más cortos
     const randomSide = Math.random() < 0.5 ? 0 : 1;
+
+    const groundHalfW = groundConfig.width / 2;   // 50
+    const groundHalfH = groundConfig.height / 2;   // 50
 
     let x: number;
     let z: number;
     let forwardX: number;
     let forwardZ: number;
+    let extendedArea: Area = { ...area };
 
     if (width < depth) {
-        // Los lados más cortos son frontal/trasero
         const midX = (area.minX + area.maxX) / 2;
         const offset = width * offsetPercentage;
 
         if (randomSide === 0) {
-            // Lado frontal
             z = area.minZ + offset;
-            forwardZ = 1; // Apunta hacia maxZ
+            forwardZ = 1;
+            extendedArea = {
+                ...area,
+                maxZ: groundHalfH,
+                depth: groundHalfH - area.minZ,
+                surface: width * (groundHalfH - area.minZ),
+            };
         } else {
-            // Lado trasero
             z = area.maxZ - offset;
-            forwardZ = -1; // Apunta hacia minZ
+            forwardZ = -1;
+            extendedArea = {
+                ...area,
+                minZ: -groundHalfH,
+                depth: area.maxZ + groundHalfH,
+                surface: width * (area.maxZ + groundHalfH),
+            };
         }
         x = midX;
         forwardX = 0;
+
     } else {
-        // Los lados más cortos son izquierdo/derecho
         const midZ = (area.minZ + area.maxZ) / 2;
         const offset = depth * offsetPercentage;
 
         if (randomSide === 0) {
-            // Lado izquierdo
             x = area.minX + offset;
-            forwardX = 1; // Apunta hacia maxX
+            forwardX = 1;
+            extendedArea = {
+                ...area,
+                maxX: groundHalfW,
+                width: groundHalfW - area.minX,
+                surface: depth * (groundHalfW - area.minX),
+            };
         } else {
-            // Lado derecho
             x = area.maxX - offset;
-            forwardX = -1; // Apunta hacia minX
+            forwardX = -1;
+            extendedArea = {
+                ...area,
+                minX: -groundHalfW,
+                width: area.maxX + groundHalfW,
+                surface: depth * (area.maxX + groundHalfW),
+            };
         }
         z = midZ;
         forwardZ = 0;
@@ -60,5 +80,6 @@ export function getRectangleEnemyPosition(area: Area): EnemyPositionData {
     return {
         position: new Vector3(x, 0, z),
         forward: new Vector3(forwardX, 0, forwardZ),
+        area: extendedArea,
     };
 }
