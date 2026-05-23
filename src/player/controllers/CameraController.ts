@@ -34,7 +34,7 @@ export class CameraController {
 
   private init_arcRotateCamera(scene: Scene): void {
     this.arcRotateCamera = new ArcRotateCamera(
-      'arcRotateCamera', 0, 0, 100, Vector3.Zero(), scene)
+      'arcRotateCamera', 0, 0, 120, Vector3.Zero(), scene)
   } 
 
 

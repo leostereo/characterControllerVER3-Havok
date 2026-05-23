@@ -280,6 +280,7 @@ export const sentinelConfig = {
         raycastYOffset: 0.5,
         aimHeightMult: 0.8,
         lampMuzzleOffset: 0.5,
+        raycastEndingYOffsetMultiplier: 0.85,
     },
 
     sweep: {
@@ -292,8 +293,8 @@ export const sentinelConfig = {
     },
 
     agent: {
-        speedPatrol: 2.0,
-        speedSearch: 3.5,
+        speedPatrol: 3.5,   // ← era 2.0
+        speedSearch: 5.0,   // ← era 3.5
         radius: 0.3,
         height: 1.0,
         maxAcceleration: 4.0,
