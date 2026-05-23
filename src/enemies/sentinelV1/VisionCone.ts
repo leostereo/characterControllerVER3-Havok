@@ -8,155 +8,200 @@ import {
   Color3,
   TransformNode,
   Vector3,
+  VertexData,
 } from "@babylonjs/core";
 import type { IBaseVisionCone } from "../interfaces";
-import type { SentinelState } from "./SentinelFSM";
-import { sentinelConfig } from "@/config/GameConfig";
-
-// ─────────────────────────────────────────────
-//  CONFIG — vendrá de gameConfig.sentinel
-// ─────────────────────────────────────────────
-const TILT = 0.4;
-
-const COLORS = {
-  patrolling: {
-    lamp: new Color3(0, 0.8, 1),
-    projDiffuse: new Color3(0, 0.6, 0.9),
-    projEmissive: new Color3(0, 0.4, 0.8),
-    projAlpha: 0.25,
-  },
-  shooting: {
-    lamp: new Color3(1, 0.2, 0.8),
-    projDiffuse: new Color3(0.9, 0.1, 0.7),
-    projEmissive: new Color3(0.8, 0, 0.6),
-    projAlpha: 0.4,
-  },
-  searching: {
-    lamp: new Color3(1, 0.6, 0),
-    projDiffuse: new Color3(0.9, 0.5, 0),
-    projEmissive: new Color3(0.8, 0.4, 0),
-    projAlpha: 0.3,
-  },
-  intensiveSearch: {
-    lamp: new Color3(1, 0.1, 0.1),
-    projDiffuse: new Color3(0.9, 0, 0),
-    projEmissive: new Color3(0.8, 0, 0),
-    projAlpha: 0.45,
-  },
-} as const;
+import type { SentinelState }   from "./SentinelFSM";
+import { sentinelConfig, groundConfig } from "@/config/GameConfig";
 
 export class VisionCone implements IBaseVisionCone<SentinelState> {
 
-  private lamp!: Mesh;
-  private projection!: Mesh;
+  private lamp!:       Mesh;
+  private triangle!:   Mesh;
   private orbitPivot!: TransformNode;
 
   constructor(
-    private scene: Scene,
+    private scene:         Scene,
     private rotationPivot: TransformNode,
-    private barrel: Mesh,
-    private barrelHeight: number = 3,
-  ) { }
+    private barrel:        Mesh,
+    private barrelHeight:  number = 3,
+  ) {}
 
   // ─────────────────────────────────────────────
   //  CONTRATO
   // ─────────────────────────────────────────────
   buildVisuals(): void {
-    const distToGround = this.barrelHeight / Math.tan(sentinelConfig.detection.tilt);
-    const barrelWorldPos = this.barrel.getAbsolutePosition();
+
+    // ── OrbitPivot ────────────────────────────
+    const barrelWorldPos   = this.barrel.getAbsolutePosition();
+    this.orbitPivot        = new TransformNode(
+      `sentinel_orbit_pivot_${this.rotationPivot.name}`,
+      this.scene
+    );
+    this.orbitPivot.position = new Vector3(barrelWorldPos.x, 0, barrelWorldPos.z);
 
     // ── Lamp ──────────────────────────────────
     this.lamp = MeshBuilder.CreateCylinder(
       `sentinel_lamp_${this.rotationPivot.name}`,
       {
-        diameterTop: 0,
+        diameterTop:    0,
         diameterBottom: 0.4,
-        height: 0.8,
-        tessellation: 8,
-        cap: Mesh.NO_CAP,
+        height:         0.8,
+        tessellation:   8,
+        cap:            Mesh.NO_CAP,
       },
       this.scene
     );
-    this.lamp.rotation.x = -(Math.PI / 2) + TILT;
-    this.lamp.position = new Vector3(0, 0, sentinelConfig.detection.lampMuzzleOffset);
-    this.lamp.parent = this.rotationPivot;
+    this.lamp.rotation.x = -(Math.PI / 2) + sentinelConfig.detection.tilt;
+    this.lamp.position   = new Vector3(0, 0, sentinelConfig.detection.lampMuzzleOffset);
+    this.lamp.parent     = this.rotationPivot;
     this.lamp.isPickable = false;
 
-    const lampMat = new StandardMaterial(
-      `sentinel_lamp_mat_${this.rotationPivot.name}`,
-      this.scene
+    const lampMat           = new StandardMaterial(
+      `sentinel_lamp_mat_${this.rotationPivot.name}`, this.scene
     );
-    lampMat.emissiveColor = COLORS.patrolling.lamp;
+    const initColors        = sentinelConfig.colors.cone.patrolling;
+    lampMat.emissiveColor   = new Color3(
+      initColors.lamp.r, initColors.lamp.g, initColors.lamp.b
+    );
     lampMat.disableLighting = true;
-    this.lamp.material = lampMat;
+    this.lamp.material      = lampMat;
 
-    // ── OrbitPivot ────────────────────────────
-    this.orbitPivot = new TransformNode(
-      `sentinel_orbit_pivot_${this.rotationPivot.name}`,
-      this.scene
+    // ── Triángulo ─────────────────────────────
+    this.triangle            = new Mesh(
+      `sentinel_triangle_${this.rotationPivot.name}`, this.scene
     );
+    this.triangle.parent     = this.orbitPivot;
+    this.triangle.isPickable = false;
 
-    this.orbitPivot.position = new Vector3(
-      barrelWorldPos.x,
-      0,
-      barrelWorldPos.z
-    );
+    this.updateTriangleGeometry();
 
-    // ── Projection disc ───────────────────────
-    this.projection = MeshBuilder.CreateDisc(
-      `sentinel_projection_${this.rotationPivot.name}`,
-      { radius: 1, tessellation: 16, sideOrientation: Mesh.DOUBLESIDE },
-      this.scene
+    const projMat           = new StandardMaterial(
+      `sentinel_proj_mat_${this.rotationPivot.name}`, this.scene
     );
-    this.projection.rotation.x = Math.PI / 2;
-    this.projection.scaling = new Vector3(
-      sentinelConfig.detection.projectionScale,
-      sentinelConfig.detection.projectionScale,
-      1
+    projMat.diffuseColor    = new Color3(
+      initColors.projDiffuse.r, initColors.projDiffuse.g, initColors.projDiffuse.b
     );
-    this.projection.position = new Vector3(
-      0,
-      0.01,
-      distToGround * sentinelConfig.detection.projectionOffset
+    projMat.emissiveColor   = new Color3(
+      initColors.projEmissive.r, initColors.projEmissive.g, initColors.projEmissive.b
     );
-    this.projection.parent = this.orbitPivot;
-    this.projection.isPickable = false;
-
-    const projMat = new StandardMaterial(
-      `sentinel_proj_mat_${this.rotationPivot.name}`,
-      this.scene
-    );
-    projMat.diffuseColor = COLORS.patrolling.projDiffuse;
-    projMat.emissiveColor = COLORS.patrolling.projEmissive;
-    projMat.alpha = COLORS.patrolling.projAlpha;
+    projMat.alpha           = initColors.projAlpha;
     projMat.backFaceCulling = false;
     projMat.disableLighting = true;
-    this.projection.material = projMat;
+    projMat.wireframe       = false;
+    this.triangle.material  = projMat;
   }
 
-update(state: SentinelState): void {
-  const barrelWorldPos = this.barrel.getAbsolutePosition();
-  const forward        = this.rotationPivot.forward.normalize();
-  const worldAngle     = Math.atan2(forward.x, forward.z);   // ← consistente con hasLineOfSight
+  update(state: SentinelState): void {
+    const barrelWorldPos = this.barrel.getAbsolutePosition();
+    const forward        = this.rotationPivot.forward.normalize();
+    const worldAngle     = Math.atan2(forward.x, forward.z);
 
-  this.orbitPivot.position.x = barrelWorldPos.x;
-  this.orbitPivot.position.z = barrelWorldPos.z;
-  this.orbitPivot.rotation.y = worldAngle;
+    // sincronizar orbitPivot
+    this.orbitPivot.position.x = barrelWorldPos.x;
+    this.orbitPivot.position.z = barrelWorldPos.z;
+    this.orbitPivot.rotation.y = worldAngle;
 
-  // colores — igual que antes
-  const colors  = sentinelConfig.colors.cone[state];
-  const lampMat = this.lamp.material       as StandardMaterial;
-  const projMat = this.projection.material as StandardMaterial;
+    // actualizar triángulo con el nuevo rango
+    this.updateTriangleGeometry();
 
-  lampMat.emissiveColor = new Color3(colors.lamp.r,         colors.lamp.g,         colors.lamp.b);
-  projMat.diffuseColor  = new Color3(colors.projDiffuse.r,  colors.projDiffuse.g,  colors.projDiffuse.b);
-  projMat.emissiveColor = new Color3(colors.projEmissive.r, colors.projEmissive.g, colors.projEmissive.b);
-  projMat.alpha         = colors.projAlpha;
-}
+    // colores
+    const colors  = sentinelConfig.colors.cone[state];
+    const lampMat = this.lamp.material     as StandardMaterial;
+    const projMat = this.triangle.material as StandardMaterial;
+
+    lampMat.emissiveColor = new Color3(
+      colors.lamp.r,         colors.lamp.g,         colors.lamp.b
+    );
+    projMat.diffuseColor  = new Color3(
+      colors.projDiffuse.r,  colors.projDiffuse.g,  colors.projDiffuse.b
+    );
+    projMat.emissiveColor = new Color3(
+      colors.projEmissive.r, colors.projEmissive.g, colors.projEmissive.b
+    );
+    projMat.alpha         = colors.projAlpha;
+  }
+
+  isPlayerInCone(playerMeshName: string): boolean {
+    const target = this.scene.getMeshByName(playerMeshName);
+    if (!target) return false;
+
+    const forward    = this.rotationPivot.forward.normalize();
+    const worldAngle = Math.atan2(forward.x, forward.z);
+    const origin     = this.barrel.getAbsolutePosition();
+    const range      = this.calcConeRange(origin, forward);
+
+    // transformar posición del jugador a espacio local del cono
+    const dx     = target.position.x - origin.x;
+    const dz     = target.position.z - origin.z;
+    const localX = dx * Math.cos(-worldAngle) + dz * Math.sin(-worldAngle);
+    const localZ = -dx * Math.sin(-worldAngle) + dz * Math.cos(-worldAngle);
+
+    // debe estar adelante y dentro del rango
+    if (localZ < 0 || localZ > range) return false;
+
+    // chequeo dentro del triángulo — ancho en Z proporcional al ángulo
+    const halfWidth = Math.tan(sentinelConfig.sweep.angle) * localZ;
+    return Math.abs(localX) <= halfWidth;
+  }
 
   dispose(): void {
     this.lamp.dispose();
-    this.projection.dispose();
+    this.triangle.dispose();
     this.orbitPivot.dispose();
+  }
+
+  // ─────────────────────────────────────────────
+  //  TRIÁNGULO
+  // ─────────────────────────────────────────────
+  private updateTriangleGeometry(): void {
+    const forward = this.rotationPivot.forward.normalize();
+    const origin  = this.barrel.getAbsolutePosition();
+    const range   = this.calcConeRange(origin, forward);
+    const angle   = sentinelConfig.sweep.angle;
+    const Y       = 0.02;  // ligeramente sobre el suelo
+
+    // vértices en local space del orbitPivot
+    const halfBase = Math.tan(angle) * range;
+
+    const positions = [
+      0,         Y, 0,          // v0 — vértice (origen)
+      -halfBase, Y, range,      // v1 — esquina izquierda
+       halfBase, Y, range,      // v2 — esquina derecha
+    ];
+
+    const indices = [0, 1, 2, 0, 2, 1];  // doble cara
+
+    const normals: number[] = [];
+    VertexData.ComputeNormals(positions, indices, normals);
+
+    const vd       = new VertexData();
+    vd.positions   = positions;
+    vd.indices     = indices;
+    vd.normals     = normals;
+    vd.applyToMesh(this.triangle, true);
+  }
+
+  // ─────────────────────────────────────────────
+  //  RANGO — distancia al borde del ground
+  // ─────────────────────────────────────────────
+  private calcConeRange(origin: Vector3, forward: Vector3): number {
+    const xMin = -groundConfig.width  / 2;
+    const xMax =  groundConfig.width  / 2;
+    const zMin = -groundConfig.height / 2;
+    const zMax =  groundConfig.height / 2;
+
+    const tValues: number[] = [];
+
+    if (Math.abs(forward.x) > 0.0001) {
+      tValues.push((xMax - origin.x) / forward.x);
+      tValues.push((xMin - origin.x) / forward.x);
+    }
+    if (Math.abs(forward.z) > 0.0001) {
+      tValues.push((zMax - origin.z) / forward.z);
+      tValues.push((zMin - origin.z) / forward.z);
+    }
+
+    return Math.min(...tValues.filter(t => t > 0));
   }
 }

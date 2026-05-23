@@ -53,7 +53,7 @@ export class CorridorSurveillanceStation {
   private readonly height: SurveillanceHeight = "low";
   private readonly position: Vector3;
   private readonly forward: Vector3;
-
+  private extendededSurveyArea: Area;
 
   constructor(
     private scene: Scene,
@@ -62,8 +62,10 @@ export class CorridorSurveillanceStation {
     private surveyArea: Area,
   ) {
 
-    ({ forward: this.forward, position: this.position } = getRectangleEnemyPosition(surveyArea));
+    ({ forward: this.forward, position: this.position, area:this.extendededSurveyArea } = getRectangleEnemyPosition(surveyArea));
 
+
+    
     this.TURRET_HEIGHT_MULT = surveillanceConfig.heights[this.height];
 
     CorridorSurveillanceStation.instanceCount++;
@@ -90,7 +92,7 @@ export class CorridorSurveillanceStation {
       meshForRayCastDetectName,
       this.sweepDirection,   // ← nuevo
       this.TURRET_HEIGHT_MULT,
-      this.surveyArea
+      this.extendededSurveyArea
     );
 
     const projectileManager = new ProjectileManager(scene);
