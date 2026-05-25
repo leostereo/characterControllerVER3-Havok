@@ -8,6 +8,7 @@ import {
 import { WallGroup } from "./WallGroup";
 import { computeBuildMap, areaAssignment, type BuildMap } from "./BuildMap";
 import { PlayGroundState } from "../state/PlayGroundState";
+import { SafetyPlaceWallGroup } from "./SafetyPlaceWallGroup";
 
 export class WallsBuilder {
 
@@ -24,6 +25,10 @@ export class WallsBuilder {
   // ─────────────────────────────────────────────
 
   build(): BuildMap {
+
+
+
+
     const cfg      = wallsBuilderConfig;
     const limitX   = groundConfig.width  / 2 - cfg.groundMargin;
     const limitZ   = groundConfig.height / 2 - cfg.groundMargin;
@@ -37,6 +42,25 @@ export class WallsBuilder {
     let placed   = 0;
     let attempts = 0;
     const maxAttempts = cfg.wallGroupCount * 20;
+
+
+    
+    // ── Safety place — primero ────────────────
+    const safetyGroup = new SafetyPlaceWallGroup(this.scene);
+    safetyGroup.build();
+
+    const rotSteps = Math.floor(Math.random() * 4);
+    const safetyResult = this.fitGroup(safetyGroup as unknown as WallGroup, limitX, limitZ);
+
+    if (safetyResult) {
+      safetyGroup.applyTransform(safetyResult.position, rotSteps);
+      this.setupSafetyMesh(safetyGroup);
+      this.addPhysicsToMesh(safetyGroup.mesh!);
+
+      const spawnPoint = safetyGroup.getSpawnPoint();
+      PlayGroundState.getInstance().updateSpawnPoint(spawnPoint);
+    }
+
 
     while (placed < cfg.wallGroupCount && attempts < maxAttempts) {
       attempts++;
@@ -123,10 +147,34 @@ export class WallsBuilder {
     };
   }
 
+  // private addPhysics(group: WallGroup): void {
+  //   if (!group.mesh) return;
+  //   new PhysicsAggregate(
+  //     group.mesh,
+  //     PhysicsShapeType.MESH,
+  //     { mass: 0, restitution: 0.4, friction: 0.6 },
+  //     this.scene
+  //   );
+  // }
+
+
   private addPhysics(group: WallGroup): void {
+  if (!group.mesh) return;
+  this.addPhysicsToMesh(group.mesh);
+}
+
+  private setupSafetyMesh(group: SafetyPlaceWallGroup): void {
     if (!group.mesh) return;
+    group.mesh.name = `safety_place_wall`;
+    group.mesh.metadata = {
+      type: meshMetadata.types.wall,
+      wallClass: meshMetadata.wallClasses.basic,
+    };
+  }
+
+  private addPhysicsToMesh(mesh: Mesh): void {
     new PhysicsAggregate(
-      group.mesh,
+      mesh,
       PhysicsShapeType.MESH,
       { mass: 0, restitution: 0.4, friction: 0.6 },
       this.scene

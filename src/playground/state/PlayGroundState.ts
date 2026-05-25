@@ -6,6 +6,7 @@ export class PlayGroundState {
   private static _instance: PlayGroundState | null = null;
   private _openAreas: Area[] = [];
   private _emptyPoints: Vector3[] = [];
+  private _spawnPoint:   Vector3   = new Vector3(0, 0.9, 0);  // ← fallback
 
   private constructor() {}
 
@@ -22,6 +23,10 @@ export class PlayGroundState {
     this._emptyPoints = points;
   }
 
+  updateSpawnPoint(point: Vector3): void {   // ← nuevo
+    this._spawnPoint = point.clone();
+  }
+
   getAreas(): Area[] {
     return this._openAreas;
   }
@@ -30,14 +35,8 @@ export class PlayGroundState {
     return this._emptyPoints;
   }
 
-  getCharacterInitialAssignedPosition(): Vector3 {
-    const smallest = this._openAreas.pop()?.center;
-    console.warn('smallest',smallest);
-    if (smallest) {
-      smallest._y += 5;
-      return smallest;
-    }
-    return new Vector3(0, 0.9, 0);
+  getSpawnPoint(): Vector3 {                 // ← nuevo
+    return this._spawnPoint.clone();
   }
 
 }

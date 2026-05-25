@@ -244,6 +244,15 @@ export const wallsBuilderConfig = {
     spawnSafeRadius: 8,
     minGroupSpacing: 5,
     groundMargin: 2,
+    safetyPlace: {
+        heightMultiplier: 2,
+        material: {
+            diffuse: { r: 0.02, g: 0.25, b: 0.05 },
+            emissive: { r: 0.0, g: 0.35, b: 0.08 },  // ← era 0.8, mucho más suave
+            specular: { r: 0.5, g: 1.0, b: 0.5 },
+            alpha: 1.0,
+        },
+    },
 
 } as const;
 
