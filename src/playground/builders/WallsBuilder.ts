@@ -26,9 +26,6 @@ export class WallsBuilder {
 
   build(): BuildMap {
 
-
-
-
     const cfg      = wallsBuilderConfig;
     const limitX   = groundConfig.width  / 2 - cfg.groundMargin;
     const limitZ   = groundConfig.height / 2 - cfg.groundMargin;
@@ -63,6 +60,7 @@ export class WallsBuilder {
       PlayGroundState.getInstance().updateSpawnPoint(spawnPoint);
     }
 
+    const safetyPos = safetyResult?.position ?? spawnPos;  // fallback a spawnPos si falla
 
     while (placed < cfg.wallGroupCount && attempts < maxAttempts) {
       attempts++;
@@ -77,7 +75,7 @@ export class WallsBuilder {
 
       const { position, rotSteps } = result;
 
-      if (Vector3.Distance(position, spawnPos) < cfg.spawnSafeRadius) {
+      if (Vector3.Distance(position, safetyPos) < cfg.spawnSafeRadius) {
         group.dispose();
         continue;
       }
@@ -99,8 +97,10 @@ export class WallsBuilder {
     }
 
     console.warn(`WallsBuilder: ${placed}/${cfg.wallGroupCount} grupos colocados en ${attempts} intentos`);
-    const buildMap = computeBuildMap(this.groups);
-    const areas = areaAssignment(buildMap);
+const buildMap = computeBuildMap(
+  this.groups,
+  safetyGroup.mesh ? [safetyGroup.mesh] : []  // ← nuevo
+);    const areas = areaAssignment(buildMap);
     PlayGroundState.getInstance().updateOpenAreas(areas);
     PlayGroundState.getInstance().updateEmptyPoints(buildMap.emptyUnits)
 
