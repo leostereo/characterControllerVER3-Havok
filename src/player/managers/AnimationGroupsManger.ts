@@ -189,7 +189,7 @@ export class AnimationGroupsManager {
 
         //sneaking
         this.groups.sneaking_forward = animationGroups.find((item) => item.name === "sneaking forward.001");
-        this.groups.standing_to_sneaking = this.groups.standing_to_crunch?.clone('standing_to_sneak');
+        this.groups.standing_to_sneaking = this.groups.standing_to_crunch?.clone('standing_to_sneak',undefined,true);
 
         const standing_to_sneaking_finish_event = new AnimationEvent(20, () => {
             this.animationState.blockingAnimationIsPlaying = false;
@@ -201,7 +201,7 @@ export class AnimationGroupsManager {
         standing_to_sneaking_anim?.addEvent(standing_to_sneaking_finish_event)
 
 
-        this.groups.sneaking_to_standing = this.groups.crouched_to_standing?.clone('sneaking_to_standing');
+        this.groups.sneaking_to_standing = this.groups.crouched_to_standing?.clone('sneaking_to_standing',undefined,true);
         const sneaking_to_standing_finish_event = new AnimationEvent(38, () => {
             this.animationState.blockingAnimationIsPlaying = false;
         }, true);

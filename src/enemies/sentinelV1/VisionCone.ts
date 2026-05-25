@@ -76,8 +76,6 @@ export class VisionCone implements IBaseVisionCone<SentinelState> {
 
     this.updateTriangleGeometry();
 
-
-
     const projMat           = new StandardMaterial(
       `sentinel_proj_mat_${this.rotationPivot.name}`, this.scene
     );

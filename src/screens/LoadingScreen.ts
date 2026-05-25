@@ -107,6 +107,7 @@ export class LoadingScreen {
       { key: "k",     action: "Crounch / Agacharse"                  },
       { key: "WASD + k",     action: "Sneak / camina agazapado"      },
       { key: "1,2",     action: "Views / Vistas"                     },
+      { key: "q",     action: "Super view / Super visión"            },
     ];
 
     controls.forEach(({ key, action }) => {
