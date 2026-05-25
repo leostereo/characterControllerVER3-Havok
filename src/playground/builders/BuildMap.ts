@@ -15,7 +15,10 @@ export interface BuildMap {
   emptyUnits: Vector3[];
 }
 
-export function computeBuildMap(groups: WallGroup[]): BuildMap {
+export function computeBuildMap(
+  groups:      WallGroup[],
+  extraMeshes: Mesh[] = []
+): BuildMap {
 
   const halfX = groundConfig.width  / 2;
   const halfZ = groundConfig.height / 2;
@@ -29,10 +32,10 @@ export function computeBuildMap(groups: WallGroup[]): BuildMap {
   const toCol = (wx: number): number => Math.floor((wx + halfX) / CELL_SIZE);
   const toRow = (wz: number): number => Math.floor((wz + halfZ) / CELL_SIZE);
 
-  groups.forEach(group => {
-    if (!group.mesh) return;
-    group.mesh.computeWorldMatrix(true);
-    const bi   = group.mesh.getBoundingInfo();
+  // ── markMesh dentro del scope ──────────────
+  const markMesh = (mesh: Mesh): void => {
+    mesh.computeWorldMatrix(true);
+    const bi   = mesh.getBoundingInfo();
     const minX = bi.boundingBox.minimumWorld.x;
     const maxX = bi.boundingBox.maximumWorld.x;
     const minZ = bi.boundingBox.minimumWorld.z;
@@ -46,10 +49,19 @@ export function computeBuildMap(groups: WallGroup[]): BuildMap {
     for (let r = r0; r <= r1; r++)
       for (let c = c0; c <= c1; c++)
         occupied[r][c] = true;
+  };
+
+  // marcar WallGroups
+  groups.forEach(group => {
+    if (!group.mesh) return;
+    markMesh(group.mesh);
   });
 
-  const emptyUnits: Vector3[] = [];
+  // marcar meshes extra
+  extraMeshes.forEach(mesh => markMesh(mesh));
 
+  // calcular emptyUnits
+  const emptyUnits: Vector3[] = [];
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       if (occupied[r][c]) continue;
@@ -63,6 +75,7 @@ export function computeBuildMap(groups: WallGroup[]): BuildMap {
 
   return { emptyUnits };
 }
+
 
 /**
  * Renderiza las celdas vacías como planos 1x1 semitransparentes.
