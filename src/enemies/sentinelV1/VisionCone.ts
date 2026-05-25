@@ -76,6 +76,8 @@ export class VisionCone implements IBaseVisionCone<SentinelState> {
 
     this.updateTriangleGeometry();
 
+
+
     const projMat           = new StandardMaterial(
       `sentinel_proj_mat_${this.rotationPivot.name}`, this.scene
     );
@@ -85,11 +87,13 @@ export class VisionCone implements IBaseVisionCone<SentinelState> {
     projMat.emissiveColor   = new Color3(
       initColors.projEmissive.r, initColors.projEmissive.g, initColors.projEmissive.b
     );
-    projMat.alpha           = initColors.projAlpha;
+    projMat.alpha           = 0.06;
     projMat.backFaceCulling = false;
     projMat.disableLighting = true;
-    projMat.wireframe       = false;
+    projMat.wireframe       = true;
     this.triangle.material  = projMat;
+    this.triangle.setEnabled(false);     // ← oculto por defecto
+
   }
 
   update(state: SentinelState): void {
@@ -108,18 +112,18 @@ export class VisionCone implements IBaseVisionCone<SentinelState> {
     // colores
     const colors  = sentinelConfig.colors.cone[state];
     const lampMat = this.lamp.material     as StandardMaterial;
-    const projMat = this.triangle.material as StandardMaterial;
+    // const projMat = this.triangle.material as StandardMaterial;
 
     lampMat.emissiveColor = new Color3(
       colors.lamp.r,         colors.lamp.g,         colors.lamp.b
     );
-    projMat.diffuseColor  = new Color3(
-      colors.projDiffuse.r,  colors.projDiffuse.g,  colors.projDiffuse.b
-    );
-    projMat.emissiveColor = new Color3(
-      colors.projEmissive.r, colors.projEmissive.g, colors.projEmissive.b
-    );
-    projMat.alpha         = colors.projAlpha;
+    // projMat.diffuseColor  = new Color3(
+    //   colors.projDiffuse.r,  colors.projDiffuse.g,  colors.projDiffuse.b
+    // );
+    // projMat.emissiveColor = new Color3(
+    //   colors.projEmissive.r, colors.projEmissive.g, colors.projEmissive.b
+    // );
+    // projMat.alpha         = colors.projAlpha;
   }
 
   isPlayerInCone(playerMeshName: string): boolean {

@@ -48,8 +48,7 @@ export class Game {
 
     new PlayGround(this.scene, playerConfig.player1.player1RaycastDetectableName);
 
-    const playerInitPosition = PlayGroundState.getInstance().getCharacterInitialAssignedPosition();
-
+    const playerInitPosition = PlayGroundState.getInstance().getSpawnPoint();
 
     if (characterMeshes?.length > 0) {
       this.player = new Player(

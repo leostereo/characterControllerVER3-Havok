@@ -216,7 +216,9 @@ export class CorridorSurveillanceController {
     projMat.alpha = surveillanceConfig.colors.searching.projAlpha;
     projMat.backFaceCulling = false;
     projMat.disableLighting = true;
+    projMat.wireframe = true;   // ← solo contorno
     projection.material = projMat;
+    projection.setEnabled(false);     // ← oculto por defecto
 
     return { lamp, projection };
   }
@@ -229,26 +231,26 @@ export class CorridorSurveillanceController {
 
   private updateVisionColor(state: CorridorSurveillanceState): void {
     const lampMat = this.lamp.material as StandardMaterial;
-    const projMat = this.projection.material as StandardMaterial;
+    // const projMat = this.projection.material as StandardMaterial;
     const colors = surveillanceConfig.colors;
 
     switch (state) {
       case "searching":
         if (lampMat) lampMat.emissiveColor = new Color3(colors.searching.lamp.r, colors.searching.lamp.g, colors.searching.lamp.b);
-        if (projMat) {
-          projMat.diffuseColor = new Color3(colors.searching.projDiffuse.r, colors.searching.projDiffuse.g, colors.searching.projDiffuse.b);
-          projMat.emissiveColor = new Color3(colors.searching.projEmissive.r, colors.searching.projEmissive.g, colors.searching.projEmissive.b);
-          projMat.alpha = colors.searching.projAlpha;
-        }
+        // if (projMat) {
+        //   projMat.diffuseColor = new Color3(colors.searching.projDiffuse.r, colors.searching.projDiffuse.g, colors.searching.projDiffuse.b);
+        //   projMat.emissiveColor = new Color3(colors.searching.projEmissive.r, colors.searching.projEmissive.g, colors.searching.projEmissive.b);
+        //   projMat.alpha = colors.searching.projAlpha;
+        // }
         break;
 
       case "alert":
         if (lampMat) lampMat.emissiveColor = new Color3(colors.alert.lamp.r, colors.alert.lamp.g, colors.alert.lamp.b);
-        if (projMat) {
-          projMat.diffuseColor = new Color3(colors.alert.projDiffuse.r, colors.alert.projDiffuse.g, colors.alert.projDiffuse.b);
-          projMat.emissiveColor = new Color3(colors.alert.projEmissive.r, colors.alert.projEmissive.g, colors.alert.projEmissive.b);
-          projMat.alpha = colors.alert.projAlpha;
-        }
+        // if (projMat) {
+        //   projMat.diffuseColor = new Color3(colors.alert.projDiffuse.r, colors.alert.projDiffuse.g, colors.alert.projDiffuse.b);
+        //   projMat.emissiveColor = new Color3(colors.alert.projEmissive.r, colors.alert.projEmissive.g, colors.alert.projEmissive.b);
+        //   projMat.alpha = colors.alert.projAlpha;
+        // }
         break;
 
       case "collapsed":
