@@ -55,7 +55,9 @@ export class WallsBuilder {
     if (safetyResult) {
       safetyGroup.applyTransform(safetyResult.position, rotSteps);
       this.setupSafetyMesh(safetyGroup);
-      this.addPhysicsToMesh(safetyGroup.mesh!);
+      if(safetyGroup.mesh){
+        this.addPhysicsToMesh(safetyGroup.mesh);
+      }
 
       const spawnPoint = safetyGroup.getSpawnPoint();
       PlayGroundState.getInstance().updateSpawnPoint(spawnPoint);

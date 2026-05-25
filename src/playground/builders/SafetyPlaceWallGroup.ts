@@ -85,8 +85,6 @@ export class SafetyPlaceWallGroup {
   // ─────────────────────────────────────────────
     getSpawnPoint(): Vector3 {
         if (!this._mesh) return Vector3.Zero();
-        console.log("mesh position:", this._mesh.position);
-        console.log("mesh rotation:", this._mesh.rotation.y);
         return new Vector3(
             this._mesh.position.x,
             0.9,
