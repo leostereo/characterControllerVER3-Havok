@@ -248,7 +248,7 @@ export const wallsBuilderConfig = {
 } as const;
 
 export const playGroundStateConfig = {
-    maxAreas: 12,
+    maxAreas: 16,
     minAreaSide: 3,
     squareMaxRatio: 1.5,
     corridorMinRatio: 3.5,
@@ -343,6 +343,15 @@ export const sentinelConfig = {
         },
     },
 } as const;
+
+export const superVisionConfig = {
+  projection: {
+    alpha:    0.5,                         // ← era 0.18, más visible
+    emissive: { r: 0.0, g: 1.0, b: 0.92 }, // ← más intenso
+    diffuse:  { r: 0.0, g: 1.0, b: 0.92 },
+  },
+} as const;
+
 
 // ─────────────────────────────────────────────
 //  TIPOS DERIVADOS

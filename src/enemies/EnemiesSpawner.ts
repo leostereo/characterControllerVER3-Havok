@@ -1,4 +1,4 @@
-import { type KeyboardInfo, type Scene, Vector3 } from "@babylonjs/core";
+import { Color3, HighlightLayer, KeyboardEventTypes, type KeyboardInfo, type Mesh, type Scene, Vector3 } from "@babylonjs/core";
 import { playerConfig } from "@/config/GameConfig";
 import { type FixedCanionEnemy } from "./fixedCannion/FixedCanionEnemy";
 import { SurveillanceStation } from "./surveillanceStation/SurveillanceStation";
@@ -14,44 +14,64 @@ export class EnemiesSpawner {
   private corridorSurveillanceStations: CorridorSurveillanceStation[] = [];
   private fixedCanions: FixedCanionEnemy[] = [];
   private sentinels: SentinelMain[] = [];  // ← nuevo
-
+  private superVisionActive = false;
+  private h1: HighlightLayer;
 
   constructor(
     private scene: Scene
   ) {
-    scene.onKeyboardObservable.add((kbInfo: KeyboardInfo) => this.keyboardSpawn(kbInfo))
 
+    scene.onKeyboardObservable.add((kbInfo: KeyboardInfo) => {
+      if (kbInfo.event.key === 'q') {
+        if (kbInfo.type === KeyboardEventTypes.KEYDOWN) {
+          this.setSuperVision(true);
+        } else if (kbInfo.type === KeyboardEventTypes.KEYUP) {
+          this.setSuperVision(false);
+        }
+      }
+    });
+
+    this.h1 = new HighlightLayer("super_vision_hl", this.scene);
   }
 
-    spawnAll(): void {
+  spawnAll(): void {
 
     const areas = PlayGroundState.getInstance().getAreas();
     const { squares, rectangles, corridors } = classifyAreas(areas);
 
-      squares.forEach((square) => {
-        this.survillanceStations.push(new SurveillanceStation(this.scene, square.center, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "middle"))
-      })
+    squares.forEach((square) => {
+      this.survillanceStations.push(new SurveillanceStation(this.scene, square.center, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "middle"))
+    })
 
-      rectangles.forEach((rectangle) => {
+    rectangles.forEach((rectangle) => {
 
-        const sentinel = new SentinelMain(
-          this.scene,
-          rectangle.center,
-          playerConfig.player1.positionTrackeableMeshName,
-          playerConfig.player1.player1RaycastDetectableName,
-        );
-        sentinel.start();
-        this.sentinels.push(sentinel);
+      const sentinel = new SentinelMain(
+        this.scene,
+        rectangle.center,
+        playerConfig.player1.positionTrackeableMeshName,
+        playerConfig.player1.player1RaycastDetectableName,
+      );
+      sentinel.start();
+      this.sentinels.push(sentinel);
 
-        const {position} = getRectangleEnemyPosition(rectangle)
-        this.survillanceStations.push(new SurveillanceStation(this.scene, position, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "highest"))
-      })
-      
-      corridors.forEach((corridor)=>{
-        this.corridorSurveillanceStations.push(new CorridorSurveillanceStation(this.scene,playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName,corridor))
-      })
-      
-    }
+      const { position } = getRectangleEnemyPosition(rectangle)
+      this.survillanceStations.push(new SurveillanceStation(this.scene, position, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "highest"))
+    })
+
+    corridors.forEach((corridor) => {
+      this.corridorSurveillanceStations.push(new CorridorSurveillanceStation(this.scene, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, corridor))
+    })
+
+    this.scene.meshes
+      .filter(m =>
+        m.name.startsWith("surveillance_projection_") ||
+        m.name.startsWith("sentinel_triangle_") ||
+        m.name.startsWith("sentinel_projection_")
+      )
+      .forEach(m => m.setEnabled(false));
+
+
+  }
 
 
   spawnOne(): void {
@@ -65,6 +85,22 @@ export class EnemiesSpawner {
     this.sentinels.push(sentinel);
   }
 
+  private setSuperVision(active: boolean): void {
+    this.scene.meshes
+      .filter(m =>
+        m.name.startsWith("surveillance_projection_") ||
+        m.name.startsWith("sentinel_triangle_")
+      )
+      .forEach(m => {
+        m.setEnabled(active);
+        if (active) {
+          this.h1.addMesh(m as Mesh, new Color3(0, 1, 0.92));
+        } else {
+          this.h1.removeMesh(m as Mesh);
+        }
+      });
+  }
+
   dispose(): void {
     this.survillanceStations.forEach(e => e.dispose());  // ← llama dispose en cada enemigo
     this.survillanceStations = [];
@@ -72,26 +108,8 @@ export class EnemiesSpawner {
     this.corridorSurveillanceStations = [];
     this.sentinels.forEach(e => e.dispose());              // ← nuevo
     this.sentinels = [];
+    this.setSuperVision(false);
+    this.h1.dispose();
   }
 
-  private keyboardSpawn(kbInfo: KeyboardInfo): void {
-    switch (kbInfo.event.key) {
-      case 'r':
-        this.dispose()
-        this.spawnAll();
-        break;
-      case '2':
-        break;
-    }
-  }
-
-  // ─────────────────────────────────────────────
-  //  HELPERS
-  // ─────────────────────────────────────────────
-  private randomPosition(halfSize: number): Vector3 {
-    const margin = 3;
-    const x = (Math.random() * (halfSize - margin) * 2) - (halfSize - margin);
-    const z = (Math.random() * (halfSize - margin) * 2) - (halfSize - margin);
-    return new Vector3(x, 0, z);
-  }
 }
