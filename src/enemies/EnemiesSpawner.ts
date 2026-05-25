@@ -65,11 +65,9 @@ export class EnemiesSpawner {
     this.scene.meshes
       .filter(m =>
         m.name.startsWith("surveillance_projection_") ||
-        m.name.startsWith("sentinel_triangle_") ||
-        m.name.startsWith("sentinel_projection_")
+        m.name.startsWith("sentinel_triangle_")
       )
       .forEach(m => m.setEnabled(false));
-
 
   }
 

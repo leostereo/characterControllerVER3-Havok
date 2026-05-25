@@ -8,9 +8,10 @@ import {
   Ray,
   StandardMaterial,
   MeshBuilder,
+  type LinesMesh,
 } from "@babylonjs/core";
 import { type SurveillanceStateMachine, type SurveillanceState } from "../statemachines/SurveillanceStateMachine";
-import { meshNames, playerConfig, surveillanceConfig } from "@/config/GameConfig";
+import { meshNames, playerConfig, superVisionConfig, surveillanceConfig } from "@/config/GameConfig";
 
 export class SurveillanceController {
 
@@ -28,7 +29,7 @@ export class SurveillanceController {
   private trackingElapsed = 0;
 
   private lamp: Mesh;
-  private projection: Mesh;
+  private projection: LinesMesh;  // ← era Mesh
   private orbitPivot: TransformNode;
 
   constructor(
@@ -170,7 +171,7 @@ export class SurveillanceController {
   //  EFECTOS VISUALES
   // ─────────────────────────────────────────────
   private buildVisionEffect(barrelHeight: number): {
-    lamp: Mesh; projection: Mesh; orbitPivot: TransformNode;
+    lamp: Mesh; projection: LinesMesh; orbitPivot: TransformNode;  // ← LinesMesh
   } {
     const distToGround = barrelHeight / Math.tan(this.TILT);
 
@@ -207,21 +208,34 @@ export class SurveillanceController {
     orbitPivot.position.x = barrelWorldPos.x;
     orbitPivot.position.y = 0;
     orbitPivot.position.z = barrelWorldPos.z;
+    
+    const { emissive } = superVisionConfig.projection;
+    const radius = this.PROJECTION_SCALE;
+    const segments = surveillanceConfig.lamp.tessellationDisc;
+    const offsetZ = distToGround * this.PROJECTION_OFFSET;
+    const Y = surveillanceConfig.lamp.groundOffset;
 
-    const projection = MeshBuilder.CreateDisc(
+    const points: Vector3[] = [];
+    for (let i = 0; i <= segments; i++) {
+      const angle = (i / segments) * Math.PI * 2;
+      points.push(new Vector3(
+        Math.cos(angle) * radius,
+        Y,
+        Math.sin(angle) * radius + offsetZ,
+      ));
+    }
+
+    const projection = MeshBuilder.CreateLines(
       `surveillance_projection_${this.rotationPivot.name}`,
-      { radius: 1, tessellation: surveillanceConfig.lamp.tessellationDisc, sideOrientation: Mesh.DOUBLESIDE },
-      this.scene
-    );
-    projection.rotation.x = Math.PI / 2;
-    projection.scaling.x = this.PROJECTION_SCALE;
-    projection.scaling.y = this.PROJECTION_SCALE;
-    projection.scaling.z = 1;
-    projection.position = new Vector3(0, surveillanceConfig.lamp.groundOffset, distToGround * this.PROJECTION_OFFSET);
+    { points },
+    this.scene
+  );
+    projection.color = new Color3(emissive.r, emissive.g, emissive.b);
     projection.parent = orbitPivot;
     projection.isPickable = false;
 
-    const projMat = new StandardMaterial(`surveillance_proj_mat_${this.rotationPivot.name}`, this.scene);
+
+ const projMat = new StandardMaterial(`surveillance_proj_mat_${this.rotationPivot.name}`, this.scene);
     projMat.diffuseColor = new Color3(
       surveillanceConfig.colors.searching.projDiffuse.r,
       surveillanceConfig.colors.searching.projDiffuse.g,
@@ -237,6 +251,7 @@ export class SurveillanceController {
     projMat.wireframe = true;   // ← solo contorno
     projection.material = projMat;
     projection.setEnabled(false);     // ← oculto por defecto
+
 
     return { lamp, projection, orbitPivot };
 }

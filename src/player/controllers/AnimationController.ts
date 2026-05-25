@@ -127,7 +127,7 @@ export class AnimationController {
       }
       
     }
-    
+
     this.play(next);
   }
 
