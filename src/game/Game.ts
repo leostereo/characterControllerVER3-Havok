@@ -6,17 +6,18 @@ import { Player } from "@/player/Player";
 import { PlayGround } from "@/playground/PlayGround";
 import { ParticlesManager } from "@/game/effects/ParticlesManager";
 import { setUI } from "@/game/hud/hud";
-import { playerConfig } from "@/config/GameConfig";
 import { GameStateMachine } from "./stateMachines/GameStateMachine";
 import { GameController } from "./controllers/GameController";
 import { GameState } from "./types/GameState";
 import { PlayGroundState } from "@/playground/state/PlayGroundState";
+import { EnemiesSpawner } from "@/enemies/EnemiesSpawner";
 
 export class Game {
   private stateMachine = new GameStateMachine();
   private controller:  GameController;
   private player:      Player | null = null;
-
+  private enemiesSpawner: EnemiesSpawner;
+  private playGround: PlayGround;
 
   constructor(
     private scene:  Scene,
@@ -24,8 +25,9 @@ export class Game {
     assets: LoadedAssets
   ) {
     this.controller = new GameController(scene, engine, this.stateMachine);
+
     this._registerStateHandlers();
-    this._initGame(assets);
+    void this._initGame(assets);
   }
 
   // ── API pública ───────────────────────────────────────────────
@@ -39,14 +41,18 @@ export class Game {
 
   // ── Inicialización ────────────────────────────────────────────
 
-  private _initGame(assets: LoadedAssets): void {
+  private async _initGame(assets: LoadedAssets): Promise<void> {
     const characterMeshes     = assets.meshes["characterTask"];
     const characterAnimations = assets.animations["characterTask"];
     const particleTexture     = assets.textures["emiterTextureTask"];
 
     ParticlesManager.initialize(this.scene, particleTexture);
 
-    new PlayGround(this.scene, playerConfig.player1.player1RaycastDetectableName);
+    this.playGround = new PlayGround(this.scene);
+
+    this.enemiesSpawner = new EnemiesSpawner(this.scene);
+    await this.playGround.createNavMesh(this.scene);
+    this.enemiesSpawner.spawnAll()
 
     const playerInitPosition = PlayGroundState.getInstance().getSpawnPoint();
 

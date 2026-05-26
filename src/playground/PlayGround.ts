@@ -8,33 +8,25 @@ import {
 } from "@babylonjs/core";
 import { WallsBuilder }     from "./builders/WallsBuilder";
 import { meshNames, groundConfig } from "@/config/GameConfig";
-import { EnemiesSpawner } from "@/enemies/EnemiesSpawner";
 import { NavMeshService } from "./NavMeshService";
 
 export class PlayGround {
 
   private wallsBuilder:   WallsBuilder;
-  private enemiesSpawner: EnemiesSpawner;
 
   constructor(
     private scene:           Scene,
-    private meshToShootName: string,
   ) {
     this.wallsBuilder   = new WallsBuilder(scene);
-    this.enemiesSpawner = new EnemiesSpawner(scene);
-
     this.buildGround();
     this.wallsBuilder.build();
-
-    void this.createNavMesh(scene);
   }
 
-  private async createNavMesh(scene: Scene):Promise<void> {
+  public async createNavMesh(scene: Scene):Promise<void> {
     const navMeshService = NavMeshService.getInstance(scene);
     await navMeshService.build();
-    this.enemiesSpawner.spawnAll();
-    //this.enemiesSpawner.spawnOne();
   }
+  
 
   // ─────────────────────────────────────────────
   //  GROUND
@@ -66,6 +58,6 @@ export class PlayGround {
   // ─────────────────────────────────────────────
   dispose(): void {
     this.wallsBuilder.dispose();
-    this.enemiesSpawner.dispose();
+    // this.enemiesSpawner.dispose();
   }
 }
