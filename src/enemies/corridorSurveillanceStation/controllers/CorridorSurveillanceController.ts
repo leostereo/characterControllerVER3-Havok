@@ -10,7 +10,7 @@ import {
   MeshBuilder,
 } from "@babylonjs/core";
 import { type CorridorSurveillanceStateMachine, type CorridorSurveillanceState } from "../statemachines/CorridorSurveillanceStateMachine";
-import { meshNames, playerConfig, surveillanceConfig } from "@/config/GameConfig";
+import { meshNames, playerConfig, superVisionConfig, surveillanceConfig } from "@/config/GameConfig";
 import { type Area } from "@/playground/builders/BuildMap";
 
 export class CorridorSurveillanceController {
@@ -85,6 +85,9 @@ export class CorridorSurveillanceController {
     if (this.renderObserver) {
       this.scene.onBeforeRenderObservable.remove(this.renderObserver);
       this.renderObserver = null;
+    }
+    if (this.stateMachine.isCollapsed()) {
+      this.projection.dispose();
     }
   }
 
@@ -186,19 +189,25 @@ export class CorridorSurveillanceController {
     lamp.material = lampMat;
 
     // ── Proyección — plano fijo sobre el área de detección ──
-    const projection = MeshBuilder.CreateGround(
+    const { emissive } = superVisionConfig.projection;
+    const Y = surveillanceConfig.lamp.groundOffset;
+
+    const points: Vector3[] = [
+      new Vector3(this.surveyArea.minX, Y, this.surveyArea.minZ),
+      new Vector3(this.surveyArea.maxX, Y, this.surveyArea.minZ),
+      new Vector3(this.surveyArea.maxX, Y, this.surveyArea.maxZ),
+      new Vector3(this.surveyArea.minX, Y, this.surveyArea.maxZ),
+      new Vector3(this.surveyArea.minX, Y, this.surveyArea.minZ), // cerrar
+    ];
+
+    const projection = MeshBuilder.CreateLines(
       `surveillance_projection_${this.rotationPivot.name}`,
-      {
-        width: this.surveyArea.width,
-        height: this.surveyArea.depth,
-        subdivisions: 1,
-      },
-      this.scene
-    );
-    projection.position.x = this.surveyArea.center.x;
-    projection.position.y = surveillanceConfig.lamp.groundOffset;
-    projection.position.z = this.surveyArea.center.z;
+  { points },
+  this.scene
+);
+    projection.color = new Color3(emissive.r, emissive.g, emissive.b);
     projection.isPickable = false;
+    projection.setEnabled(false);
 
     const projMat = new StandardMaterial(
       `surveillance_proj_mat_${this.rotationPivot.name}`, this.scene
