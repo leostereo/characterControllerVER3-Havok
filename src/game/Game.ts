@@ -110,10 +110,14 @@ export class Game {
     }
   }
 
-  private _handleEnemyDestroyed(): void {
-    this.enemiesDown++;
-    this.hud?.updateEnemiesDown(this.enemiesDown, this.totalEnemies);
+private _handleEnemyDestroyed(): void {
+  this.enemiesDown++;
+  this.hud?.updateEnemiesDown(this.enemiesDown, this.totalEnemies);
+
+  if (this.enemiesDown >= this.totalEnemies) {
+    this.stateMachine.transition(GameState.WIN);  
   }
+}
 
   // ─────────────────────────────────────────────
   //  HANDLERS DE ESTADO
@@ -127,6 +131,7 @@ export class Game {
     this.stateMachine.onEnter(GameState.PLAYING,   () => this._onPlaying());
     this.stateMachine.onEnter(GameState.PAUSED,    () => this._onPaused());
     this.stateMachine.onEnter(GameState.GAME_OVER, () => this._onGameOver());
+    this.stateMachine.onEnter(GameState.WIN,       () => this._onWin());  // ← nuevo
   }
 
   private _onReady(): void { }
@@ -142,6 +147,12 @@ export class Game {
   private _onGameOver(): void {
     this.hud?.showGameOver(() => {
       // restart — por ahora reload de página
+      window.location.reload();
+    });
+  }
+
+  private _onWin(): void {
+    this.hud?.showWin(() => {
       window.location.reload();
     });
   }

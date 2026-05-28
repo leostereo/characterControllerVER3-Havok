@@ -9,10 +9,11 @@ const TRON_DIM    = "#007A6E";
 const TRON_RED    = "#FF2D55";
 
 export interface HudControls {
-  updateLives:        (lives: number) => void;
-  updateEnemiesDown:  (down: number, total: number) => void;
-  showGameOver:       (onRestart: () => void) => void;
-  dispose:            () => void;
+  updateLives: (lives: number) => void;
+  updateEnemiesDown: (down: number, total: number) => void;
+  showGameOver: (onRestart: () => void) => void;
+  showWin: (onRestart: () => void) => void;
+  dispose: () => void;
 }
 
 export const setUI = async (scene: Scene): Promise<HudControls> => {
@@ -96,6 +97,38 @@ export const setUI = async (scene: Scene): Promise<HudControls> => {
   restartText.fontFamily = "Courier New";
   gameOverPanel.addControl(restartText);
 
+  const winRect = new Rectangle();
+  winRect.width = "400px";
+  winRect.height = "200px";
+  winRect.background = "#000000CC";
+  winRect.color = TRON_CYAN;
+  winRect.thickness = 1;
+  winRect.cornerRadius = 8;
+  winRect.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+  winRect.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+  winRect.isVisible = false;
+  ui.addControl(winRect);
+
+  const winPanel = new StackPanel();
+  winPanel.isVertical = true;
+  winRect.addControl(winPanel);
+
+  const winText = new TextBlock();
+  winText.text = "YOU WIN";
+  winText.height = "60px";
+  winText.color = TRON_CYAN;
+  winText.fontSize = 36;
+  winText.fontFamily = "Courier New";
+  winPanel.addControl(winText);
+
+  const winRestartText = new TextBlock();
+  winRestartText.text = "[ PRESS R TO RESTART ]";
+  winRestartText.height = "40px";
+  winRestartText.color = TRON_DIM;
+  winRestartText.fontSize = 16;
+  winRestartText.fontFamily = "Courier New";
+  winPanel.addControl(winRestartText);
+
   // ── Suscripciones ──
   let shotCount = 0;
   const eventManager = EventManager.getInstance();
@@ -130,10 +163,21 @@ export const setUI = async (scene: Scene): Promise<HudControls> => {
     });
   };
 
+  const showWin = (onRestart: () => void): void => {
+    gameOverRect.isVisible = false;
+    winRect.isVisible = true;
+
+    scene.onKeyboardObservable.addOnce((kbInfo) => {
+      if (kbInfo.event.key.toLowerCase() === "r") {
+        onRestart();
+      }
+    });
+  };
+
   const dispose = (): void => {
     eventManager.unsubscribe(shotObserver);
     ui.dispose();
   };
 
-  return { updateLives, updateEnemiesDown, showGameOver, dispose };
+  return { updateLives, updateEnemiesDown, showGameOver, showWin, dispose };
 };
