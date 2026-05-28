@@ -14,20 +14,21 @@ import { EnemiesSpawner } from "@/enemies/EnemiesSpawner";
 import { playerConfig } from "@/config/GameConfig";
 import { EventManager } from "./eventManager/eventManager";
 
-export class Game {
+export class GameMain {
   private stateMachine = new GameStateMachine();
-  private controller:  GameController;
-  private player:      Player | null = null;
+  private controller: GameController;
+  private player: Player | null = null;
   private enemiesSpawner: EnemiesSpawner;
   private playGround: PlayGround;
-  private hud:            HudControls | null = null;
+  private hud: HudControls | null = null;
+  private _lastAssets: LoadedAssets;
 
   private lives = +playerConfig.initialLives;   // ← desde config
   private enemiesDown = 0;
   private totalEnemies = 10;  // ← hardcodeado por ahora
 
   constructor(
-    private scene:  Scene,
+    private scene: Scene,
     private engine: Engine | WebGPUEngine,
     assets: LoadedAssets
   ) {
@@ -39,19 +40,19 @@ export class Game {
 
   // ── API pública ───────────────────────────────────────────────
 
-  start():void    { this.controller.start();    }
-  pause():void    { this.controller.pause();    }
-  resume():void   { this.controller.resume();   }
-  gameOver():void { this.controller.gameOver(); }
-
+  start(): void { this.controller.start(); }
+  pause(): void { this.controller.pause(); }
+  resume(): void { this.controller.resume(); }
+  gameOver(): void { this.controller.gameOver(); }
   getState(): GameState { return this.stateMachine.current; }
 
   // ── Inicialización ────────────────────────────────────────────
 
   private async _initGame(assets: LoadedAssets): Promise<void> {
-    const characterMeshes     = assets.meshes["characterTask"];
+    this._lastAssets = assets;   // ← guardar referencia
+    const characterMeshes = assets.meshes["characterTask"];
     const characterAnimations = assets.animations["characterTask"];
-    const particleTexture     = assets.textures["emiterTextureTask"];
+    const particleTexture = assets.textures["emiterTextureTask"];
 
     ParticlesManager.initialize(this.scene, particleTexture);
 
@@ -60,7 +61,7 @@ export class Game {
     this.enemiesSpawner = new EnemiesSpawner(this.scene);
     await this.playGround.createNavMesh(this.scene);
     this.totalEnemies = this.enemiesSpawner.spawnAll()
-    
+
     const playerInitPosition = PlayGroundState.getInstance().getSpawnPoint();
 
     if (characterMeshes?.length > 0) {
@@ -110,14 +111,14 @@ export class Game {
     }
   }
 
-private _handleEnemyDestroyed(): void {
-  this.enemiesDown++;
-  this.hud?.updateEnemiesDown(this.enemiesDown, this.totalEnemies);
+  private _handleEnemyDestroyed(): void {
+    this.enemiesDown++;
+    this.hud?.updateEnemiesDown(this.enemiesDown, this.totalEnemies);
 
-  if (this.enemiesDown >= this.totalEnemies) {
-    this.stateMachine.transition(GameState.WIN);  
+    if (this.enemiesDown >= this.totalEnemies) {
+      this.stateMachine.transition(GameState.WIN);
+    }
   }
-}
 
   // ─────────────────────────────────────────────
   //  HANDLERS DE ESTADO
@@ -127,11 +128,11 @@ private _handleEnemyDestroyed(): void {
   // ── Handlers de estado ────────────────────────────────────────
 
   private _registerStateHandlers(): void {
-    this.stateMachine.onEnter(GameState.READY,     () => this._onReady());
-    this.stateMachine.onEnter(GameState.PLAYING,   () => this._onPlaying());
-    this.stateMachine.onEnter(GameState.PAUSED,    () => this._onPaused());
+    this.stateMachine.onEnter(GameState.READY, () => this._onReady());
+    this.stateMachine.onEnter(GameState.PLAYING, () => this._onPlaying());
+    this.stateMachine.onEnter(GameState.PAUSED, () => this._onPaused());
     this.stateMachine.onEnter(GameState.GAME_OVER, () => this._onGameOver());
-    this.stateMachine.onEnter(GameState.WIN,       () => this._onWin());  // ← nuevo
+    this.stateMachine.onEnter(GameState.WIN, () => this._onWin());  // ← nuevo
   }
 
   private _onReady(): void { }
@@ -145,15 +146,36 @@ private _handleEnemyDestroyed(): void {
   }
 
   private _onGameOver(): void {
-    this.hud?.showGameOver(() => {
-      // restart — por ahora reload de página
-      window.location.reload();
-    });
+    this.hud?.showGameOver();
+    this._registerRestartListener();
   }
 
   private _onWin(): void {
-    this.hud?.showWin(() => {
-      window.location.reload();
+    this.hud?.showWin();
+    this._registerRestartListener();
+  }
+
+  private _registerRestartListener(): void {
+    const obs = this.scene.onKeyboardObservable.add((kbInfo) => {
+      if (kbInfo.event.key.toLowerCase() === "r") {
+        this.scene.onKeyboardObservable.remove(obs);
+        void this._restartGame();
+      }
     });
   }
+
+  private async _restartGame(): Promise<void> {
+    this.hud?.dispose();
+    this.hud = null;
+    this.enemiesSpawner.dispose();
+    this.playGround.dispose();
+    this.player?.dispatch();
+
+    this.lives = playerConfig.initialLives;
+    this.enemiesDown = 0;
+
+    this.stateMachine.reset();
+    await this._initGame(this._lastAssets);
+  }
+
 }

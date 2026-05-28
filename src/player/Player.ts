@@ -58,6 +58,10 @@ export class Player {
 
   }
 
+  public dispatch() {
+
+  }
+
   startUpdateLoop(scene: Scene): void {
     scene.onBeforeRenderObservable.add(() => {
       this.throwController.update();  //alwais before animationController.update()

@@ -20,6 +20,10 @@ export class GameStateMachine {
     this._handlers.set(state, handler);
   }
 
+  reset(): void {
+    this._current = GameState.LOADING;
+  }
+
   transition(next: GameState): boolean {
     if (!VALID_TRANSITIONS[this._current].includes(next)) {
       console.warn(`[StateMachine] Transición inválida: ${this._current} → ${next}`);

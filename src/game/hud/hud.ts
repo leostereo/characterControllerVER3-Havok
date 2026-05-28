@@ -4,16 +4,16 @@ import type { Scene } from "@babylonjs/core/scene";
 import { AdvancedDynamicTexture, StackPanel, TextBlock, Rectangle, Control } from "@babylonjs/gui/2D";
 import { EventManager, type GameEvent } from "../eventManager/eventManager";
 
-const TRON_CYAN   = "#00E5CC";
-const TRON_DIM    = "#007A6E";
-const TRON_RED    = "#FF2D55";
+const TRON_CYAN = "#00E5CC";
+const TRON_DIM = "#007A6E";
+const TRON_RED = "#FF2D55";
 
 export interface HudControls {
-  updateLives: (lives: number) => void;
+  updateLives:       (lives: number) => void;
   updateEnemiesDown: (down: number, total: number) => void;
-  showGameOver: (onRestart: () => void) => void;
-  showWin: (onRestart: () => void) => void;
-  dispose: () => void;
+  showGameOver:      () => void;   // ← sin callback
+  showWin:           () => void;   // ← sin callback
+  dispose:           () => void;
 }
 
 export const setUI = async (scene: Scene): Promise<HudControls> => {
@@ -26,55 +26,55 @@ export const setUI = async (scene: Scene): Promise<HudControls> => {
 
   // ── Panel principal — esquina superior izquierda ──
   const panel = new StackPanel();
-  panel.width                 = "220px";
-  panel.verticalAlignment     = Control.VERTICAL_ALIGNMENT_TOP;
-  panel.horizontalAlignment   = Control.HORIZONTAL_ALIGNMENT_LEFT;
-  panel.isVertical            = true;
-  panel.topInPixels           = 20;
-  panel.leftInPixels          = 20;
+  panel.width = "220px";
+  panel.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+  panel.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+  panel.isVertical = true;
+  panel.topInPixels = 20;
+  panel.leftInPixels = 20;
   ui.addControl(panel);
 
   // ── Vidas ──
   const livesText = new TextBlock();
-  livesText.text          = "⬡ ⬡ ⬡ ⬡ ⬡";
-  livesText.height        = "36px";
-  livesText.color         = TRON_CYAN;
-  livesText.fontSize      = 22;
-  livesText.fontFamily    = "Courier New";
+  livesText.text = "⬡ ⬡ ⬡ ⬡ ⬡";
+  livesText.height = "36px";
+  livesText.color = TRON_CYAN;
+  livesText.fontSize = 22;
+  livesText.fontFamily = "Courier New";
   livesText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
   panel.addControl(livesText);
 
   // ── Enemies down ──
   const enemiesText = new TextBlock();
-  enemiesText.text        = "ENEMIES DOWN  0 / 0";
-  enemiesText.height      = "30px";
-  enemiesText.color       = TRON_DIM;
-  enemiesText.fontSize    = 14;
-  enemiesText.fontFamily  = "Courier New";
+  enemiesText.text = "ENEMIES DOWN  0 / 0";
+  enemiesText.height = "30px";
+  enemiesText.color = TRON_DIM;
+  enemiesText.fontSize = 14;
+  enemiesText.fontFamily = "Courier New";
   enemiesText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
   panel.addControl(enemiesText);
 
   // ── Shots ──
   const shotText = new TextBlock();
-  shotText.text       = "SHOTS  0";
-  shotText.height     = "30px";
-  shotText.color      = TRON_DIM;
-  shotText.fontSize   = 14;
+  shotText.text = "SHOTS  0";
+  shotText.height = "30px";
+  shotText.color = TRON_DIM;
+  shotText.fontSize = 14;
   shotText.fontFamily = "Courier New";
   shotText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
   panel.addControl(shotText);
 
   // ── Game Over overlay ──
   const gameOverRect = new Rectangle();
-  gameOverRect.width            = "400px";
-  gameOverRect.height           = "200px";
-  gameOverRect.background       = "#000000CC";
-  gameOverRect.color            = TRON_RED;
-  gameOverRect.thickness        = 1;
-  gameOverRect.cornerRadius     = 8;
-  gameOverRect.verticalAlignment   = Control.VERTICAL_ALIGNMENT_CENTER;
+  gameOverRect.width = "400px";
+  gameOverRect.height = "200px";
+  gameOverRect.background = "#000000CC";
+  gameOverRect.color = TRON_RED;
+  gameOverRect.thickness = 1;
+  gameOverRect.cornerRadius = 8;
+  gameOverRect.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
   gameOverRect.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-  gameOverRect.isVisible        = false;
+  gameOverRect.isVisible = false;
   ui.addControl(gameOverRect);
 
   const gameOverPanel = new StackPanel();
@@ -82,18 +82,18 @@ export const setUI = async (scene: Scene): Promise<HudControls> => {
   gameOverRect.addControl(gameOverPanel);
 
   const gameOverText = new TextBlock();
-  gameOverText.text       = "GAME OVER";
-  gameOverText.height     = "60px";
-  gameOverText.color      = TRON_RED;
-  gameOverText.fontSize   = 36;
+  gameOverText.text = "GAME OVER";
+  gameOverText.height = "60px";
+  gameOverText.color = TRON_RED;
+  gameOverText.fontSize = 36;
   gameOverText.fontFamily = "Courier New";
   gameOverPanel.addControl(gameOverText);
 
   const restartText = new TextBlock();
-  restartText.text       = "[ PRESS R TO RESTART ]";
-  restartText.height     = "40px";
-  restartText.color      = TRON_CYAN;
-  restartText.fontSize   = 16;
+  restartText.text = "[ PRESS R TO RESTART ]";
+  restartText.height = "40px";
+  restartText.color = TRON_CYAN;
+  restartText.fontSize = 16;
   restartText.fontFamily = "Courier New";
   gameOverPanel.addControl(restartText);
 
@@ -143,36 +143,23 @@ export const setUI = async (scene: Scene): Promise<HudControls> => {
   // ── Controles públicos ──
   const updateLives = (lives: number): void => {
     const filled = "⬡ ".repeat(lives).trim();
-    const empty  = "⬢ ".repeat(Math.max(0, 5 - lives)).trim();
-    livesText.text  = filled + (empty ? `  ${empty}` : "");
+    const empty = "⬢ ".repeat(Math.max(0, 5 - lives)).trim();
+    livesText.text = filled + (empty ? `  ${empty}` : "");
     livesText.color = lives <= 2 ? TRON_RED : TRON_CYAN;
   };
 
   const updateEnemiesDown = (down: number, total: number): void => {
-    enemiesText.text  = `ENEMIES DOWN  ${down} / ${total}`;
+    enemiesText.text = `ENEMIES DOWN  ${down} / ${total}`;
     enemiesText.color = down === total ? TRON_CYAN : TRON_DIM;
   };
 
-  const showGameOver = (onRestart: () => void): void => {
+  const showGameOver = (): void => {
     gameOverRect.isVisible = true;
-
-    scene.onKeyboardObservable.addOnce((kbInfo) => {
-      if (kbInfo.event.key.toLowerCase() === "r") {
-        onRestart();
-      }
-    });
   };
 
-  const showWin = (onRestart: () => void): void => {
-    gameOverRect.isVisible = false;
+  const showWin = (): void => {
     winRect.isVisible = true;
-
-    scene.onKeyboardObservable.addOnce((kbInfo) => {
-      if (kbInfo.event.key.toLowerCase() === "r") {
-        onRestart();
-      }
-    });
-  };
+  }
 
   const dispose = (): void => {
     eventManager.unsubscribe(shotObserver);
