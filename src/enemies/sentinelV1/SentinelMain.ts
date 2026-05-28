@@ -299,6 +299,16 @@ export class SentinelMain implements IBaseEnemy {
 
             this.eventManager.unsubscribe(observer);
             this.collapse();
+            this.emitCollapsedEvent();
+        });
+    }
+
+    private emitCollapsedEvent(): void {
+        this.eventManager.emit({
+            type: "enemy_destroyed",
+            source: "player1",
+            sourceType: "player",
+            data: { id:this.uniqueId },
         });
     }
 

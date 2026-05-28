@@ -4,6 +4,7 @@
 //  PLAYER
 // ─────────────────────────────────────────────
 export const playerConfig = {
+    initialLives: 10,
     height: 1.8,
     capsuleRadius: 0.4,
     aimHeightMultiplier: 0.5,

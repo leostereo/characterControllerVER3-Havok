@@ -58,6 +58,5 @@ export class PlayGround {
   // ─────────────────────────────────────────────
   dispose(): void {
     this.wallsBuilder.dispose();
-    // this.enemiesSpawner.dispose();
   }
 }

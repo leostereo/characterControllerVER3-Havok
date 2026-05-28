@@ -30,6 +30,14 @@ export class PhysicState implements PhysicState {
         const data = event.data as { direction: Vector3; hitMeshName: string };
         this.apply_hit_impulse = true;
         this.projectile_direction = data.direction;
+        
+        this.eventManager.emit({
+          type: "player_damaged",
+          source: "enemy",
+          sourceType: "enemy",
+          data: { direction: data.direction },
+        });
+
       }
     });
   }

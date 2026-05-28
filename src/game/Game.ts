@@ -5,12 +5,14 @@ import { type LoadedAssets } from "@/utils/AssetsLoader";
 import { Player } from "@/player/Player";
 import { PlayGround } from "@/playground/PlayGround";
 import { ParticlesManager } from "@/game/effects/ParticlesManager";
-import { setUI } from "@/game/hud/hud";
+import { type HudControls, setUI } from "@/game/hud/hud";
 import { GameStateMachine } from "./stateMachines/GameStateMachine";
 import { GameController } from "./controllers/GameController";
 import { GameState } from "./types/GameState";
 import { PlayGroundState } from "@/playground/state/PlayGroundState";
 import { EnemiesSpawner } from "@/enemies/EnemiesSpawner";
+import { playerConfig } from "@/config/GameConfig";
+import { EventManager } from "./eventManager/eventManager";
 
 export class Game {
   private stateMachine = new GameStateMachine();
@@ -18,6 +20,11 @@ export class Game {
   private player:      Player | null = null;
   private enemiesSpawner: EnemiesSpawner;
   private playGround: PlayGround;
+  private hud:            HudControls | null = null;
+
+  private lives = +playerConfig.initialLives;   // ← desde config
+  private enemiesDown = 0;
+  private totalEnemies = 10;  // ← hardcodeado por ahora
 
   constructor(
     private scene:  Scene,
@@ -52,8 +59,8 @@ export class Game {
 
     this.enemiesSpawner = new EnemiesSpawner(this.scene);
     await this.playGround.createNavMesh(this.scene);
-    this.enemiesSpawner.spawnAll()
-
+    this.totalEnemies = this.enemiesSpawner.spawnAll()
+    
     const playerInitPosition = PlayGroundState.getInstance().getSpawnPoint();
 
     if (characterMeshes?.length > 0) {
@@ -66,10 +73,52 @@ export class Game {
       );
     }
 
-    void setUI(this.scene);
+    this.hud = await setUI(this.scene);
+    this.hud.updateLives(this.lives);
+    this.hud.updateEnemiesDown(this.enemiesDown, this.totalEnemies);
+
+    this._subscribeToEvents();
 
     this.stateMachine.transition(GameState.READY);
   }
+
+  // ─────────────────────────────────────────────
+  //  EVENTOS
+  // ─────────────────────────────────────────────
+  private _subscribeToEvents(): void {
+    const em = EventManager.getInstance();
+
+    em.subscribe((event) => {
+      if (event.type === "player_damaged") {
+        this._handlePlayerDamage();
+      }
+      if (event.type === "enemy_destroyed") {
+        this._handleEnemyDestroyed();
+      }
+    });
+  }
+
+  private _handlePlayerDamage(): void {
+    this.lives = Math.max(0, this.lives - 1);
+    this.hud?.updateLives(this.lives);
+
+    // cooldown de enemigos — luego
+    // this.enemiesSpawner.setCooldown();
+
+    if (this.lives <= 0) {
+      this.stateMachine.transition(GameState.GAME_OVER);
+    }
+  }
+
+  private _handleEnemyDestroyed(): void {
+    this.enemiesDown++;
+    this.hud?.updateEnemiesDown(this.enemiesDown, this.totalEnemies);
+  }
+
+  // ─────────────────────────────────────────────
+  //  HANDLERS DE ESTADO
+  // ─────────────────────────────────────────────
+
 
   // ── Handlers de estado ────────────────────────────────────────
 
@@ -91,6 +140,9 @@ export class Game {
   }
 
   private _onGameOver(): void {
-    console.warn("[Game] Game Over");
+    this.hud?.showGameOver(() => {
+      // restart — por ahora reload de página
+      window.location.reload();
+    });
   }
 }

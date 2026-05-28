@@ -8,6 +8,7 @@ export type EventType =
   | "projectile_hit"
   | "projectile_fired"
   | "game_over"
+  | "enemy_destroyed"
   | "game_won";
 
 export type SourceType = 

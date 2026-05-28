@@ -44,6 +44,13 @@ export class SurveillanceStateMachine {
 
       this.eventManager.unsubscribe(observer);
       this.setState("collapsed");
+      
+      this.eventManager.emit({
+        type: "enemy_destroyed",
+        source: "player1",
+        sourceType: "player",
+        data: { id: this.uniqueId },
+      });
     });
   }
 }
