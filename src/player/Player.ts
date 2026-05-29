@@ -58,7 +58,7 @@ export class Player {
 
   }
 
-  public dispatch() {
+  public dispatch():void {
 
   }
 
