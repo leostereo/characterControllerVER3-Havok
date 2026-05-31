@@ -101,7 +101,7 @@ export class EnemiesSpawner {
       });
   }
 
-  public dispose(): void {
+  public dispatch(): void {
     this.survillanceStations.forEach(e => e.dispose());  
     this.survillanceStations = [];
     this.corridorSurveillanceStations.forEach(e => e.dispose());  

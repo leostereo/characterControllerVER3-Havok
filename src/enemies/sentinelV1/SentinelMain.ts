@@ -88,10 +88,37 @@ export class SentinelMain implements IBaseEnemy {
     }
 
     dispose(): void {
-        this.controller.dispose();
-        this.fsm.dispose();
-        this.rootNode.dispose();
+    // ── shooting observer ──
+    if (this.shootingObserver) {
+        this.scene.onBeforeRenderObservable.remove(this.shootingObserver);
+        this.shootingObserver = null;
     }
+
+    // ── controller + FSM ──
+    this.controller.dispose();
+    this.fsm.dispose();
+
+    // ── física ──
+    if (!this.collapsed) {
+        // solo si no colapsó — collapse ya los convierte a DYNAMIC
+        this.bodyAggregate?.dispose();
+        this.towerAggregate?.dispose();
+        this.headAggregate?.dispose();
+    }
+
+    // ── geometría ──
+    this.rootNode.dispose();       // limpia toda la jerarquía hija
+    this.baseGroup.dispose();
+    this.towerGroup.dispose();
+    this.headGroup.dispose();
+
+    // si colapsó los meshes se desparentaron — hay que limpiarlos manualmente
+    if (this.collapsed) {
+        this.bodyMesh?.dispose();
+        this.upperTowerMesh?.dispose();
+        this.headMesh?.dispose();
+    }
+}
 
     // ─────────────────────────────────────────────
     //  LOOP DE DISPARO
