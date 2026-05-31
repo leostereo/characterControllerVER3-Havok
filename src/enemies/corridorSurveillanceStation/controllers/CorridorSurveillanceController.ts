@@ -236,6 +236,7 @@ export class CorridorSurveillanceController {
     this.stop();
     this.lamp.dispose();
     this.projection.dispose();
+    this.scene.onBeforeRenderObservable.remove(this.renderObserver); 
   }
 
   private updateVisionColor(state: CorridorSurveillanceState): void {

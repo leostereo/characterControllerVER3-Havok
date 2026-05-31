@@ -4,7 +4,7 @@ import { AnimationController } from "./controllers/AnimationController";
 import { InputState } from "./statemachines/InputState";
 import { PhysicState } from "./statemachines/PhysicState";
 import { AnimationStateMachine } from "./statemachines/AnimationState";
-import type { Scene, Vector3, AbstractMesh, AnimationGroup } from "@babylonjs/core";
+import type { Scene, Vector3, AbstractMesh, AnimationGroup, Observer } from "@babylonjs/core";
 import { CameraController } from "./controllers/CameraController";
 import { AnimationGroupsManager } from "./managers/AnimationGroupsManger";
 import { ThrowController } from "./controllers/ThrowController";
@@ -24,9 +24,10 @@ export class Player {
   private animationController: AnimationController;
   private throwController: ThrowController;
   private cameraController: CameraController;
+  private renderObserver: Observer<Scene> | null = null;
 
   constructor(
-    scene: Scene,
+    private scene: Scene,
     startPosition: Vector3,
     mesh: AbstractMesh,
     animationGroups: AnimationGroup[] = [],
@@ -59,12 +60,15 @@ export class Player {
   }
 
   public dispatch():void {
+    this.physicController.dispose();
+    this.throwController.dispose();
+    this.scene.onBeforeRenderObservable.remove(this.renderObserver); 
 
   }
 
   startUpdateLoop(scene: Scene): void {
-    scene.onBeforeRenderObservable.add(() => {
-      this.throwController.update();  //alwais before animationController.update()
+    this.renderObserver = scene.onBeforeRenderObservable.add(() => {
+      this.throwController.update();  
       this.animationController.update();
     });
   }

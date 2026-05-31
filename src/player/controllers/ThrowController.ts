@@ -30,5 +30,8 @@ export class ThrowController {
     }
   }
 
+  public dispose():void{
+    this.freesbeeManager.dispose()
+  }
 
 }

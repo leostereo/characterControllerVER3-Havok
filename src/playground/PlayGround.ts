@@ -56,7 +56,9 @@ export class PlayGround {
   // ─────────────────────────────────────────────
   //  CICLO DE VIDA
   // ─────────────────────────────────────────────
-  dispose(): void {
+  dispatch(): void {
     this.wallsBuilder.dispose();
+    this.scene.getMeshByName(meshNames.ground)?.dispose();
+    NavMeshService.getInstance(this.scene).dispose();
   }
 }

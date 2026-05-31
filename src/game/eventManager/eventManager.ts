@@ -47,4 +47,9 @@ export class EventManager {
   unsubscribe(observer: Observer<GameEvent>): void {
     this.eventObservable.remove(observer);
   }
+  
+  clearAll(): void {
+    this.eventObservable.clear();
+  }
+
 }

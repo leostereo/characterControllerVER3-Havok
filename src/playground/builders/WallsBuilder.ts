@@ -153,17 +153,6 @@ export class WallsBuilder {
     };
   }
 
-  // private addPhysics(group: WallGroup): void {
-  //   if (!group.mesh) return;
-  //   new PhysicsAggregate(
-  //     group.mesh,
-  //     PhysicsShapeType.MESH,
-  //     { mass: 0, restitution: 0.4, friction: 0.6 },
-  //     this.scene
-  //   );
-  // }
-
-
   private addPhysics(group: WallGroup): void {
     if (!group.mesh) return;
     this.addPhysicsToMesh(group.mesh);

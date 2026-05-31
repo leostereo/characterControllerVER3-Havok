@@ -14,6 +14,7 @@ import {
   PhysicsShapeCylinder,
   PhysicsShapeBox,
   Quaternion,
+  type Observer,
 } from "@babylonjs/core";
 import { SurveillanceStateMachine } from "./statemachines/SurveillanceStateMachine";
 import { SurveillanceController } from "./controllers/SurveillanceController";
@@ -46,6 +47,7 @@ export class SurveillanceStation {
   private controller: SurveillanceController;
   private static instanceCount = 0;
   private readonly sweepDirection: 1 | -1;
+  private renderObserver: Observer<Scene> | null = null;
 
 
   constructor(
@@ -87,7 +89,7 @@ export class SurveillanceStation {
     const projectileManager = new ProjectileManager(scene);
 
     // Loop de disparo
-    scene.onBeforeRenderObservable.add(() => {
+    this.renderObserver = scene.onBeforeRenderObservable.add(() => {
       if (stateMachine.getState() !== "alert") return;
       this.elapsed += scene.getEngine().getDeltaTime();
       if (this.elapsed >= surveillanceConfig.shootingRate) {
@@ -112,6 +114,7 @@ export class SurveillanceStation {
   dispose(): void {
     // 1. Detener controller — remueve observer y luz
     this.controller.dispose();
+    this.scene.onBeforeRenderObservable.remove(this.renderObserver); 
 
     // 2. Física
     this.baseAggregate.dispose();

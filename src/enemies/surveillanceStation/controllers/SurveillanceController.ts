@@ -93,6 +93,7 @@ export class SurveillanceController {
     this.lamp.dispose();
     this.projection.dispose();
     this.orbitPivot.dispose();
+    this.scene.onBeforeRenderObservable.remove(this.renderObserver); 
   }
 
   // ─────────────────────────────────────────────

@@ -22,6 +22,7 @@ export class GameMain {
   private playGround: PlayGround;
   private hud: HudControls | null = null;
   private _lastAssets: LoadedAssets;
+  private _eventsObserver: ReturnType<typeof EventManager.prototype.subscribe> | null = null;
 
   private lives = +playerConfig.initialLives;   // ← desde config
   private enemiesDown = 0;
@@ -64,7 +65,7 @@ export class GameMain {
 
     const playerInitPosition = PlayGroundState.getInstance().getSpawnPoint();
 
-    if (characterMeshes?.length > 0) {
+    if (characterMeshes?.length > 0 && this.player === null) {
       this.player = new Player(
         this.scene,
         playerInitPosition,
@@ -89,13 +90,15 @@ export class GameMain {
   private _subscribeToEvents(): void {
     const em = EventManager.getInstance();
 
-    em.subscribe((event) => {
-      if (event.type === "player_damaged") {
-        this._handlePlayerDamage();
-      }
-      if (event.type === "enemy_destroyed") {
-        this._handleEnemyDestroyed();
-      }
+    // remover el anterior si existe
+    if (this._eventsObserver) {
+      em.unsubscribe(this._eventsObserver);
+      this._eventsObserver = null;
+    }
+
+    this._eventsObserver = em.subscribe((event) => {
+      if (event.type === "player_damaged") this._handlePlayerDamage();
+      if (event.type === "enemy_destroyed") this._handleEnemyDestroyed();
     });
   }
 
@@ -123,7 +126,6 @@ export class GameMain {
   // ─────────────────────────────────────────────
   //  HANDLERS DE ESTADO
   // ─────────────────────────────────────────────
-
 
   // ── Handlers de estado ────────────────────────────────────────
 
@@ -165,17 +167,29 @@ export class GameMain {
   }
 
   private async _restartGame(): Promise<void> {
+    // limpiar observer de eventos
+    EventManager.getInstance().clearAll();
+    if (this._eventsObserver) {
+      EventManager.getInstance().unsubscribe(this._eventsObserver);
+      this._eventsObserver = null;
+    }
+
     this.hud?.dispose();
     this.hud = null;
-    this.enemiesSpawner.dispose();
-    this.playGround.dispose();
+    this.enemiesSpawner.dispatch();
+    this.playGround.dispatch();
     this.player?.dispatch();
+    this.player = null;
 
     this.lives = playerConfig.initialLives;
     this.enemiesDown = 0;
 
     this.stateMachine.reset();
     await this._initGame(this._lastAssets);
+
+
+    // saltar directamente a PLAYING en el restart
+    this.stateMachine.transition(GameState.PLAYING);
   }
 
 }
