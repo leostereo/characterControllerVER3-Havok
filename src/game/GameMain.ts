@@ -11,7 +11,7 @@ import { GameController } from "./controllers/GameController";
 import { GameState } from "./types/GameState";
 import { PlayGroundState } from "@/playground/state/PlayGroundState";
 import { EnemiesSpawner } from "@/enemies/EnemiesSpawner";
-import { playerConfig } from "@/config/GameConfig";
+import { enemiesConfig, playerConfig } from "@/config/GameConfig";
 import { EventManager } from "./eventManager/eventManager";
 
 export class GameMain {
@@ -105,9 +105,14 @@ export class GameMain {
   private _handlePlayerDamage(): void {
     this.lives = Math.max(0, this.lives - 1);
     this.hud?.updateLives(this.lives);
-
-    // cooldown de enemigos — luego
-    // this.enemiesSpawner.setCooldown();
+  
+  // notificar a todos los que necesiten reaccionar
+  EventManager.getInstance().emit({
+    type:       "player_hit",
+    source:     "game",
+    sourceType: "other",
+    data:       { cooldownDuration: enemiesConfig.hitCooldownMs },
+  });
 
     if (this.lives <= 0) {
       this.stateMachine.transition(GameState.GAME_OVER);

@@ -49,6 +49,7 @@ export const physicsConfig = {
 //  ENEMIGOS
 // ─────────────────────────────────────────────
 export const enemiesConfig = {
+    hitCooldownMs: 2000,  // ← 3 segundos de cooldown
     canion: {
         shootingRate: 2000,
         turretHeightMult: 1.2,

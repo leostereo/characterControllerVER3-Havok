@@ -47,6 +47,12 @@ export class SentinelMain implements IBaseEnemy {
     private readonly uniqueId = `sentinel_${Math.random().toString(36).slice(2, 7)}`;
     private readonly SHOOTING_RATE = 800; // ms — vendrá de gameConfig.sentinel
 
+    private cooldownElapsed = 0;
+    private cooldownDuration = 0;
+    private inCooldown = false;
+    private cooldownObserver: ReturnType<typeof EventManager.prototype.subscribe> | null = null;
+
+
     constructor(
         private scene: Scene,
         private position: Vector3,
@@ -89,10 +95,14 @@ export class SentinelMain implements IBaseEnemy {
 
     dispose(): void {
     // ── shooting observer ──
-    if (this.shootingObserver) {
-        this.scene.onBeforeRenderObservable.remove(this.shootingObserver);
-        this.shootingObserver = null;
-    }
+        if (this.shootingObserver) {
+            this.scene.onBeforeRenderObservable.remove(this.shootingObserver);
+            this.shootingObserver = null;
+        }
+        if (this.cooldownObserver) {
+            this.eventManager.unsubscribe(this.cooldownObserver);
+            this.cooldownObserver = null;
+        }
 
     // ── controller + FSM ──
     this.controller.dispose();
@@ -124,16 +134,36 @@ export class SentinelMain implements IBaseEnemy {
     //  LOOP DE DISPARO
     // ─────────────────────────────────────────────
     private setupShootingLoop(): void {
-        this.shootingObserver = this.scene.onBeforeRenderObservable.add(() => {
-            if (this.fsm.getState() !== "shooting") return;
-
-            this.elapsed += this.scene.getEngine().getDeltaTime();
-            if (this.elapsed < this.SHOOTING_RATE) return;
-
-            this.elapsed = 0;
-            const shot = this.sentinelController.getMuzzlePositionAndDirection();
-            if (shot) this.projectileManager.throwProjectile(shot.origin, shot.direction);
+        // suscribir al evento player_hit
+        this.cooldownObserver = this.eventManager.subscribe((event) => {
+            if (event.type !== "player_hit") return;
+            const data = event.data as { cooldownDuration: number };
+            this.inCooldown = true;
+            this.cooldownElapsed = 0;
+            this.cooldownDuration = data.cooldownDuration;
         });
+
+        this.shootingObserver = this.scene.onBeforeRenderObservable.add(() => {
+        const dt = this.scene.getEngine().getDeltaTime();
+
+        // actualizar cooldown
+        if (this.inCooldown) {
+            this.cooldownElapsed += dt;
+            if (this.cooldownElapsed >= this.cooldownDuration) {
+                this.inCooldown = false;
+            }
+        }
+
+        if (this.fsm.getState() !== "shooting") return;
+        if (this.inCooldown) return;   // ← bloquear disparo
+
+        this.elapsed += dt;
+        if (this.elapsed < this.SHOOTING_RATE) return;
+
+        this.elapsed = 0;
+        const shot = this.sentinelController.getMuzzlePositionAndDirection();
+        if (shot) this.projectileManager.throwProjectile(shot.origin, shot.direction);
+    });
     }
 
     // ─────────────────────────────────────────────

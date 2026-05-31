@@ -9,7 +9,9 @@ export type EventType =
   | "projectile_fired"
   | "game_over"
   | "enemy_destroyed"
-  | "game_won";
+  | "game_won"
+  | "player_hit"          
+  ;
 
 export type SourceType = 
 | "enemy"
