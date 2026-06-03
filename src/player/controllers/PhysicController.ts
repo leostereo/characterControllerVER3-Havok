@@ -392,7 +392,6 @@ export class PhysicController {
     this.controller.dispose();
     this.observer.remove();
     this.afterPhysicsObserver?.remove();
-    //this.characterMesh.dispose();
     this.raycastCapsule.dispose();
     this.scene.getTransformNodeByName(playerConfig.player1.player1CollisionDetectableName)?.dispose();
   }

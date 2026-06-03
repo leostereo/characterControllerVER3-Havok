@@ -28,6 +28,7 @@ export class AnimationGroupsManager {
         sneaking_forward: undefined,
         standing_to_sneaking: undefined,
         sneaking_to_standing: undefined,
+        going_dead: undefined,
         none: undefined
     };
 
@@ -200,7 +201,6 @@ export class AnimationGroupsManager {
         const standing_to_sneaking_anim = this.groups.standing_to_sneaking?.targetedAnimations[0].animation;
         standing_to_sneaking_anim?.addEvent(standing_to_sneaking_finish_event)
 
-
         this.groups.sneaking_to_standing = this.groups.crouched_to_standing?.clone('sneaking_to_standing',undefined,true);
         const sneaking_to_standing_finish_event = new AnimationEvent(38, () => {
             this.animationState.blockingAnimationIsPlaying = false;
@@ -211,8 +211,8 @@ export class AnimationGroupsManager {
         const sneaking_to_standing_anim = this.groups.sneaking_to_standing?.targetedAnimations[0].animation;
         sneaking_to_standing_anim?.addEvent(sneaking_to_standing_finish_event)
 
-
-
+        //game over death
+        this.groups.going_dead = animationGroups.find((item) => item.name === "zombi death");
 
         console.warn("Animation groups set:", Object.keys(this.groups).filter(k => this.groups[k as AnimationStateValue]));
     }

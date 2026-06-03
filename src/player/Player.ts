@@ -33,11 +33,11 @@ export class Player {
     animationGroups: AnimationGroup[] = [],
     meshYOffset = 0
   ) {
-    this.inputController = new InputController(this.inputState, this.animationState);
-    // this.particlesManager = new ParticlesManager(scene, particlesEmiterTexture)
-    this.physicController = new PhysicController(scene, startPosition, mesh, this.inputState, this.physicState, this.animationState);
-    this.animationGroupsManager = new AnimationGroupsManager(animationGroups, this.animationState);
-    this.animationController = new AnimationController(
+      this.inputController = new InputController(this.inputState, this.animationState);
+      // this.particlesManager = new ParticlesManager(scene, particlesEmiterTexture)
+      this.physicController = new PhysicController(scene, startPosition, mesh, this.inputState, this.physicState, this.animationState);
+      this.animationGroupsManager = new AnimationGroupsManager(animationGroups, this.animationState);
+      this.animationController = new AnimationController(
       this.inputState,
       this.physicState,
       this.animationState,
@@ -59,18 +59,22 @@ export class Player {
 
   }
 
-  public dispatch():void {
+  public dispatch(): void {
     this.physicController.dispose();
     this.throwController.dispose();
-    this.scene.onBeforeRenderObservable.remove(this.renderObserver); 
-
+    this.scene.onBeforeRenderObservable.remove(this.renderObserver);
   }
 
   startUpdateLoop(scene: Scene): void {
     this.renderObserver = scene.onBeforeRenderObservable.add(() => {
-      this.throwController.update();  
+      this.throwController.update();
       this.animationController.update();
     });
   }
 
+  public setPlayerGameOver() {
+    this.scene.onBeforeRenderObservable.remove(this.renderObserver);
+    this.scene.animationGroups.forEach((ag) => ag.stop())
+    this.animationController.gameOver();
+  }
 }

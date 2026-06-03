@@ -105,14 +105,14 @@ export class GameMain {
   private _handlePlayerDamage(): void {
     this.lives = Math.max(0, this.lives - 1);
     this.hud?.updateLives(this.lives);
-  
-  // notificar a todos los que necesiten reaccionar
-  EventManager.getInstance().emit({
-    type:       "player_hit",
-    source:     "game",
-    sourceType: "other",
-    data:       { cooldownDuration: enemiesConfig.hitCooldownMs },
-  });
+
+    // notificar a todos los que necesiten reaccionar
+    EventManager.getInstance().emit({
+      type: "player_hit",
+      source: "game",
+      sourceType: "other",
+      data: { cooldownDuration: enemiesConfig.hitCooldownMs },
+    });
 
     if (this.lives <= 0) {
       this.stateMachine.transition(GameState.GAME_OVER);
@@ -154,6 +154,15 @@ export class GameMain {
 
   private _onGameOver(): void {
     this.hud?.showGameOver();
+    EventManager.getInstance().emit({
+      type: "game_over",
+      source: "game",
+      sourceType: "other",
+      data: {},
+    });
+    this.enemiesSpawner.dispatch();             ///quitar al final
+
+    this.player?.setPlayerGameOver();
     this._registerRestartListener();
   }
 
@@ -191,7 +200,6 @@ export class GameMain {
 
     this.stateMachine.reset();
     await this._initGame(this._lastAssets);
-
 
     // saltar directamente a PLAYING en el restart
     this.stateMachine.transition(GameState.PLAYING);

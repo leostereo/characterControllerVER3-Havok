@@ -24,6 +24,7 @@ export type AnimationStateValue =
   | "sneaking_forward"
   | "standing_to_sneaking"
   | "sneaking_to_standing"
+  | "going_dead"
   | "none"
 
 export interface AnimationState {
