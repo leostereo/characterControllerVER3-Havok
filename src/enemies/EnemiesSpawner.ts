@@ -112,4 +112,8 @@ export class EnemiesSpawner {
     this.h1.dispose();
   }
 
+  public notifyGameOver():void{
+    this.sentinels.forEach((sentinel)=>sentinel.stop())
+  }
+
 }

@@ -93,6 +93,14 @@ export class SentinelMain implements IBaseEnemy {
         this.controller.start();
     }
 
+    stop(): void {
+        if (this.shootingObserver) {
+            this.scene.onBeforeRenderObservable.remove(this.shootingObserver);
+            this.shootingObserver = null;
+        }
+        this.controller.stop();
+    }
+
     dispose(): void {
     // ── shooting observer ──
         if (this.shootingObserver) {

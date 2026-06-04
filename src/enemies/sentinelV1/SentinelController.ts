@@ -132,13 +132,12 @@ export class SentinelController implements IBaseController {
             this.scene.onBeforeRenderObservable.remove(this.renderObserver);
             this.renderObserver = null;
         }
+        this.visionCone.dispose();
     }
 
     dispose(): void {
         this.stop();
-        this.visionCone.dispose();
         this.navMesh.removeAgent(this.agentId);
-        this.scene.onBeforeRenderObservable.remove(this.renderObserver); 
     }
 
     // ─────────────────────────────────────────────

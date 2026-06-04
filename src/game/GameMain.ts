@@ -160,8 +160,9 @@ export class GameMain {
       sourceType: "other",
       data: {},
     });
-    this.enemiesSpawner.dispatch();             ///quitar al final
-
+    
+    this.enemiesSpawner.notifyGameOver();
+    this.scene.getMeshByName(playerConfig.player1.player1RaycastDetectableName)?.dispose();
     this.player?.setPlayerGameOver();
     this._registerRestartListener();
   }
