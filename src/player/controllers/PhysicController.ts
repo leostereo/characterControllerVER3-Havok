@@ -9,6 +9,7 @@ import {
   type CharacterSurfaceInfo,
   Quaternion,
   PhysicsShapeCapsule,
+  type Observer,
 } from "@babylonjs/core";
 import { type InputState } from "../statemachines/InputState";
 import type { CharacterPhysicCapsuleState, PhysicState } from "../statemachines/PhysicState";
@@ -36,6 +37,8 @@ export class PhysicController {
   private raycastCapsule: Mesh;
   private startPosition: Vector3;
   private meshOffset = new Vector3(0, 0, 0);
+  private observer: Observer<Scene>
+  private afterPhysicsObserver: Observer<Scene>
 
   private characterCapsuleHeight: CharacterCapsuleHeight = {
     standing: playerConfig.height,
@@ -249,7 +252,7 @@ export class PhysicController {
   private setupGameLoop(scene: Scene): void {
 
     // Rotación del personaje
-    scene.onBeforeRenderObservable.add(() => {
+    this.observer = scene.onBeforeRenderObservable.add(() => {
       const dt = scene.getEngine().getDeltaTime() / 1000;
       const turn = this.inputState.turn;
 
@@ -292,7 +295,8 @@ export class PhysicController {
     });
 
     // Física
-    scene.onAfterPhysicsObservable.add(() => {
+    this.afterPhysicsObserver = scene.onAfterPhysicsObservable.add(() => {
+      if (!this.controller) return;
       if (scene.deltaTime === undefined) return;
       const dt = scene.deltaTime / 1000;
       if (dt === 0) return;
@@ -385,7 +389,10 @@ export class PhysicController {
   }
 
   dispose(): void {
-    this.characterMesh.dispose();
+    this.controller.dispose();
+    this.observer.remove();
+    this.afterPhysicsObserver?.remove();
     this.raycastCapsule.dispose();
+    this.scene.getTransformNodeByName(playerConfig.player1.player1CollisionDetectableName)?.dispose();
   }
 }

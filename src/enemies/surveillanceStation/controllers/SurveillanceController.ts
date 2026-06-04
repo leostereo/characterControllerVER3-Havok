@@ -82,6 +82,9 @@ export class SurveillanceController {
     if (this.renderObserver) {
       this.scene.onBeforeRenderObservable.remove(this.renderObserver);
       this.renderObserver = null;
+      if(this.stateMachine.isCollapsed()){
+        this.projection.dispose();
+      }
     }
   }
 
@@ -90,6 +93,7 @@ export class SurveillanceController {
     this.lamp.dispose();
     this.projection.dispose();
     this.orbitPivot.dispose();
+    this.scene.onBeforeRenderObservable.remove(this.renderObserver); 
   }
 
   // ─────────────────────────────────────────────

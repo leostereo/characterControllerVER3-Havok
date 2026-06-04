@@ -4,6 +4,7 @@
 //  PLAYER
 // ─────────────────────────────────────────────
 export const playerConfig = {
+    initialLives: 5,
     height: 1.8,
     capsuleRadius: 0.4,
     aimHeightMultiplier: 0.5,
@@ -48,6 +49,7 @@ export const physicsConfig = {
 //  ENEMIGOS
 // ─────────────────────────────────────────────
 export const enemiesConfig = {
+    hitCooldownMs: 2000,  // ← 3 segundos de cooldown
     canion: {
         shootingRate: 2000,
         turretHeightMult: 1.2,

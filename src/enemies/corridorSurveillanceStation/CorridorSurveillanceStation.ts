@@ -14,6 +14,7 @@ import {
   PhysicsShapeCylinder,
   PhysicsShapeBox,
   Quaternion,
+  type Observer,
 } from "@babylonjs/core";
 import { CorridorSurveillanceStateMachine } from "./statemachines/CorridorSurveillanceStateMachine";
 import {
@@ -54,6 +55,7 @@ export class CorridorSurveillanceStation {
   private readonly position: Vector3;
   private readonly forward: Vector3;
   private extendededSurveyArea: Area;
+  private renderObserver: Observer<Scene> | null = null;
 
   constructor(
     private scene: Scene,
@@ -97,7 +99,7 @@ export class CorridorSurveillanceStation {
 
     const projectileManager = new ProjectileManager(scene);
 
-    scene.onBeforeRenderObservable.add(() => {
+    this.renderObserver = scene.onBeforeRenderObservable.add(() => {
       if (stateMachine.getState() !== "alert") return;
       if (this.isBursting) return;  // esperar que termine la ráfaga actual
 
@@ -143,6 +145,7 @@ export class CorridorSurveillanceStation {
   dispose(): void {
     // 1. Detener controller — remueve observer y luz
     this.controller.dispose();
+    this.scene.onBeforeRenderObservable.remove(this.renderObserver); 
 
     // 2. Física
     this.baseAggregate.dispose();

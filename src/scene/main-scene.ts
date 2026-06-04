@@ -6,13 +6,13 @@ import "@babylonjs/loaders/glTF";
 
 import { AssetLoader, type LoadedAssets } from "@/utils/AssetsLoader";
 import { ScreenManager } from "@/game/managers/ScreenManager";
-import { Game } from "@/game/Game";
+import { GameMain } from "@/game/GameMain";
 import type { KeyboardInfo, Observer } from "@babylonjs/core";
 
 export default class MainScene {
   private assetLoader: AssetLoader;
   private screenManager: ScreenManager;
-  private game: Game | null = null;
+  private game: GameMain | null = null;
   private keyBoardObserver: Observer<KeyboardInfo>;
 
   constructor(
@@ -40,7 +40,7 @@ export default class MainScene {
   }
 
   private _onAssetsLoaded(assets: LoadedAssets): void {
-    this.game = new Game(this.scene, this.engine, assets);
+    this.game = new GameMain(this.scene, this.engine, assets);
     this.screenManager.showSplash();
     this._registerKeyObserver();
   }

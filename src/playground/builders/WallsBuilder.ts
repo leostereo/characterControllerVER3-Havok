@@ -15,6 +15,7 @@ export class WallsBuilder {
   private groups: WallGroup[] = [];
   private groupCounter = 0;
   private zoneMeshes: Mesh[] = [];
+  private safetyPlace: SafetyPlaceWallGroup;
 
   constructor(private scene: Scene) {
     this.registerDebugKeys();
@@ -26,9 +27,9 @@ export class WallsBuilder {
 
   build(): BuildMap {
 
-    const cfg      = wallsBuilderConfig;
-    const limitX   = groundConfig.width  / 2 - cfg.groundMargin;
-    const limitZ   = groundConfig.height / 2 - cfg.groundMargin;
+    const cfg = wallsBuilderConfig;
+    const limitX = groundConfig.width / 2 - cfg.groundMargin;
+    const limitZ = groundConfig.height / 2 - cfg.groundMargin;
     const spawnPos = new Vector3(
       playgroundConfig.playerSpawn.x, 0,
       playgroundConfig.playerSpawn.z
@@ -36,12 +37,12 @@ export class WallsBuilder {
 
     const placedPositions: Vector3[] = [];
     this.groupCounter = 0;
-    let placed   = 0;
+    let placed = 0;
     let attempts = 0;
     const maxAttempts = cfg.wallGroupCount * 20;
 
 
-    
+
     // ── Safety place — primero ────────────────
     const safetyGroup = new SafetyPlaceWallGroup(this.scene);
     safetyGroup.build();
@@ -52,12 +53,13 @@ export class WallsBuilder {
     if (safetyResult) {
       safetyGroup.applyTransform(safetyResult.position, rotSteps);
       this.setupSafetyMesh(safetyGroup);
-      if(safetyGroup.mesh){
+      if (safetyGroup.mesh) {
         this.addPhysicsToMesh(safetyGroup.mesh);
       }
 
       const spawnPoint = safetyGroup.getSpawnPoint();
       PlayGroundState.getInstance().updateSpawnPoint(spawnPoint);
+      this.safetyPlace = safetyGroup;
     }
 
     const safetyPos = safetyResult?.position ?? spawnPos;  // fallback a spawnPos si falla
@@ -65,7 +67,7 @@ export class WallsBuilder {
     while (placed < cfg.wallGroupCount && attempts < maxAttempts) {
       attempts++;
 
-      const group  = new WallGroup(this.scene);
+      const group = new WallGroup(this.scene);
       const result = this.fitGroup(group, limitX, limitZ);
 
       if (!result) {
@@ -97,10 +99,10 @@ export class WallsBuilder {
     }
 
     console.warn(`WallsBuilder: ${placed}/${cfg.wallGroupCount} grupos colocados en ${attempts} intentos`);
-const buildMap = computeBuildMap(
-  this.groups,
-  safetyGroup.mesh ? [safetyGroup.mesh] : []  // ← nuevo
-);    const areas = areaAssignment(buildMap);
+    const buildMap = computeBuildMap(
+      this.groups,
+      safetyGroup.mesh ? [safetyGroup.mesh] : []  // ← nuevo
+    ); const areas = areaAssignment(buildMap);
     PlayGroundState.getInstance().updateOpenAreas(areas);
     PlayGroundState.getInstance().updateEmptyPoints(buildMap.emptyUnits)
 
@@ -117,6 +119,8 @@ const buildMap = computeBuildMap(
     this.zoneMeshes = [];
     this.groups.forEach(g => g.dispose());
     this.groups = [];
+    this.safetyPlace.dispose();
+
   }
 
   // ─────────────────────────────────────────────
@@ -142,28 +146,17 @@ const buildMap = computeBuildMap(
 
   private setupMesh(group: WallGroup): void {
     if (!group.mesh) return;
-    group.mesh.name     = `wall_group_${this.groupCounter++}`;
+    group.mesh.name = `wall_group_${this.groupCounter++}`;
     group.mesh.metadata = {
-      type:      meshMetadata.types.wall,
+      type: meshMetadata.types.wall,
       wallClass: meshMetadata.wallClasses.basic,
     };
   }
 
-  // private addPhysics(group: WallGroup): void {
-  //   if (!group.mesh) return;
-  //   new PhysicsAggregate(
-  //     group.mesh,
-  //     PhysicsShapeType.MESH,
-  //     { mass: 0, restitution: 0.4, friction: 0.6 },
-  //     this.scene
-  //   );
-  // }
-
-
   private addPhysics(group: WallGroup): void {
-  if (!group.mesh) return;
-  this.addPhysicsToMesh(group.mesh);
-}
+    if (!group.mesh) return;
+    this.addPhysicsToMesh(group.mesh);
+  }
 
   private setupSafetyMesh(group: SafetyPlaceWallGroup): void {
     if (!group.mesh) return;
@@ -191,7 +184,7 @@ const buildMap = computeBuildMap(
   // ─────────────────────────────────────────────
 
   private fitGroup(
-    group:  WallGroup,
+    group: WallGroup,
     limitX: number,
     limitZ: number,
   ): { position: Vector3; rotSteps: number } | null {
@@ -208,7 +201,7 @@ const buildMap = computeBuildMap(
       const rotations = this.shuffled([0, 1, 2, 3]);
 
       for (const rot of rotations) {
-        const size  = group.sizeAfterRotation(rot);
+        const size = group.sizeAfterRotation(rot);
         const halfW = size.x / 2;
         const halfD = size.z / 2;
 

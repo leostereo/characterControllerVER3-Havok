@@ -33,6 +33,7 @@ export class SentinelController implements IBaseController {
     private trackedMesh: AbstractMesh | null = null;
     private readonly RAYCAST_ENDING_YOFFSET_MULTIPLIER = sentinelConfig.detection.raycastEndingYOffsetMultiplier
 
+
     constructor(
         private scene: Scene,
         private fsm: SentinelFSM,        // ← concreto
@@ -131,11 +132,11 @@ export class SentinelController implements IBaseController {
             this.scene.onBeforeRenderObservable.remove(this.renderObserver);
             this.renderObserver = null;
         }
+        this.visionCone.dispose();
     }
 
     dispose(): void {
         this.stop();
-        this.visionCone.dispose();
         this.navMesh.removeAgent(this.agentId);
     }
 

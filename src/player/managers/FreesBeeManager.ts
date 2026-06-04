@@ -107,5 +107,8 @@ export class FreesBeManager {
 
     }
 
+    public dispose():void{
+        this.freesbe_template.dispose();
+    }
 
 }

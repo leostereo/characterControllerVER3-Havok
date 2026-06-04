@@ -14,6 +14,7 @@ import {
   PhysicsShapeCylinder,
   PhysicsShapeBox,
   Quaternion,
+  type Observer,
 } from "@babylonjs/core";
 import { SurveillanceStateMachine } from "./statemachines/SurveillanceStateMachine";
 import { SurveillanceController } from "./controllers/SurveillanceController";
@@ -25,6 +26,7 @@ import {
   type SurveillanceHeight,
 } from "@/config/GameConfig";
 import { ProjectileManager } from "./managers/projectileManager";
+import { EventManager } from "@/game/eventManager/eventManager";
 
 export class SurveillanceStation {
 
@@ -46,7 +48,11 @@ export class SurveillanceStation {
   private controller: SurveillanceController;
   private static instanceCount = 0;
   private readonly sweepDirection: 1 | -1;
-
+  private renderObserver: Observer<Scene> | null = null;
+  private cooldownElapsed = 0;
+  private cooldownDuration = 0;
+  private inCooldown = false;
+  private cooldownObserver: ReturnType<typeof EventManager.prototype.subscribe> | null = null;
 
   constructor(
     private scene: Scene,
@@ -86,10 +92,33 @@ export class SurveillanceStation {
 
     const projectileManager = new ProjectileManager(scene);
 
+    const eventManager = EventManager.getInstance();
+
+    // suscribir al cooldown
+    this.cooldownObserver = eventManager.subscribe((event) => {
+      if (event.type !== "player_hit") return;
+      const data = event.data as { cooldownDuration: number };
+      this.inCooldown = true;
+      this.cooldownElapsed = 0;
+      this.cooldownDuration = data.cooldownDuration;
+    });
+
     // Loop de disparo
-    scene.onBeforeRenderObservable.add(() => {
+    this.renderObserver = scene.onBeforeRenderObservable.add(() => {
+      const dt = scene.getEngine().getDeltaTime();
+
+      // actualizar cooldown
+      if (this.inCooldown) {
+        this.cooldownElapsed += dt;
+        if (this.cooldownElapsed >= this.cooldownDuration) {
+          this.inCooldown = false;
+        }
+      }
+
       if (stateMachine.getState() !== "alert") return;
-      this.elapsed += scene.getEngine().getDeltaTime();
+      if (this.inCooldown) return;   // ← bloquear disparo
+
+      this.elapsed += dt;
       if (this.elapsed >= surveillanceConfig.shootingRate) {
         this.elapsed = 0;
         const shot = controller.getMuzzlePositionAndDirection();
@@ -112,6 +141,12 @@ export class SurveillanceStation {
   dispose(): void {
     // 1. Detener controller — remueve observer y luz
     this.controller.dispose();
+    this.scene.onBeforeRenderObservable.remove(this.renderObserver);
+
+    if (this.cooldownObserver) {
+      EventManager.getInstance().unsubscribe(this.cooldownObserver);
+      this.cooldownObserver = null;
+    }
 
     // 2. Física
     this.baseAggregate.dispose();

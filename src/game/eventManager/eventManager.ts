@@ -8,7 +8,10 @@ export type EventType =
   | "projectile_hit"
   | "projectile_fired"
   | "game_over"
-  | "game_won";
+  | "enemy_destroyed"
+  | "game_won"
+  | "player_hit"          
+  ;
 
 export type SourceType = 
 | "enemy"
@@ -46,4 +49,9 @@ export class EventManager {
   unsubscribe(observer: Observer<GameEvent>): void {
     this.eventObservable.remove(observer);
   }
+  
+  clearAll(): void {
+    this.eventObservable.clear();
+  }
+
 }

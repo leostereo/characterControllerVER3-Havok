@@ -3,9 +3,10 @@ import { GameState } from "../types/GameState";
 const VALID_TRANSITIONS: Record<GameState, GameState[]> = {
   [GameState.LOADING]:   [GameState.READY],
   [GameState.READY]:     [GameState.PLAYING],
-  [GameState.PLAYING]:   [GameState.PAUSED, GameState.GAME_OVER],
+  [GameState.PLAYING]:   [GameState.PAUSED, GameState.GAME_OVER, GameState.WIN], // ← WIN
   [GameState.PAUSED]:    [GameState.PLAYING],
   [GameState.GAME_OVER]: [GameState.LOADING],
+  [GameState.WIN]:       [GameState.LOADING],  // ← nuevo
 };
 
 export class GameStateMachine {
@@ -17,6 +18,10 @@ export class GameStateMachine {
 
   onEnter(state: GameState, handler: () => void): void {
     this._handlers.set(state, handler);
+  }
+
+  reset(): void {
+    this._current = GameState.LOADING;
   }
 
   transition(next: GameState): boolean {

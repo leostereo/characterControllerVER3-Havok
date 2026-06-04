@@ -127,7 +127,6 @@ export class AnimationController {
       }
       
     }
-
     this.play(next);
   }
 
@@ -141,5 +140,11 @@ export class AnimationController {
     // Play the corresponding animation
     const group = this.animationGroupsManager.groups[state] ?? this.animationGroupsManager.groups.idle;  // Cambiado
     if (group) group.start(true, group.speedRatio, group.from, group.to, true);
+  }
+
+  public gameOver(): void {
+    this.animationState.current === 'none';
+    this.animationGroupsManager.groups.going_dead?.start(false);
+    this.animationState.blockingAnimationIsPlaying = true;
   }
 }

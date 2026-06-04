@@ -34,7 +34,7 @@ export class EnemiesSpawner {
     this.h1 = new HighlightLayer("super_vision_hl", this.scene);
   }
 
-  spawnAll(): void {
+  spawnAll(): number {
 
     const areas = PlayGroundState.getInstance().getAreas();
     const { squares, rectangles, corridors } = classifyAreas(areas);
@@ -69,6 +69,8 @@ export class EnemiesSpawner {
       )
       .forEach(m => m.setEnabled(false));
 
+    return (this.survillanceStations.length + this.corridorSurveillanceStations.length + this.sentinels.length)
+
   }
 
 
@@ -99,15 +101,19 @@ export class EnemiesSpawner {
       });
   }
 
-  dispose(): void {
-    this.survillanceStations.forEach(e => e.dispose());  // ← llama dispose en cada enemigo
+  public dispatch(): void {
+    this.survillanceStations.forEach(e => e.dispose());  
     this.survillanceStations = [];
-    this.corridorSurveillanceStations.forEach(e => e.dispose());  // ← llama dispose en cada enemigo
+    this.corridorSurveillanceStations.forEach(e => e.dispose());  
     this.corridorSurveillanceStations = [];
-    this.sentinels.forEach(e => e.dispose());              // ← nuevo
+    this.sentinels.forEach(e => e.dispose());              
     this.sentinels = [];
     this.setSuperVision(false);
     this.h1.dispose();
+  }
+
+  public notifyGameOver():void{
+    this.sentinels.forEach((sentinel)=>sentinel.stop())
   }
 
 }
