@@ -127,7 +127,6 @@ export class AnimationController {
       }
       
     }
-    console.log(next)
     this.play(next);
   }
 
@@ -143,7 +142,7 @@ export class AnimationController {
     if (group) group.start(true, group.speedRatio, group.from, group.to, true);
   }
 
-  public gameOver(){
+  public gameOver(): void {
     this.animationState.current === 'none';
     this.animationGroupsManager.groups.going_dead?.start(false);
     this.animationState.blockingAnimationIsPlaying = true;

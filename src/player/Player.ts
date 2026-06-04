@@ -72,7 +72,7 @@ export class Player {
     });
   }
 
-  public setPlayerGameOver() {
+  public setPlayerGameOver():void {
     this.scene.onBeforeRenderObservable.remove(this.renderObserver);
     this.scene.animationGroups.forEach((ag) => ag.stop())
     this.animationController.gameOver();
