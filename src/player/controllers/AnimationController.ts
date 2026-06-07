@@ -2,8 +2,11 @@ import { type InputState } from "../statemachines/InputState";
 import { type PhysicState } from "../statemachines/PhysicState";
 import { type AnimationStateValue, type AnimationStateMachine } from "../statemachines/AnimationState";
 import { type AnimationGroupsManager } from "../managers/AnimationGroupsManger";
+import { EventManager } from "@/game/eventManager/eventManager";
 
 export class AnimationController {
+
+  eventManager = EventManager.getInstance();
 
   constructor(
     private inputState: InputState,
@@ -80,6 +83,11 @@ export class AnimationController {
       if (this.inputState.action === 'jump' && this.animationState.current !== 'jump_impulse_starts') {
         next = "jump_impulse_starts"
         this.animationState.blockingAnimationIsPlaying = true;
+        this.eventManager.emit({
+          sourceType:'player',
+          type:'player_will_jump',
+          source: ''
+        })
       }
 
       if (this.animationState.current === 'falling_to_crash') {

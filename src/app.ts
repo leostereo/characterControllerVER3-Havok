@@ -34,7 +34,10 @@ class App {
       preserveDrawingBuffer: true,
       stencil: true,
       disableWebGL2Support: false,
+      audioEngine: true,   // ← agregar esto
     });
+
+
 
     this.scene = new Scene(this.engine);
 

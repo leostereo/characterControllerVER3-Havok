@@ -363,6 +363,18 @@ export const superVisionConfig = {
   },
 } as const;
 
+export const soundConfig = {
+  volumes: {
+    player_impulse_to_jump:        0.5,
+    player_recibe_damage:          0.6,
+    player_going_death:            0.8,
+    projectile_against_player:     0.5,
+    projectile_against_playground: 0.4,
+    freesbe_against_metal:         0.03,
+    freesbe_woosh:                 0.7,
+    enemy_collapsed:               0.8,
+  },
+} as const;
 
 // ─────────────────────────────────────────────
 //  TIPOS DERIVADOS

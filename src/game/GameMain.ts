@@ -13,6 +13,7 @@ import { PlayGroundState } from "@/playground/state/PlayGroundState";
 import { EnemiesSpawner } from "@/enemies/EnemiesSpawner";
 import { enemiesConfig, playerConfig } from "@/config/GameConfig";
 import { EventManager } from "./eventManager/eventManager";
+import { SoundFXManager } from "./audio/SoundFXManager";
 
 export class GameMain {
   private stateMachine = new GameStateMachine();
@@ -54,6 +55,16 @@ export class GameMain {
     const characterMeshes = assets.meshes["characterTask"];
     const characterAnimations = assets.animations["characterTask"];
     const particleTexture = assets.textures["emiterTextureTask"];
+
+    const soundFX = SoundFXManager.getInstance(this.scene);
+
+    // clonar los binaries para que el original no se consuma
+    const binariesClone: { [key: string]: ArrayBuffer } = {};
+    for (const [key, buffer] of Object.entries(assets.binaries)) {
+      binariesClone[key] = buffer.slice(0);  // ← clona el ArrayBuffer
+    }
+
+    soundFX.init(binariesClone);
 
     ParticlesManager.initialize(this.scene, particleTexture);
 
@@ -188,6 +199,8 @@ export class GameMain {
       EventManager.getInstance().unsubscribe(this._eventsObserver);
       this._eventsObserver = null;
     }
+
+    SoundFXManager.getInstance(this.scene).dispose();
 
     this.hud?.dispose();
     this.hud = null;
