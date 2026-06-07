@@ -1,6 +1,7 @@
 import { Observable, type Observer } from "@babylonjs/core";
 
 export type EventType = 
+  | "player_will_jump"
   | "player_damaged"
   | "player_died"
   | "enemy_damaged"

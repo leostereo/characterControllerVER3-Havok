@@ -13,6 +13,8 @@ import { PlayGroundState } from "@/playground/state/PlayGroundState";
 import { EnemiesSpawner } from "@/enemies/EnemiesSpawner";
 import { enemiesConfig, playerConfig } from "@/config/GameConfig";
 import { EventManager } from "./eventManager/eventManager";
+import { SoundFXManager } from "./audio/SoundFXManager";
+import { KeyboardEventTypes } from "@babylonjs/core";
 
 export class GameMain {
   private stateMachine = new GameStateMachine();
@@ -55,6 +57,16 @@ export class GameMain {
     const characterAnimations = assets.animations["characterTask"];
     const particleTexture = assets.textures["emiterTextureTask"];
 
+    const soundFX = SoundFXManager.getInstance(this.scene);
+
+    // clonar los binaries para que el original no se consuma
+    const binariesClone: { [key: string]: ArrayBuffer } = {};
+    for (const [key, buffer] of Object.entries(assets.binaries)) {
+      binariesClone[key] = buffer.slice(0);  // ← clona el ArrayBuffer
+    }
+
+    soundFX.init(binariesClone);
+
     ParticlesManager.initialize(this.scene, particleTexture);
 
     this.playGround = new PlayGround(this.scene);
@@ -78,8 +90,8 @@ export class GameMain {
     this.hud = await setUI(this.scene);
     this.hud.updateLives(this.lives);
     this.hud.updateEnemiesDown(this.enemiesDown, this.totalEnemies);
-
     this._subscribeToEvents();
+    this._registerHudKeyListeners();
 
     this.stateMachine.transition(GameState.READY);
   }
@@ -98,7 +110,7 @@ export class GameMain {
 
     this._eventsObserver = em.subscribe((event) => {
       if (event.type === "player_damaged") this._handlePlayerDamage();
-      if (event.type === "enemy_destroyed") this._handleEnemyDestroyed();
+      if (event.type === "enemy_destroyed") this._handleEnemyDestroyed(event.data);
     });
   }
 
@@ -119,9 +131,15 @@ export class GameMain {
     }
   }
 
-  private _handleEnemyDestroyed(): void {
+  private _handleEnemyDestroyed(data: object | undefined): void {
+    let enemyId = "unknown";
+    if (data && typeof data === "object" && "id" in data) {
+      const maybeId = (data as { id: unknown }).id;
+      enemyId = typeof maybeId === "string" ? maybeId : "unknown";
+    }
     this.enemiesDown++;
     this.hud?.updateEnemiesDown(this.enemiesDown, this.totalEnemies);
+    this.hud?.addLogMessage(`enemy: ${enemyId} is down.`);  
 
     if (this.enemiesDown >= this.totalEnemies) {
       this.stateMachine.transition(GameState.WIN);
@@ -181,6 +199,18 @@ export class GameMain {
     });
   }
 
+  private _registerHudKeyListeners(): void {
+    this.scene.onKeyboardObservable.add((kbInfo) => {
+      if (kbInfo.type !== KeyboardEventTypes.KEYDOWN) return;
+
+      switch (kbInfo.event.key.toLowerCase()) {
+        case 'h':   // ← tecla para toggle de controles
+          this.hud?.toggleControls();
+          break;
+      }
+    });
+  }
+
   private async _restartGame(): Promise<void> {
     // limpiar observer de eventos
     EventManager.getInstance().clearAll();
@@ -188,6 +218,8 @@ export class GameMain {
       EventManager.getInstance().unsubscribe(this._eventsObserver);
       this._eventsObserver = null;
     }
+
+    SoundFXManager.getInstance(this.scene).dispose();
 
     this.hud?.dispose();
     this.hud = null;

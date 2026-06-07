@@ -103,6 +103,7 @@ export class AssetLoader {
   addDefaultTasks(): void {
     this._addCharacterTask();
     this._addParticleTextureTask();
+    this._addSoundFXTasks();   // ← nuevo
   }
 
   /**
@@ -165,6 +166,42 @@ export class AssetLoader {
         console.error("[AssetLoader] Error cargando textura:", message, exception);
       }
     );
+  }
+
+  private _addSoundFXTasks(): void {
+    const sounds: Array<[string, string]> = [
+      // player_gesture
+      ["player_impulse_to_jump_1", "./soundfxs/player_gesture/impulse_to_jump1.wav"],
+      ["player_impulse_to_jump_2", "./soundfxs/player_gesture/impulse_to_jump2.wav"],
+      ["player_recibe_damage_1", "./soundfxs/player_gesture/recibe_damage1.wav"],
+      ["player_recibe_damage_2", "./soundfxs/player_gesture/recibe_damage2.ogg"],
+      ["player_recibe_damage_3", "./soundfxs/player_gesture/recibe_damage3.mp3"],
+      ["player_recibe_damage_4", "./soundfxs/player_gesture/recibe_damage4.ogg"],
+      ["player_recibe_damage_5", "./soundfxs/player_gesture/recibe_damage5.wav"],
+      ["player_going_death_1", "./soundfxs/player_gesture/going_death1.wav"],
+      ["player_going_death_2", "./soundfxs/player_gesture/going_death2.mp3"],
+
+      // projectile_impact
+      ["projectile_against_player_1", "./soundfxs/projectile_impact/against_player1.wav"],
+      ["projectile_against_playground_1", "./soundfxs/projectile_impact/against_playground.ogg"],
+
+      // freesbe_impact
+      ["freesbe_against_metal_1", "./soundfxs/freesbe_impact/against_metal1.wav"],
+      ["freesbe_against_metal_2", "./soundfxs/freesbe_impact/against_metal2.wav"],
+
+      // freesbe_throw
+      ["freesbe_woosh_1", "./soundfxs/freesbe_throw/freesbe-woosh1.wav"],
+
+      // enemy_gesture
+      ["enemy_collapsed_1", "./soundfxs/enemy_gesture/enemy_collapsed1.wav"],
+      ["enemy_collapsed_2", "./soundfxs/enemy_gesture/enemy_collapsed2.wav"],
+    ];
+
+    sounds.forEach(([name, url]) => {
+      this.addBinaryFileTask(name, url, undefined, (msg) => {
+        console.warn(`[AssetLoader] No se pudo cargar sonido ${name}:`, msg);
+      });
+    });
   }
 
 }

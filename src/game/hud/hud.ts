@@ -2,7 +2,8 @@
 
 import type { Scene } from "@babylonjs/core/scene";
 import { AdvancedDynamicTexture, StackPanel, TextBlock, Rectangle, Control } from "@babylonjs/gui/2D";
-import { EventManager, type GameEvent } from "../eventManager/eventManager";
+// import { EventManager } from "../eventManager/eventManager";
+import { controlsConfig } from "@/config/GameConfig";
 
 const TRON_CYAN = "#00E5CC";
 const TRON_DIM = "#007A6E";
@@ -13,6 +14,8 @@ export interface HudControls {
   updateEnemiesDown: (down: number, total: number) => void;
   showGameOver:      () => void;   // ← sin callback
   showWin:           () => void;   // ← sin callback
+  addLogMessage: (message: string) => void;   // ← nuevo
+  toggleControls: () => void;    // ← para el futuro
   dispose:           () => void;
 }
 
@@ -47,22 +50,22 @@ export const setUI = async (scene: Scene): Promise<HudControls> => {
   // ── Enemies down ──
   const enemiesText = new TextBlock();
   enemiesText.text = "ENEMIES DOWN  0 / 0";
-  enemiesText.height = "30px";
-  enemiesText.color = TRON_DIM;
+  enemiesText.height = "24px";
+  enemiesText.color = TRON_CYAN;
   enemiesText.fontSize = 14;
   enemiesText.fontFamily = "Courier New";
   enemiesText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
   panel.addControl(enemiesText);
 
-  // ── Shots ──
-  const shotText = new TextBlock();
-  shotText.text = "SHOTS  0";
-  shotText.height = "30px";
-  shotText.color = TRON_DIM;
-  shotText.fontSize = 14;
-  shotText.fontFamily = "Courier New";
-  shotText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
-  panel.addControl(shotText);
+  // // ── Shots ──
+  // const shotText = new TextBlock();
+  // shotText.text = "SHOTS  0";
+  // shotText.height = "30px";
+  // shotText.color = TRON_DIM;
+  // shotText.fontSize = 14;
+  // shotText.fontFamily = "Courier New";
+  // shotText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+  // panel.addControl(shotText);
 
   // ── Game Over overlay ──
   const gameOverRect = new Rectangle();
@@ -72,7 +75,9 @@ export const setUI = async (scene: Scene): Promise<HudControls> => {
   gameOverRect.color = TRON_RED;
   gameOverRect.thickness = 1;
   gameOverRect.cornerRadius = 8;
-  gameOverRect.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+  // gameOverRect.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+  gameOverRect.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+  gameOverRect.top = "10%";
   gameOverRect.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
   gameOverRect.isVisible = false;
   ui.addControl(gameOverRect);
@@ -104,7 +109,8 @@ export const setUI = async (scene: Scene): Promise<HudControls> => {
   winRect.color = TRON_CYAN;
   winRect.thickness = 1;
   winRect.cornerRadius = 8;
-  winRect.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+  winRect.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+  winRect.top = "10%";
   winRect.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
   winRect.isVisible = false;
   ui.addControl(winRect);
@@ -129,16 +135,72 @@ export const setUI = async (scene: Scene): Promise<HudControls> => {
   winRestartText.fontFamily = "Courier New";
   winPanel.addControl(winRestartText);
 
-  // ── Suscripciones ──
-  let shotCount = 0;
-  const eventManager = EventManager.getInstance();
+  // ── Log panel — esquina inferior izquierda ──
+  const logPanel = new StackPanel();
+  logPanel.width = "500px";
+  logPanel.verticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
+  logPanel.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+  logPanel.isVertical = true;
+  logPanel.leftInPixels = 20;
+  logPanel.paddingBottomInPixels = 20;   // ← correcto
+  ui.addControl(logPanel);
 
-  const shotObserver = eventManager.subscribe((event: GameEvent) => {
-    if (event.type === "projectile_fired" && event.source === "player") {
-      shotCount++;
-      shotText.text = `SHOTS  ${shotCount}`;
-    }
+
+  // ── Controls panel — esquina inferior derecha ──
+  const controlsPanel = new StackPanel();
+  controlsPanel.width = "380px";
+  controlsPanel.verticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
+  controlsPanel.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
+  controlsPanel.isVertical = true;
+  controlsPanel.paddingBottomInPixels = 20;
+  controlsPanel.paddingRightInPixels = 20;
+  controlsPanel.isVisible = false;
+  ui.addControl(controlsPanel);
+
+  controlsConfig.keys.forEach(({ key, action }) => {
+    const line = new TextBlock();
+    line.text = `${key.padEnd(20)} ${action}`;
+    line.height = "20px";
+    line.color = TRON_DIM;
+    line.fontSize = 11;
+    line.fontFamily = "Courier New";
+    line.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+    controlsPanel.addControl(line);
   });
+
+  let controlsVisible = false;
+  const toggleControls = (): void => {
+    controlsVisible = !controlsVisible;
+    controlsPanel.isVisible = controlsVisible;
+  };
+
+  const addLogMessage = (message: string, durationMs = 4000): void => {
+    const line = new TextBlock();
+    line.text = `> ${message}`;
+    line.height = "24px";
+    line.color = TRON_CYAN;
+    line.fontSize = 13;
+    line.fontFamily = "Courier New";
+    line.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+    logPanel.addControl(line);
+
+    setTimeout(() => {
+      logPanel.removeControl(line);
+      line.dispose();
+    }, durationMs);
+  };
+
+
+  // ── Suscripciones ──
+  // let shotCount = 0;
+  // const eventManager = EventManager.getInstance();
+
+  // const shotObserver = eventManager.subscribe((event: GameEvent) => {
+  //   if (event.type === "projectile_fired" && event.source === "player") {
+  //     shotCount++;
+  //     shotText.text = `SHOTS  ${shotCount}`;
+  //   }
+  // });
 
   // ── Controles públicos ──
   const updateLives = (lives: number): void => {
@@ -150,7 +212,7 @@ export const setUI = async (scene: Scene): Promise<HudControls> => {
 
   const updateEnemiesDown = (down: number, total: number): void => {
     enemiesText.text = `ENEMIES DOWN  ${down} / ${total}`;
-    enemiesText.color = down === total ? TRON_CYAN : TRON_DIM;
+    enemiesText.color = down === total ? TRON_DIM : TRON_CYAN;
   };
 
   const showGameOver = (): void => {
@@ -162,9 +224,9 @@ export const setUI = async (scene: Scene): Promise<HudControls> => {
   }
 
   const dispose = (): void => {
-    eventManager.unsubscribe(shotObserver);
+    // eventManager.unsubscribe(shotObserver);
     ui.dispose();
   };
 
-  return { updateLives, updateEnemiesDown, showGameOver, showWin, dispose };
+  return { updateLives, updateEnemiesDown, showGameOver, showWin, addLogMessage, toggleControls, dispose };
 };

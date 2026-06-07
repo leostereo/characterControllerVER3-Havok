@@ -363,6 +363,35 @@ export const superVisionConfig = {
   },
 } as const;
 
+export const soundConfig = {
+  volumes: {
+    player_impulse_to_jump:        0.5,
+    player_recibe_damage:          0.6,
+    player_going_death:            0.8,
+    projectile_against_player:     0.5,
+    projectile_against_playground: 0.4,
+    freesbe_against_metal:         0.03,
+    freesbe_woosh:                 0.7,
+    enemy_collapsed:               0.8,
+  },
+} as const;
+
+export const controlsConfig = {
+  keys: [
+    { key: "W A S D",        action: "Move / Moverse"                    },
+    { key: "SPACE",          action: "Jump / Saltar"                     },
+    { key: "SPACE + J",      action: "Air throw / Lanzamiento aéreo"     },
+    { key: "SHIFT",          action: "Run / Correr"                      },
+    { key: "SHIFT + J",      action: "Power throw / Lanzamiento power"   },
+    { key: "WASD + SHIFT + K", action: "Roll"                            },
+    { key: "J",              action: "Freesbe throw / Lanzar freesbe"    },
+    { key: "K",              action: "Crouch / Agacharse"                },
+    { key: "WASD + K",       action: "Sneak / Camina agazapado"          },
+    { key: "1, 2",           action: "Views / Vistas"                    },
+    { key: "Q",              action: "Super vision / Super visión"       },
+    { key: "H",              action: "Controls config / Controles"       },
+  ],
+} as const;
 
 // ─────────────────────────────────────────────
 //  TIPOS DERIVADOS

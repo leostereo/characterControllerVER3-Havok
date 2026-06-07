@@ -1,4 +1,4 @@
-import type { Engine } from "@babylonjs/core/Engines/engine";
+import { Engine } from "@babylonjs/core/Engines/engine";
 import type { Scene } from "@babylonjs/core/scene";
 import type { WebGPUEngine } from "@babylonjs/core/Engines/webgpuEngine";
 import "@babylonjs/core/Helpers/sceneHelpers";
@@ -54,10 +54,14 @@ export default class MainScene {
 
   }
 
-  private _gameStart(): void {
-    this.screenManager.hideLoadingScreen();
-    this.game?.start();
+private _gameStart(): void {
+  // inicializar audio engine tras interacción del usuario
+  if (Engine.audioEngine) {
+    Engine.audioEngine.unlock();
   }
+  this.screenManager.hideLoadingScreen();
+  this.game?.start();
+}
 
   private _disableNativeLoadingScreen(): void {
     this.engine.loadingScreen = {

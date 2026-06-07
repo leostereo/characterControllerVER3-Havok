@@ -84,12 +84,19 @@ animaciones de impacto segun direccion.
 
 Proximo proyecto.
 
+definir maquinas de estado al principio (game state)
+    modo pausa ?? aqui no hay.
+
+definir comunicacion de clases mediante interfaces o eventos (cuando es mejor cada uno)
+
 Estructura del proyecto. (definir al princio)
 nombre de directorios y archivos , mayusculas , use de guiones , etc.
 nombre de clases.
 sufijos/prefijos: 'class', 'service', 'singleton' , etc.
 
 Constructor de todos los Mesh en un solo lugar.
+
+centralizar configuraciones (y eliminar todos los magic numbers)
 
 Preparar el modelo.(unificar)
 Sincronizar capsulas de raycas, movimiento , colision y sus centros y offsets.

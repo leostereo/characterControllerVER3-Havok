@@ -1,3 +1,5 @@
+import { controlsConfig } from "@/config/GameConfig";
+
 export class LoadingScreen {
   private container:    HTMLDivElement;
   private progressWrap: HTMLDivElement;
@@ -96,19 +98,7 @@ export class LoadingScreen {
       fontSize:            "0.82rem",
     });
 
-    const controls = [
-      { key: "W A S D", action: "Move / Moverser"                    },
-      { key: "SPACE",   action: "Jump / Saltar"                      },
-      { key: "SPACE + J",   action: "Air throw / Lanzamiento aereo"  },
-      { key: "SHIFT",   action: "Run / Correr"                       },
-      { key: "SHIFT + J",   action: "Power throw / Lnazamiento power"},
-      { key: "WASD + SHIFT + K",   action: "roll / roll"             },
-      { key: "J",     action: "Freesbe throw / Lanzar freesbe"       },
-      { key: "k",     action: "Crounch / Agacharse"                  },
-      { key: "WASD + k",     action: "Sneak / camina agazapado"      },
-      { key: "1,2",     action: "Views / Vistas"                     },
-      { key: "q",     action: "Super view / Super visión"            },
-    ];
+    const controls = controlsConfig.keys;
 
     controls.forEach(({ key, action }) => {
       const keyEl = document.createElement("span");
