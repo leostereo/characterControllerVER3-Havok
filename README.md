@@ -85,6 +85,7 @@ animaciones de impacto segun direccion.
 Proximo proyecto.
 
 definir maquinas de estado al principio (game state)
+    modo pausa ?? aqui no hay.
 
 definir comunicacion de clases mediante interfaces o eventos (cuando es mejor cada uno)
 

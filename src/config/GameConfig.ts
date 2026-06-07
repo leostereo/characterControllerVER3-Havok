@@ -376,6 +376,23 @@ export const soundConfig = {
   },
 } as const;
 
+export const controlsConfig = {
+  keys: [
+    { key: "W A S D",        action: "Move / Moverse"                    },
+    { key: "SPACE",          action: "Jump / Saltar"                     },
+    { key: "SPACE + J",      action: "Air throw / Lanzamiento aéreo"     },
+    { key: "SHIFT",          action: "Run / Correr"                      },
+    { key: "SHIFT + J",      action: "Power throw / Lanzamiento power"   },
+    { key: "WASD + SHIFT + K", action: "Roll"                            },
+    { key: "J",              action: "Freesbe throw / Lanzar freesbe"    },
+    { key: "K",              action: "Crouch / Agacharse"                },
+    { key: "WASD + K",       action: "Sneak / Camina agazapado"          },
+    { key: "1, 2",           action: "Views / Vistas"                    },
+    { key: "Q",              action: "Super vision / Super visión"       },
+    { key: "H",              action: "Controls config / Controles"       },
+  ],
+} as const;
+
 // ─────────────────────────────────────────────
 //  TIPOS DERIVADOS
 // ─────────────────────────────────────────────

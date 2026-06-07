@@ -14,6 +14,7 @@ import { EnemiesSpawner } from "@/enemies/EnemiesSpawner";
 import { enemiesConfig, playerConfig } from "@/config/GameConfig";
 import { EventManager } from "./eventManager/eventManager";
 import { SoundFXManager } from "./audio/SoundFXManager";
+import { KeyboardEventTypes } from "@babylonjs/core";
 
 export class GameMain {
   private stateMachine = new GameStateMachine();
@@ -89,8 +90,8 @@ export class GameMain {
     this.hud = await setUI(this.scene);
     this.hud.updateLives(this.lives);
     this.hud.updateEnemiesDown(this.enemiesDown, this.totalEnemies);
-
     this._subscribeToEvents();
+    this._registerHudKeyListeners();
 
     this.stateMachine.transition(GameState.READY);
   }
@@ -109,7 +110,7 @@ export class GameMain {
 
     this._eventsObserver = em.subscribe((event) => {
       if (event.type === "player_damaged") this._handlePlayerDamage();
-      if (event.type === "enemy_destroyed") this._handleEnemyDestroyed();
+      if (event.type === "enemy_destroyed") this._handleEnemyDestroyed(event.data);
     });
   }
 
@@ -130,9 +131,15 @@ export class GameMain {
     }
   }
 
-  private _handleEnemyDestroyed(): void {
+  private _handleEnemyDestroyed(data: object | undefined): void {
+    let enemyId = "unknown";
+    if (data && typeof data === "object" && "id" in data) {
+      const maybeId = (data as { id: unknown }).id;
+      enemyId = typeof maybeId === "string" ? maybeId : "unknown";
+    }
     this.enemiesDown++;
     this.hud?.updateEnemiesDown(this.enemiesDown, this.totalEnemies);
+    this.hud?.addLogMessage(`enemy: ${enemyId} is down.`);  
 
     if (this.enemiesDown >= this.totalEnemies) {
       this.stateMachine.transition(GameState.WIN);
@@ -188,6 +195,18 @@ export class GameMain {
       if (kbInfo.event.key.toLowerCase() === "r") {
         this.scene.onKeyboardObservable.remove(obs);
         void this._restartGame();
+      }
+    });
+  }
+
+  private _registerHudKeyListeners(): void {
+    this.scene.onKeyboardObservable.add((kbInfo) => {
+      if (kbInfo.type !== KeyboardEventTypes.KEYDOWN) return;
+
+      switch (kbInfo.event.key.toLowerCase()) {
+        case 'h':   // ← tecla para toggle de controles
+          this.hud?.toggleControls();
+          break;
       }
     });
   }
