@@ -102,6 +102,7 @@ export class AssetLoader {
 
   addDefaultTasks(): void {
     this._addCharacterTask();
+    this._addCyborgTask();
     this._addParticleTextureTask();
     this._addSoundFXTasks();   // ← nuevo
   }
@@ -150,6 +151,22 @@ export class AssetLoader {
 
         const alphaSurface = meshes.find(m => m.name === "Alpha_Surface");
         if (alphaSurface) alphaSurface.name = `${detectableName}_Alpha_Surface`;
+      },
+      (message, exception) => {
+        console.error("[AssetLoader] Error cargando personaje:", message, exception);
+      }
+    );
+  }
+
+  private _addCyborgTask(): void {
+    this.addMeshTask(
+      "cyborgTask",
+      "",
+      "",
+      "./model/cyborg.glb",
+      (meshes) => {
+        //
+        console.info(meshes)
       },
       (message, exception) => {
         console.error("[AssetLoader] Error cargando personaje:", message, exception);

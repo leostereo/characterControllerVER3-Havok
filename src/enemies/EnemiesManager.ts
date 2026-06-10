@@ -1,4 +1,4 @@
-import { Color3, HighlightLayer, KeyboardEventTypes, type KeyboardInfo, type Mesh, type Scene, Vector3 } from "@babylonjs/core";
+import { Color3, HighlightLayer, type Mesh, type Scene, Vector3 } from "@babylonjs/core";
 import { playerConfig } from "@/config/GameConfig";
 import { type FixedCanionEnemy } from "./fixedCannion/FixedCanionEnemy";
 import { SurveillanceStation } from "./surveillanceStation/SurveillanceStation";
@@ -8,7 +8,7 @@ import { getRectangleEnemyPosition } from "@/utils/getRectangleEnemyPosition";
 import { CorridorSurveillanceStation } from "./corridorSurveillanceStation/CorridorSurveillanceStation";
 import { SentinelMain } from "./sentinelV1/SentinelMain";
 
-export class EnemiesSpawner {
+export class EnemiesManager {
 
   private survillanceStations: SurveillanceStation[] = [];
   private corridorSurveillanceStations: CorridorSurveillanceStation[] = [];
@@ -20,16 +20,6 @@ export class EnemiesSpawner {
   constructor(
     private scene: Scene
   ) {
-
-    scene.onKeyboardObservable.add((kbInfo: KeyboardInfo) => {
-      if (kbInfo.event.key === 'q') {
-        if (kbInfo.type === KeyboardEventTypes.KEYDOWN) {
-          this.setSuperVision(true);
-        } else if (kbInfo.type === KeyboardEventTypes.KEYUP) {
-          this.setSuperVision(false);
-        }
-      }
-    });
 
     this.h1 = new HighlightLayer("super_vision_hl", this.scene);
   }
@@ -85,7 +75,7 @@ export class EnemiesSpawner {
     this.sentinels.push(sentinel);
   }
 
-  private setSuperVision(active: boolean): void {
+  public setSuperVision(active: boolean): void {
     this.scene.meshes
       .filter(m =>
         m.name.startsWith("surveillance_projection_") ||
@@ -102,18 +92,18 @@ export class EnemiesSpawner {
   }
 
   public dispatch(): void {
-    this.survillanceStations.forEach(e => e.dispose());  
+    this.survillanceStations.forEach(e => e.dispose());
     this.survillanceStations = [];
-    this.corridorSurveillanceStations.forEach(e => e.dispose());  
+    this.corridorSurveillanceStations.forEach(e => e.dispose());
     this.corridorSurveillanceStations = [];
-    this.sentinels.forEach(e => e.dispose());              
+    this.sentinels.forEach(e => e.dispose());
     this.sentinels = [];
     this.setSuperVision(false);
     this.h1.dispose();
   }
 
-  public notifyGameOver():void{
-    this.sentinels.forEach((sentinel)=>sentinel.stop())
+  public notifyGameOver(): void {
+    this.sentinels.forEach((sentinel) => sentinel.stop())
   }
 
 }
