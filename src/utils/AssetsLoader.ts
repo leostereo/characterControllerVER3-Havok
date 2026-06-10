@@ -166,7 +166,7 @@ export class AssetLoader {
       "./model/cyborg.glb",
       (meshes) => {
         //
-        console.info(meshes)
+        console.warn(meshes)
       },
       (message, exception) => {
         console.error("[AssetLoader] Error cargando personaje:", message, exception);
