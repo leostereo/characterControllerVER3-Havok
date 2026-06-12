@@ -7,18 +7,22 @@ import { classifyAreas } from "@/utils/ClassifyAreas";
 import { getRectangleEnemyPosition } from "@/utils/getRectangleEnemyPosition";
 import { CorridorSurveillanceStation } from "./corridorSurveillanceStation/CorridorSurveillanceStation";
 import { SentinelMain } from "./sentinelV1/SentinelMain";
+import { type CyborgMain } from "./cyborg/CyborgMain";
+import { CyborgFactory } from "./cyborg/CyborgFactory";
 
 export class EnemiesManager {
 
   private survillanceStations: SurveillanceStation[] = [];
   private corridorSurveillanceStations: CorridorSurveillanceStation[] = [];
   private fixedCanions: FixedCanionEnemy[] = [];
-  private sentinels: SentinelMain[] = [];  // ← nuevo
+  private sentinels: SentinelMain[] = [];
+  private cyborgs: CyborgMain[] = [];
+
   private superVisionActive = false;
   private h1: HighlightLayer;
 
   constructor(
-    private scene: Scene
+    private scene: Scene,
   ) {
 
     this.h1 = new HighlightLayer("super_vision_hl", this.scene);
@@ -52,6 +56,9 @@ export class EnemiesManager {
       this.corridorSurveillanceStations.push(new CorridorSurveillanceStation(this.scene, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, corridor))
     })
 
+    void this.spawnCyborgs();
+
+    // capture zone
     this.scene.meshes
       .filter(m =>
         m.name.startsWith("surveillance_projection_") ||
@@ -63,6 +70,16 @@ export class EnemiesManager {
 
   }
 
+  private async spawnCyborgs(): Promise<void> {
+    for (let i = 0; i < 2; i++) {
+      const cyborg = await CyborgFactory.create(
+        this.scene,
+        new Vector3(i * 3, 0, 5),
+      );
+      cyborg.start();
+      this.cyborgs.push(cyborg);
+    }
+  }
 
   spawnOne(): void {
     const sentinel = new SentinelMain(

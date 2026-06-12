@@ -102,7 +102,7 @@ export class AssetLoader {
 
   addDefaultTasks(): void {
     this._addCharacterTask();
-    this._addCyborgTask();
+    // this._addCyborgTask();
     this._addParticleTextureTask();
     this._addSoundFXTasks();   // ← nuevo
   }
