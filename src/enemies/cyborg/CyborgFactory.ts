@@ -9,6 +9,7 @@ import {
   type Vector3
 } from "@babylonjs/core";
 import { CyborgMain } from "./CyborgMain";
+import { playerConfig } from "@/config/GameConfig";
 
 export class CyborgFactory {
 
@@ -31,7 +32,7 @@ export class CyborgFactory {
     pbr.albedoColor = Color3.Gray()
     pbr.metallic = 0.0;  // Hazlo metálico para reflejos intensos
     pbr.roughness = 0.0; // Hazlo extremadamente liso y brillante
-    
+
     // renombrar meshes con uniqueId
     result.meshes.forEach(m => {
       m.name = `${m.name}_${uniqueId}`;
@@ -53,6 +54,8 @@ export class CyborgFactory {
       rootMesh,
       result.animationGroups,
       position,
+      playerConfig.player1.positionTrackeableMeshName,
+      playerConfig.player1.player1RaycastDetectableName,
     );
   }
 
