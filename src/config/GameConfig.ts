@@ -147,7 +147,8 @@ export const meshMetadata = {
     enemyClasses: {
         canion: "canion",
         surveillance: "surveillance",
-        sentinel: "sentinel",   // ← nuevo
+        sentinel: "sentinel",
+        cyborg: "cyborg"
     },
     wallClasses: {
         basic: "basic",

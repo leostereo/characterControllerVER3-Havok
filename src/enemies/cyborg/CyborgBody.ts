@@ -1,20 +1,18 @@
-// src/enemies/cyborgV1/CyborgBody.ts
-
 import {
   type Scene,
   type AbstractMesh,
   type AnimationGroup,
-  type TransformNode,
   type Vector3,
-  StandardMaterial,
-  Color3,
+  type Mesh,
+  PhysicsAggregate,
+  PhysicsShapeType,
+  PhysicsMotionType,
+  MeshBuilder,
 } from "@babylonjs/core";
-import {  type ICyborgStateMachine } from "../interfaces/ICyborgStateMachine";
+import { meshMetadata, type MeshMetadata } from "@/config/GameConfig";
+import type { ICyborgStateMachine } from "../interfaces/ICyborgStateMachine";
 
 
-// ─────────────────────────────────────────────
-//  TIPOS
-// ─────────────────────────────────────────────
 export interface CyborgAnimations {
   idle: AnimationGroup;
   walking_patrol: AnimationGroup;
@@ -27,9 +25,10 @@ export interface CyborgAnimations {
 
 export class CyborgBody {
 
-  private rootNode: TransformNode;
-  private animations: CyborgAnimations | null = null;
   private currentAnimation: AnimationGroup | null = null;
+  private animations: CyborgAnimations | null = null;
+  private physicsAggregate: PhysicsAggregate | null = null;
+  private colliderMesh: Mesh | null = null;
 
   constructor(
     private scene: Scene,
@@ -38,9 +37,8 @@ export class CyborgBody {
     animationGroups: AnimationGroup[],
     private uniqueId: string,
   ) {
-    this.rootNode = rootMesh;   // ← sin TransformNode extra
-
-    //this.setupMeshes();
+    this.setupMeshes();
+    this.setupPhysics();
     this.setupAnimations(animationGroups);
     this.subscribeToFSM();
   }
@@ -49,22 +47,55 @@ export class CyborgBody {
   //  SETUP
   // ─────────────────────────────────────────────
   private setupMeshes(): void {
-    // centrar y reparentar todos los meshes al rootNode
-    // definir scale para tamaño.
-    // corregir offset en y
-    // definir raycast y collision detectables.
-    // verifcar el forward
-    this.rootMesh.parent = this.rootNode;
+    const cyborgMetadata: MeshMetadata = {
+      type: meshMetadata.types.enemy,
+      enemyClass: meshMetadata.enemyClasses.cyborg,
+      stationId: this.uniqueId,
+    };
 
+    // aplicar metadata y material a todos los child meshes
     this.rootMesh.getChildMeshes().forEach(mesh => {
-      const mat = new StandardMaterial(`cyborg_mat_${mesh.name}`, this.scene);
-      mat.diffuseColor = new Color3(0.2, 0.3, 0.4);   // ← azul grisáceo
-      mat.emissiveColor = new Color3(0.0, 0.1, 0.2);   // ← emissive muy suave
-      mat.specularColor = new Color3(0.3, 0.3, 0.3);
-      mesh.material = mat;
+      mesh.metadata = cyborgMetadata;
     });
   }
 
+  private setupPhysics(): void {
+    // crear un mesh invisible para la física
+    const capsule = MeshBuilder.CreateCapsule(
+      `cyborg_collider_${this.uniqueId}`,
+      {
+        height: 1.8,
+        radius: 0.3,
+        tessellation: 8,
+      },
+      this.scene
+    );
+
+    capsule.position = this.rootMesh.getAbsolutePosition().clone();
+    capsule.position.y += 0.9;  // ← centrar verticalmente
+    capsule.isVisible = false;
+    capsule.isPickable = true;
+    capsule.metadata = {
+      type: meshMetadata.types.enemy,
+      enemyClass: meshMetadata.enemyClasses.cyborg,
+      stationId: this.uniqueId,
+    };
+
+    this.physicsAggregate = new PhysicsAggregate(
+      capsule,
+      PhysicsShapeType.CAPSULE,
+      { mass: 0, restitution: 0.1, friction: 0.9 },
+      this.scene
+    );
+
+    this.physicsAggregate.body.setMotionType(PhysicsMotionType.ANIMATED);
+    this.physicsAggregate.body.disablePreStep = false;
+
+    this.colliderMesh = capsule;  // ← guardar referencia para mover en update
+  }
+  // ─────────────────────────────────────────────
+  //  ANIMACIONES
+  // ─────────────────────────────────────────────
   private setupAnimations(groups: AnimationGroup[]): void {
     const find = (name: string): AnimationGroup | undefined =>
       groups.find(g => g.name === `${name}_${this.uniqueId}`);
@@ -79,10 +110,7 @@ export class CyborgBody {
 
     if (!idle || !walking_patrol || !running_alert ||
       !aiming || !hit_reaction || !defeated || !look_around) {
-      console.warn("[CyborgBody] Faltan animaciones:", {
-        idle, walking_patrol, running_alert,
-        aiming, hit_reaction, defeated, look_around
-      });
+      console.warn("[CyborgBody] Faltan animaciones");
       return;
     }
 
@@ -100,14 +128,9 @@ export class CyborgBody {
   }
 
   private subscribeToFSM(): void {
-    this.fsm.onStateChange((state) => {
-      this.onStateChanged(state);
-    });
+    this.fsm.onStateChange((state) => this.onStateChanged(state));
   }
 
-  // ─────────────────────────────────────────────
-  //  REACCIÓN A CAMBIOS DE ESTADO
-  // ─────────────────────────────────────────────
   private onStateChanged(state: ReturnType<ICyborgStateMachine["getState"]>): void {
     if (!this.animations) return;
 
@@ -115,29 +138,23 @@ export class CyborgBody {
       case "patrolling":
         this.playLoop(this.animations.walking_patrol);
         break;
-
       case "shooting":
         this.playLoop(this.animations.aiming);
         break;
-
       case "searching":
         this.playLoop(this.animations.running_alert);
         break;
-
       case "intensiveSearch":
-        this.playLoop(this.animations.running_alert);
+        this.playLoop(this.animations.look_around);
         break;
-
       case "paused":
         this.playLoop(this.animations.idle);
         break;
-
       case "hit_reaction":
         this.playOnce(this.animations.hit_reaction, () => {
           this.fsm.onHitReactionEnded();
         });
         break;
-
       case "defeated":
         this.playOnce(this.animations.defeated, () => {
           this.fsm.onDefeatedAnimationEnded();
@@ -146,43 +163,47 @@ export class CyborgBody {
     }
   }
 
-  // ─────────────────────────────────────────────
-  //  REPRODUCCIÓN DE ANIMACIONES
-  // ─────────────────────────────────────────────
   private playLoop(animation: AnimationGroup): void {
     if (this.currentAnimation === animation) return;
     this.currentAnimation?.stop();
     this.currentAnimation = animation;
-    animation.play(true);  // ← loop
+    animation.play(true);
   }
 
   private playOnce(animation: AnimationGroup, onEnd: () => void): void {
     this.currentAnimation?.stop();
     this.currentAnimation = animation;
-    animation.play(false);  // ← sin loop
-
-    // suscribir al final de la animación
-    animation.onAnimationGroupEndObservable.addOnce(() => {
-      onEnd();
-    });
+    animation.play(false);
+    animation.onAnimationGroupEndObservable.addOnce(() => onEnd());
   }
 
   // ─────────────────────────────────────────────
   //  API PÚBLICA
   // ─────────────────────────────────────────────
-  getRootNode(): TransformNode { return this.rootNode; }
-
   getPosition(): Vector3 {
-    return this.rootNode.getAbsolutePosition();
+    return this.rootMesh.getAbsolutePosition();
   }
 
   setPosition(position: Vector3): void {
-    this.rootNode.position = position.clone();
+    this.rootMesh.position = position.clone();
+
+    if (this.colliderMesh) {
+      this.colliderMesh.position.x = position.x;
+      this.colliderMesh.position.y = position.y + 0.9;  // ← offset vertical
+      this.colliderMesh.position.z = position.z;
+    }
+  }
+
+  syncCollider(): void {
+    if (!this.colliderMesh) return;
+    this.colliderMesh.position.x = this.rootMesh.position.x;
+    this.colliderMesh.position.z = this.rootMesh.position.z;
   }
 
   dispose(): void {
     this.currentAnimation?.stop();
+    this.physicsAggregate?.dispose();
     this.animations = null;
-    this.rootNode.dispose();
+    this.rootMesh.dispose();
   }
 }
