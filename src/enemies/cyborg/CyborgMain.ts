@@ -38,6 +38,7 @@ export class CyborgMain implements IBaseEnemy {
             rootMesh,
             meshForPositionTrackName,
             meshForRayCastDetectionName,
+            this.body.getColliderMesh(),   // ← nuevo
         );
 
         this.subscribeToHit();
@@ -74,9 +75,13 @@ export class CyborgMain implements IBaseEnemy {
             const data = event.data as { enemyClass: string; stationId: string };
             if (data.enemyClass !== meshMetadata.enemyClasses.cyborg) return;
             if (data.stationId !== this.uniqueId) return;
-
+    
+            this.controller.stopAgent();   
             this.fsm.savePreviousState();
             this.fsm.setState("hit_reaction");
+            //getForwardFromController()
+            //calculate angle difference.
+            //todo:setState(hit_fromXXX)
         });
     }
 }

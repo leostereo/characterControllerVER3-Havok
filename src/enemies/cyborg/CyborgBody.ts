@@ -114,6 +114,10 @@ export class CyborgBody {
       return;
     }
 
+    hit_reaction.from = 40;
+    hit_reaction.to = 100;
+    defeated.from = 15;
+
     this.animations = {
       idle,
       walking_patrol,
@@ -193,6 +197,8 @@ export class CyborgBody {
       this.colliderMesh.position.z = position.z;
     }
   }
+
+  getColliderMesh(): Mesh | null { return this.colliderMesh; }
 
   syncCollider(): void {
     if (!this.colliderMesh) return;

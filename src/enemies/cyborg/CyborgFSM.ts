@@ -16,7 +16,7 @@ export class CyborgFSM extends BaseStateMachine<CyborgState>
   implements ICyborgStateMachine {
 
   private previousState: CyborgState = "patrolling";
-  private health        = 3;
+  private health        = 5;
   private intensiveSearchTimer  = 0;
   private intensiveSearchTimeout = 5000; // ← vendrá de gameConfig.cyborg
 
@@ -28,31 +28,28 @@ export class CyborgFSM extends BaseStateMachine<CyborgState>
       shooting:        true,
       searching:       true,
       hit_reaction:    true,
-      defeated:        true,
       paused:          true,
     },
     shooting: {
       searching:       true,
       hit_reaction:    true,
-      defeated:        true,
       paused:          true,
     },
     searching: {
       shooting:        true,
       intensiveSearch: true,
       hit_reaction:    true,
-      defeated:        true,
       paused:          true,
     },
     intensiveSearch: {
       shooting:        true,
       patrolling:      true,
       hit_reaction:    true,
-      defeated:        true,
       paused:          true,
     },
     hit_reaction: {
-      // bloqueante — sin transiciones externas
+      patrolling:      true,
+      defeated: true,   // ← nuevo
     },
     defeated: {
       // bloqueante terminal — sin transiciones
@@ -65,7 +62,7 @@ export class CyborgFSM extends BaseStateMachine<CyborgState>
 
   constructor() {
     super();
-    this.state = "patrolling";
+    this.state = "paused";
   }
 
   // ─────────────────────────────────────────────
