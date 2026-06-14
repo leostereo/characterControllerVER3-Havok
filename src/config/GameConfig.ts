@@ -268,7 +268,7 @@ export const playGroundStateConfig = {
 
 export const enemyPlacementConfig = {
     offsetPercentage: 0.1,
-    corridorWidthExpand:   0.3,   // ← nuevo — 30% más ancho
+    corridorWidthExpand: 0.3,   // ← nuevo — 30% más ancho
 } as const;
 
 export const corridorSurveillanceConfig = {
@@ -357,41 +357,56 @@ export const sentinelConfig = {
 } as const;
 
 export const superVisionConfig = {
-  projection: {
-    alpha:    0.5,                         // ← era 0.18, más visible
-    emissive: { r: 0.0, g: 1.0, b: 0.92 }, // ← más intenso
-    diffuse:  { r: 0.0, g: 1.0, b: 0.92 },
-  },
+    projection: {
+        alpha: 0.5,                         // ← era 0.18, más visible
+        emissive: { r: 0.0, g: 1.0, b: 0.92 }, // ← más intenso
+        diffuse: { r: 0.0, g: 1.0, b: 0.92 },
+    },
 } as const;
 
 export const soundConfig = {
-  volumes: {
-    player_impulse_to_jump:        0.5,
-    player_recibe_damage:          0.6,
-    player_going_death:            0.8,
-    projectile_against_player:     0.5,
-    projectile_against_playground: 0.4,
-    freesbe_against_metal:         0.03,
-    freesbe_woosh:                 0.7,
-    enemy_collapsed:               0.8,
-  },
+    volumes: {
+        player_impulse_to_jump: 0.5,
+        player_recibe_damage: 0.6,
+        player_going_death: 0.8,
+        projectile_against_player: 0.5,
+        projectile_against_playground: 0.4,
+        freesbe_against_metal: 0.03,
+        freesbe_woosh: 0.7,
+        enemy_collapsed: 0.8,
+    },
 } as const;
 
 export const controlsConfig = {
-  keys: [
-    { key: "W A S D",        action: "Move / Moverse"                    },
-    { key: "SPACE",          action: "Jump / Saltar"                     },
-    { key: "SPACE + J",      action: "Air throw / Lanzamiento aéreo"     },
-    { key: "SHIFT",          action: "Run / Correr"                      },
-    { key: "SHIFT + J",      action: "Power throw / Lanzamiento power"   },
-    { key: "WASD + SHIFT + K", action: "Roll"                            },
-    { key: "J",              action: "Freesbe throw / Lanzar freesbe"    },
-    { key: "K",              action: "Crouch / Agacharse"                },
-    { key: "WASD + K",       action: "Sneak / Camina agazapado"          },
-    { key: "1, 2",           action: "Views / Vistas"                    },
-    { key: "Q",              action: "Super vision / Super visión"       },
-    { key: "H",              action: "Controls config / Controles"       },
-  ],
+    keys: [
+        { key: "W A S D", action: "Move / Moverse" },
+        { key: "SPACE", action: "Jump / Saltar" },
+        { key: "SPACE + J", action: "Air throw / Lanzamiento aéreo" },
+        { key: "SHIFT", action: "Run / Correr" },
+        { key: "SHIFT + J", action: "Power throw / Lanzamiento power" },
+        { key: "WASD + SHIFT + K", action: "Roll" },
+        { key: "J", action: "Freesbe throw / Lanzar freesbe" },
+        { key: "K", action: "Crouch / Agacharse" },
+        { key: "WASD + K", action: "Sneak / Camina agazapado" },
+        { key: "1, 2", action: "Views / Vistas" },
+        { key: "Q", action: "Super vision / Super visión" },
+        { key: "H", action: "Controls config / Controles" },
+    ],
+} as const;
+
+// en GameConfig — agregar config del cyborg projectile
+export const cyborgConfig = {
+    projectile: {
+        speed: 15,
+        radius: 0.05,
+        height: 0.8,
+        maxLifetime: 3000,
+        shootingRate: 1000,  // ← nuevo
+        color: {
+            diffuse: { r: 0.0, g: 0.8, b: 1.0 },
+            emissive: { r: 0.0, g: 1.0, b: 1.0 },
+        },
+    },
 } as const;
 
 // ─────────────────────────────────────────────

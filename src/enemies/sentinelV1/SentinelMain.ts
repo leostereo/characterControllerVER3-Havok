@@ -16,9 +16,9 @@ import {
 import type { IBaseEnemy, IBaseController } from "../interfaces";
 import { SentinelFSM } from "./SentinelFSM";
 import { SentinelController } from "./SentinelController";
-import { ProjectileManager } from "./ProjectileManager";
 import { EventManager } from "@/game/eventManager/eventManager";
 import { meshMetadata, type MeshMetadata, sentinelConfig } from "@/config/GameConfig";
+import { ProjectileManager } from "../ProjectileManager";
 
 export class SentinelMain implements IBaseEnemy {
 

@@ -56,7 +56,7 @@ export class EnemiesManager {
       this.corridorSurveillanceStations.push(new CorridorSurveillanceStation(this.scene, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, corridor))
     })
 
-    void this.spawnCyborgs();
+    // void this.spawnCyborgs();
 
     // capture zone
     this.scene.meshes
@@ -115,6 +115,8 @@ export class EnemiesManager {
     this.corridorSurveillanceStations = [];
     this.sentinels.forEach(e => e.dispose());
     this.sentinels = [];
+    this.cyborgs.forEach((cyb)=>cyb.dispose());
+    this.cyborgs = [];
     this.setSuperVision(false);
     this.h1.dispose();
   }
