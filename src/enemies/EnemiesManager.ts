@@ -56,12 +56,13 @@ export class EnemiesManager {
       this.corridorSurveillanceStations.push(new CorridorSurveillanceStation(this.scene, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, corridor))
     })
 
-    // void this.spawnCyborgs();
+    void this.spawnCyborgs();
 
     // capture zone
     this.scene.meshes
       .filter(m =>
         m.name.startsWith("surveillance_projection_") ||
+        m.name.startsWith("cyborg_triangle_") ||
         m.name.startsWith("sentinel_triangle_")
       )
       .forEach(m => m.setEnabled(false));
@@ -71,7 +72,7 @@ export class EnemiesManager {
   }
 
   private async spawnCyborgs(): Promise<void> {
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < 1; i++) {
       const cyborg = await CyborgFactory.create(
         this.scene,
         new Vector3(i * 3, 0, 5),
@@ -96,6 +97,7 @@ export class EnemiesManager {
     this.scene.meshes
       .filter(m =>
         m.name.startsWith("surveillance_projection_") ||
+        m.name.startsWith("cyborg_triangle_") ||
         m.name.startsWith("sentinel_triangle_")
       )
       .forEach(m => {
