@@ -120,6 +120,13 @@ export class NavMeshService {
     return agentId;
 }
 
+    setAgentMaxSpeed(index: number, speed: number): void {
+        this.assertReady();
+        const agent = this.getAgent(index);
+        if (!agent) return;
+        agent.maxSpeed = speed;
+    }
+
     removeAgent(index: number): void {
         this.assertReady();
         const agent = this.getAgent(index);

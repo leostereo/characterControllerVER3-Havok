@@ -13,10 +13,9 @@ import type { ICyborgStateMachine } from "../interfaces/ICyborgStateMachine";
 import { NavMeshService } from "@/playground/NavMeshService";
 import { meshNames, cyborgConfig } from "@/config/GameConfig";  // ← agregar meshNames
 import { CyborgVisionCone } from "./CyborgVisionCone";
+import { type CyborgState } from "./CyborgFSM";
 
 export class CyborgController {
-
-
 
     private renderObserver: Observer<Scene> | null = null;
     private agentId!: number;
@@ -24,6 +23,10 @@ export class CyborgController {
     private readonly ROTATION_SPEED = 5.0;
     private lastKnownPosition: Vector3 | null = null;
     private visionCone: CyborgVisionCone;
+    private searchDestination: Vector3 | null = null;
+    private lastState: CyborgState | null = null;
+    private trackingElapsed = 0;
+
     constructor(
         private scene: Scene,
         private fsm: ICyborgStateMachine,
@@ -53,33 +56,78 @@ export class CyborgController {
     // ─────────────────────────────────────────────
     //  CICLO DE VIDA
     // ─────────────────────────────────────────────
+
     start(): void {
         this.renderObserver = this.scene.onBeforeRenderObservable.add(() => {
-            if (this.fsm.isBlocking()) return;   // ← no procesar si está bloqueado
+            if (this.fsm.isBlocking()) return;
 
-            
-            // const dt = this.scene.getEngine().getDeltaTime();
+            const dt = this.scene.getEngine().getDeltaTime();
             const playerInSight = this.hasLineOfSight();
             const currentState = this.fsm.getState();
-            // this.visionCone.update(currentState);
+
+            // cambiar velocidad al cambiar estado
+            if (currentState !== this.lastState) {
+                this.lastState = currentState;
+                switch (currentState) {
+                    case "patrolling":
+                        this.navMesh.setAgentMaxSpeed(this.agentId, cyborgConfig.agent.speedPatrol);
+                        break;
+                    case "searching":
+                    case "intensiveSearch":
+                        this.navMesh.setAgentMaxSpeed(this.agentId, cyborgConfig.agent.speedSearch);
+                        break;
+                    case "shooting":
+                        this.stopAgent();
+                        break;
+                }
+            }
+
+            // ── siempre sincronizar ──
+            this.syncPosition();
+
+            // ── actualizar cono ──
             this.visionCone.update();
 
             switch (currentState) {
                 case "patrolling":
                     if (playerInSight) {
-                        this.stopAgent();
                         this.fsm.setState("shooting");
                     } else {
-                        this.syncPosition();
                         this.updatePatrolDestination();
                     }
                     break;
 
                 case "shooting":
                     if (playerInSight) {
-                        this.trackTarget();
+                        this.trackingElapsed += dt;
+                        if (this.trackingElapsed >= cyborgConfig.tracking.rate) {
+                            this.trackingElapsed = 0;
+                            this.trackTarget();
+                        }
                     } else {
-                        //this.fsm.setState("searching");
+                        this.trackingElapsed = 0;
+                        this.searchDestination = null;
+                        this.fsm.setState("searching");
+                    }
+                    break;
+
+                case "searching":
+                    if (playerInSight) {
+                        this.fsm.setState("shooting");
+                    } else {
+                        this.moveToLastKnownPosition();
+                        if (this.hasReachedLastKnownPosition()) {
+                            this.searchDestination = null;
+                            this.fsm.setState("intensiveSearch");
+                        }
+                    }
+                    break;
+
+                case "intensiveSearch":
+                    if (playerInSight) {
+                        this.fsm.setState("shooting");
+                    } else {
+                        this.fsm.tick(dt);
                     }
                     break;
             }
@@ -97,7 +145,7 @@ export class CyborgController {
         const pos = this.navMesh.getAgentPosition(this.agentId);
         if (!pos) return;
         this.navMesh.setAgentTarget(this.agentId, pos);
-}
+    }
 
     dispose(): void {
         this.stop();
@@ -113,7 +161,6 @@ export class CyborgController {
         if (!target) return false;
 
         if (!this.visionCone.isPlayerInCone(this.meshForPositionTrackName)) return false;
-
         const origin = this.rootMesh.getAbsolutePosition().clone();
         origin.y += cyborgConfig.detection.raycastYOffset;
 
@@ -127,9 +174,12 @@ export class CyborgController {
             !mesh.name.startsWith(meshNames.projectile)
         );
 
-        const detected = hit?.pickedMesh?.name === this.meshForRayCastDetectionName;
-        if (detected) this.lastKnownPosition = target.position.clone();
-        return detected;
+        const detected = hit?.pickedMesh?.name.startsWith(this.meshForRayCastDetectionName);
+        if (detected) {
+            this.lastKnownPosition = target.position.clone();
+            return true;
+        }
+        return false;
     }
 
     private trackTarget(): void {
@@ -181,4 +231,26 @@ export class CyborgController {
         const result = this.navMesh.getRandomPoint();
         return result.success ? result.randomPoint : null;
     }
+
+    private moveToLastKnownPosition(): void {
+        if (!this.lastKnownPosition) return;
+        if (this.searchDestination) return;
+
+        const agentPos = this.navMesh.getAgentPosition(this.agentId);
+        if (!agentPos) return;
+
+        const dir = agentPos.subtract(this.lastKnownPosition).normalize();
+        this.searchDestination = this.lastKnownPosition.add(
+            dir.scale(cyborgConfig.agent.stopDistance)
+        );
+        this.navMesh.setAgentTarget(this.agentId, this.searchDestination);
+    }
+
+    private hasReachedLastKnownPosition(): boolean {
+        if (!this.searchDestination) return false;
+        const pos = this.navMesh.getAgentPosition(this.agentId);
+        if (!pos) return false;
+        return Vector3.Distance(pos, this.searchDestination) < 1.5;  // ← era 0.5
+    }
+
 }

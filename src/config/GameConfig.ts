@@ -396,40 +396,43 @@ export const controlsConfig = {
 
 // en GameConfig — agregar config del cyborg projectile
 export const cyborgConfig = {
-  projectile: {
-    speed:        15,
-    radius:       0.05,
-    height:       0.8,
-    maxLifetime:  3000,
-    shootingRate: 1000,
-    color: {
-      diffuse:  { r: 0.0, g: 0.8, b: 1.0 },
-      emissive: { r: 0.0, g: 1.0, b: 1.0 },
+    projectile: {
+        speed: 15,
+        radius: 0.05,
+        height: 0.8,
+        maxLifetime: 3000,
+        shootingRate: 1000,
+        color: {
+            diffuse: { r: 0.0, g: 0.8, b: 1.0 },
+            emissive: { r: 0.0, g: 1.0, b: 1.0 },
+        },
     },
-  },
-  detection: {
-    tilt:             0.4,
-    projectionScale:  3,
-    projectionOffset: 1,
-    raycastYOffset:   1.2,    // ← más alto que sentinel, es humanoid
-    aimHeightMult:    0.8,
-    lampMuzzleOffset: 0.5,
-    coneAngle:        Math.PI / 6,  // ← 30 grados
-  },
-  sweep: {
-    angle: Math.PI / 6,
-    speed: 1.2,
-  },
-  agent: {
-    speedPatrol:          2.5,
-    speedSearch:          4.0,
-    stopDistance:         2.0,
-    radius:               0.3,
-    height:               1.8,
-    maxAcceleration:      4.0,
-    collisionQueryRange:  0.5,
-    separationWeight:     1.0,
-  },
+    detection: {
+        tilt: 0.4,
+        projectionScale: 3,
+        projectionOffset: 1,
+        raycastYOffset: 1.2,    // ← más alto que sentinel, es humanoid
+        aimHeightMult: 0.8,
+        lampMuzzleOffset: 0.5,
+        coneAngle: Math.PI / 6,  // ← 30 grados
+    },
+    sweep: {
+        angle: Math.PI / 6,
+        speed: 1.2,
+    },
+    tracking: {
+        rate: 100,  // ms
+    },
+    agent: {
+        speedPatrol: 1.5,
+        speedSearch: 10.0,
+        stopDistance: 2.0,
+        radius: 0.3,
+        height: 1.8,
+        maxAcceleration: 4.0,
+        collisionQueryRange: 0.5,
+        separationWeight: 1.0,
+    },
 } as const;
 
 // ─────────────────────────────────────────────
