@@ -3,13 +3,15 @@ import type {
     AbstractMesh,
     AnimationGroup,
     Vector3,
+    Observer,
 } from "@babylonjs/core";
 import type { IBaseEnemy } from "../interfaces";
 import { CyborgFSM } from "./CyborgFSM";
 import { CyborgBody } from "./CyborgBody";
 import { EventManager } from "@/game/eventManager/eventManager";
-import { meshMetadata } from "@/config/GameConfig";
+import { cyborgConfig, meshMetadata } from "@/config/GameConfig";
 import { CyborgController } from "./CyborgController";
+import { ProjectileManager } from "../ProjectileManager";
 
 export class CyborgMain implements IBaseEnemy {
 
@@ -18,7 +20,10 @@ export class CyborgMain implements IBaseEnemy {
     private controller: CyborgController;
     private eventManager = EventManager.getInstance();
     private hitObserver: ReturnType<typeof EventManager.prototype.subscribe> | null = null;
-
+    private shootingObserver: Observer<Scene> | null = null;
+    private elapsed = 0;
+    private projectileManager: ProjectileManager;
+    
     constructor(
         private scene: Scene,
         private uniqueId: string,
@@ -42,7 +47,11 @@ export class CyborgMain implements IBaseEnemy {
         );
 
         this.subscribeToHit();
+        this.projectileManager = new ProjectileManager(scene,'laser');
+        this.setupShootingLoop();
+
     }
+
     stop(): void {
         throw new Error("Method not implemented.");
     }
@@ -84,4 +93,19 @@ export class CyborgMain implements IBaseEnemy {
             //todo:setState(hit_fromXXX)
         });
     }
+
+    private setupShootingLoop(): void {
+        this.shootingObserver = this.scene.onBeforeRenderObservable.add(() => {
+            if (this.fsm.getState() !== "shooting") return;
+            if (this.fsm.isBlocking()) return;
+
+            this.elapsed += this.scene.getEngine().getDeltaTime();
+            if (this.elapsed < cyborgConfig.projectile.shootingRate) return;
+
+            this.elapsed = 0;
+            const shot = this.controller.getMuzzlePositionAndDirection();
+            if (shot) this.projectileManager.throwProjectile(shot.origin, shot.direction);
+        });
+    }
+
 }

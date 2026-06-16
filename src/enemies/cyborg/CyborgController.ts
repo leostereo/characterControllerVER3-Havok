@@ -147,6 +147,18 @@ export class CyborgController {
         this.navMesh.setAgentTarget(this.agentId, pos);
     }
 
+    getMuzzlePositionAndDirection(): { origin: Vector3; direction: Vector3 } | null {
+        const target = this.scene.getMeshByName(this.meshForPositionTrackName);
+        if (!target) return null;
+
+        // origen — posición del rootMesh + offset altura
+        const origin = this.rootMesh.getAbsolutePosition().clone();
+        origin.y += cyborgConfig.projectile.muzzleHeight;  // ← agregar a config
+
+        const direction = target.position.subtract(origin).normalize();
+        return { origin, direction };
+    }
+
     dispose(): void {
         this.stop();
         this.navMesh.removeAgent(this.agentId);

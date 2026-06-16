@@ -78,6 +78,25 @@ export const projectilesConfig = {
         restitution: 0.75,
         lifetime: 4000,
     },
+    sentinel: {              // ← igual al canion por ahora
+        speed: 300,
+        speed_2: 500,
+        mass: 5,
+        radius: 0.2,
+        restitution: 0.0,
+        friction: 0.0,
+        maxLifetime: 4000,
+    },
+    cyborg: {                // ← nuevo, cilindro laser
+        speed: 15,
+        radius: 0.05,
+        height: 0.8,
+        maxLifetime: 3000,
+        color: {
+            diffuse: { r: 0.0, g: 0.8, b: 1.0 },
+            emissive: { r: 0.0, g: 1.0, b: 1.0 },
+        },
+    }
 } as const;
 
 // ─────────────────────────────────────────────
@@ -402,6 +421,7 @@ export const cyborgConfig = {
         height: 0.8,
         maxLifetime: 3000,
         shootingRate: 1000,
+        muzzleHeight: 1.4,   // ← altura del punto de disparo
         color: {
             diffuse: { r: 0.0, g: 0.8, b: 1.0 },
             emissive: { r: 0.0, g: 1.0, b: 1.0 },
