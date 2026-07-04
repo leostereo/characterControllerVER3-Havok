@@ -21,6 +21,10 @@ export interface CyborgAnimations {
   hit_reaction: AnimationGroup;
   defeated: AnimationGroup;
   look_around: AnimationGroup;
+  death_back: AnimationGroup;   // ← hit_reaction_back
+  death_forward: AnimationGroup;   // ← hit_reaction_forward
+  death_left: AnimationGroup;   // ← hit_reaction_left
+  death_right: AnimationGroup;   // ← hit_reaction_right
 }
 
 export class CyborgBody {
@@ -107,9 +111,14 @@ export class CyborgBody {
     const hit_reaction = find("hit reaction");
     const defeated = find("death back");
     const look_around = find("look around");
+    const death_back = find("sweep fall");
+    const death_forward = find("death forward");
+    const death_left = find("death left mirror");
+    const death_right = find("death right");
 
     if (!idle || !walking_patrol || !running_alert ||
-      !aiming || !hit_reaction || !defeated || !look_around) {
+      !aiming || !hit_reaction || !defeated || !look_around ||
+       !death_back || !death_forward || !death_left || !death_right) {
       console.warn("[CyborgBody] Faltan animaciones");
       return;
     }
@@ -117,7 +126,9 @@ export class CyborgBody {
     hit_reaction.from = 40;
     hit_reaction.to = 100;
     defeated.from = 15;
-
+    death_back.from  = 50;
+    death_forward.from = 80;
+     
     this.animations = {
       idle,
       walking_patrol,
@@ -126,6 +137,10 @@ export class CyborgBody {
       hit_reaction,
       defeated,
       look_around,
+      death_back,
+      death_forward,
+      death_left,
+      death_right
     };
 
     groups.forEach(g => g.stop());
@@ -164,6 +179,19 @@ export class CyborgBody {
           this.fsm.onDefeatedAnimationEnded();
         });
         break;
+      case "hit_reaction_back":
+        this.playOnce(this.animations.death_back, () => this.fsm.onHitReactionEnded());
+        break;
+      case "hit_reaction_forward":
+        this.playOnce(this.animations.death_forward, () => this.fsm.onHitReactionEnded());
+        break;
+      case "hit_reaction_left":
+        this.playOnce(this.animations.death_left, () => this.fsm.onHitReactionEnded());
+        break;
+      case "hit_reaction_right":
+        this.playOnce(this.animations.death_right, () => this.fsm.onHitReactionEnded());
+        break;
+
     }
   }
 

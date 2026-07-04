@@ -8,6 +8,10 @@ export type CyborgState =
   | "shooting"
   | "searching"
   | "intensiveSearch"
+  | "hit_reaction_back"      // ← impacto desde adelante
+  | "hit_reaction_forward"   // ← impacto desde atrás
+  | "hit_reaction_left"      // ← impacto desde la derecha
+  | "hit_reaction_right"     // ← impacto desde la izquierda
   | "hit_reaction"
   | "defeated"
   | "paused";
@@ -16,8 +20,8 @@ export class CyborgFSM extends BaseStateMachine<CyborgState>
   implements ICyborgStateMachine {
 
   private previousState: CyborgState = "patrolling";
-  private health        = 5;
-  private intensiveSearchTimer  = 0;
+  private health = 5;
+  private intensiveSearchTimer = 0;
   private intensiveSearchTimeout = 5000; // ← vendrá de gameConfig.cyborg
 
   // ─────────────────────────────────────────────
@@ -25,39 +29,76 @@ export class CyborgFSM extends BaseStateMachine<CyborgState>
   // ─────────────────────────────────────────────
   protected transitions: TransitionTable<CyborgState> = {
     patrolling: {
-      shooting:        true,
-      searching:       true,
-      hit_reaction:    true,
-      paused:          true,
+      shooting: true,
+      searching: true,
+      hit_reaction_back: true,
+      hit_reaction_forward: true,
+      hit_reaction_left: true,
+      hit_reaction_right: true,
+      defeated: true,
+      paused: true,
     },
     shooting: {
-      searching:       true,
-      hit_reaction:    true,
-      paused:          true,
+      searching: true,
+      hit_reaction_back: true,
+      hit_reaction_forward: true,
+      hit_reaction_left: true,
+      hit_reaction_right: true,
+      defeated: true,
+      paused: true,
     },
     searching: {
-      shooting:        true,
+      shooting: true,
       intensiveSearch: true,
-      hit_reaction:    true,
-      paused:          true,
+      hit_reaction_back: true,
+      hit_reaction_forward: true,
+      hit_reaction_left: true,
+      hit_reaction_right: true,
+      defeated: true,
+      paused: true,
     },
     intensiveSearch: {
-      shooting:        true,
-      patrolling:      true,
-      hit_reaction:    true,
-      paused:          true,
+      shooting: true,
+      patrolling: true,
+      hit_reaction_back: true,
+      hit_reaction_forward: true,
+      hit_reaction_left: true,
+      hit_reaction_right: true,
+      defeated: true,
+      paused: true,
     },
-    hit_reaction: {
-      patrolling:      true,
-      defeated: true,   // ← nuevo
+    hit_reaction_back: {
+      defeated: true,
+      patrolling: true,
+      shooting: true,
+      searching: true,
+      intensiveSearch: true,
+    },
+    hit_reaction_forward: {
+      defeated: true,
+      patrolling: true,
+      shooting: true,
+      searching: true,
+      intensiveSearch: true,
+    },
+    hit_reaction_left: {
+      defeated: true,
+      patrolling: true,
+      shooting: true,
+      searching: true,
+      intensiveSearch: true,
+    },
+    hit_reaction_right: {
+      defeated: true,
+      patrolling: true,
+      shooting: true,
+      searching: true,
+      intensiveSearch: true,
     },
     defeated: {
       // bloqueante terminal — sin transiciones
     },
-    paused: {
-      hit_reaction:    true,
-      patrolling:      true,  // ← al reanudar, el controller decide
-    },
+    paused: { hit_reaction_back: true, hit_reaction_forward: true, hit_reaction_left: true, hit_reaction_right: true, patrolling: true },
   };
 
   constructor() {
@@ -70,12 +111,15 @@ export class CyborgFSM extends BaseStateMachine<CyborgState>
   // ─────────────────────────────────────────────
   protected onEnter(state: CyborgState): void {
     switch (state) {
-      case "hit_reaction":
-        this._isBlocking  = true;
-        this.health      -= 1;
+      case "hit_reaction_back":
+      case "hit_reaction_forward":
+      case "hit_reaction_left":
+      case "hit_reaction_right":
+        this._isBlocking = true;
+        this.health -= 1;
         break;
       case "defeated":
-        this._isBlocking  = true;
+        this._isBlocking = true;
         break;
       case "intensiveSearch":
         this.intensiveSearchTimer = 0;
@@ -85,10 +129,10 @@ export class CyborgFSM extends BaseStateMachine<CyborgState>
 
   protected onExit(state: CyborgState): void {
     switch (state) {
-      case "hit_reaction":
-        this._isBlocking = false;
-        break;
-      case "paused":
+      case "hit_reaction_back":
+      case "hit_reaction_forward":
+      case "hit_reaction_left":
+      case "hit_reaction_right":
         this._isBlocking = false;
         break;
     }
@@ -112,11 +156,10 @@ export class CyborgFSM extends BaseStateMachine<CyborgState>
 
   // llamado por CyborgBody cuando termina la animación de hit_reaction
   onHitReactionEnded(): void {
+    this._isBlocking = false;
     if (this.health <= 0) {
-      this._isBlocking = false;  // desbloquear para permitir transición
       this.setState("defeated");
     } else {
-      this._isBlocking = false;
       this.setState(this.previousState);
     }
   }
@@ -133,9 +176,9 @@ export class CyborgFSM extends BaseStateMachine<CyborgState>
     }
   }
 
-  isDefeated():  boolean { return this.state === "defeated"; }
-  isPaused():    boolean { return this.state === "paused"; }
-  getHealth():   number  { return this.health; }
+  isDefeated(): boolean { return this.state === "defeated"; }
+  isPaused(): boolean { return this.state === "paused"; }
+  getHealth(): number { return this.health; }
 
-  dispose(): void {}
+  dispose(): void { }
 }

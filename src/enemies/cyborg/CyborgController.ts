@@ -159,6 +159,10 @@ export class CyborgController {
         return { origin, direction };
     }
 
+    getForward(): Vector3 {
+        return this.rootMesh.forward.normalize();
+    }
+
     dispose(): void {
         this.stop();
         this.navMesh.removeAgent(this.agentId);

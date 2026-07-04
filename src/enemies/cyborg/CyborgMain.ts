@@ -1,12 +1,12 @@
-import type {
-    Scene,
-    AbstractMesh,
-    AnimationGroup,
+import {
+    type Scene,
+    type AbstractMesh,
+    type AnimationGroup,
     Vector3,
-    Observer,
+    type Observer,
 } from "@babylonjs/core";
 import type { IBaseEnemy } from "../interfaces";
-import { CyborgFSM } from "./CyborgFSM";
+import { CyborgFSM, type CyborgState } from "./CyborgFSM";
 import { CyborgBody } from "./CyborgBody";
 import { EventManager } from "@/game/eventManager/eventManager";
 import { cyborgConfig, meshMetadata } from "@/config/GameConfig";
@@ -81,17 +81,46 @@ export class CyborgMain implements IBaseEnemy {
         this.hitObserver = this.eventManager.subscribe((event) => {
             if (event.type !== "enemy_damaged") return;
 
-            const data = event.data as { enemyClass: string; stationId: string };
+            const data = event.data as { enemyClass: string; stationId: string, direction:Vector3 };
             if (data.enemyClass !== meshMetadata.enemyClasses.cyborg) return;
             if (data.stationId !== this.uniqueId) return;
-    
             this.controller.stopAgent();   
             this.fsm.savePreviousState();
-            this.fsm.setState("hit_reaction");
-            //getForwardFromController()
-            //calculate angle difference.
-            //todo:setState(hit_fromXXX)
+            const cyborgForward = this.controller.getForward();
+            const hitState = this.getNextHitReactionFromAngle(
+                cyborgForward,
+                data.direction
+            );
+
+            this.fsm.setState(hitState);
         });
+    }
+
+    private getNextHitReactionFromAngle(
+        cyborgForward: Vector3,
+        projectileForward: Vector3
+    ): CyborgState {
+        // normalizar ambos vectores en XZ
+        const cf = new Vector3(cyborgForward.x, 0, cyborgForward.z).normalize();
+        const pf = new Vector3(projectileForward.x, 0, projectileForward.z).normalize();
+
+        // producto punto — qué tan alineados están
+        const dot = Vector3.Dot(cf, pf);
+
+        // producto cruzado Y — izquierda o derecha
+        const cross = cf.x * pf.z - cf.z * pf.x;
+
+        if (Math.abs(dot) >= Math.abs(cross)) {
+            // impacto frontal o trasero
+            return dot > 0
+                ? "hit_reaction_forward"   // frisbee viene desde atrás
+                : "hit_reaction_back";     // frisbee viene desde adelante
+        } else {
+            // impacto lateral
+            return cross > 0
+                ? "hit_reaction_right"     // frisbee viene desde la izquierda
+                : "hit_reaction_left";     // frisbee viene desde la derecha
+        }
     }
 
     private setupShootingLoop(): void {
