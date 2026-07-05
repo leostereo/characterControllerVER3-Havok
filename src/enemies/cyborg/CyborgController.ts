@@ -26,6 +26,9 @@ export class CyborgController {
     private searchDestination: Vector3 | null = null;
     private lastState: CyborgState | null = null;
     private trackingElapsed = 0;
+    private sweepAngle = 0;
+    private sweepDirection = 1;
+    private baseAngle = 0;   // ← ángulo base para intensiveSearch
 
     constructor(
         private scene: Scene,
@@ -71,13 +74,20 @@ export class CyborgController {
                 switch (currentState) {
                     case "patrolling":
                         this.navMesh.setAgentMaxSpeed(this.agentId, cyborgConfig.agent.speedPatrol);
+                        this.searchDestination = null;
                         break;
                     case "searching":
-                    case "intensiveSearch":
                         this.navMesh.setAgentMaxSpeed(this.agentId, cyborgConfig.agent.speedSearch);
+                        this.searchDestination = null;   // ← resetear para calcular nuevo destino
+                        break;
+                    case "intensiveSearch":
+                        this.stopAgent();
+                        const forward = this.rootMesh.forward.normalize();
+                        this.baseAngle = Math.atan2(forward.x, forward.z) + Math.PI;
+                        this.sweepAngle = 0;   // ← resetear sweep al entrar
                         break;
                     case "shooting":
-                        this.stopAgent();
+                        this.navMesh.stopAgentImmediate(this.agentId);
                         break;
                 }
             }
@@ -127,6 +137,7 @@ export class CyborgController {
                     if (playerInSight) {
                         this.fsm.setState("shooting");
                     } else {
+                        this.sweepIntensive(dt);   // ← nuevo método
                         this.fsm.tick(dt);
                     }
                     break;
@@ -142,9 +153,7 @@ export class CyborgController {
     }
 
     stopAgent(): void {
-        const pos = this.navMesh.getAgentPosition(this.agentId);
-        if (!pos) return;
-        this.navMesh.setAgentTarget(this.agentId, pos);
+        this.navMesh.stopAgentImmediate(this.agentId);
     }
 
     getMuzzlePositionAndDirection(): { origin: Vector3; direction: Vector3 } | null {
@@ -159,6 +168,9 @@ export class CyborgController {
         return { origin, direction };
     }
 
+    getLastKnownPosition(): Vector3 | null { return this.lastKnownPosition; }
+    getSearchDestination(): Vector3 | null { return this.searchDestination; }
+
     getForward(): Vector3 {
         return this.rootMesh.forward.normalize();
     }
@@ -167,6 +179,24 @@ export class CyborgController {
         this.stop();
         this.navMesh.removeAgent(this.agentId);
         this.visionCone.dispose();
+    }
+
+    private sweepIntensive(dt: number): void {
+        this.sweepAngle += cyborgConfig.sweep.intensiveSpeed * this.sweepDirection * (dt / 1000);
+
+        if (this.sweepAngle >= cyborgConfig.sweep.intensiveAngle) {
+            this.sweepAngle = cyborgConfig.sweep.intensiveAngle;
+            this.sweepDirection = -1;
+        } else if (this.sweepAngle <= -cyborgConfig.sweep.intensiveAngle) {
+            this.sweepAngle = -cyborgConfig.sweep.intensiveAngle;
+            this.sweepDirection = 1;
+        }
+
+        this.rootMesh.rotationQuaternion = Quaternion.FromEulerAngles(
+            0,
+            this.baseAngle + this.sweepAngle,
+            0
+        );
     }
 
     // ─────────────────────────────────────────────
@@ -255,18 +285,24 @@ export class CyborgController {
         const agentPos = this.navMesh.getAgentPosition(this.agentId);
         if (!agentPos) return;
 
-        const dir = agentPos.subtract(this.lastKnownPosition).normalize();
-        this.searchDestination = this.lastKnownPosition.add(
-            dir.scale(cyborgConfig.agent.stopDistance)
-        );
+        // dirección desde el agente hacia la última posición conocida
+        const dir = this.lastKnownPosition.subtract(agentPos).normalize();
+
+        // ir un poco más allá del último punto visto
+        const overshoot = cyborgConfig.agent.searchOvershoot ?? 2.0;  // ← nuevo param
+        const candidatePos = this.lastKnownPosition.add(dir.scale(overshoot));
+
+        // validar que el punto está en el NavMesh
+        const validPos = this.navMesh.findClosestNavMeshPoint(candidatePos);
+        this.searchDestination = validPos ?? this.lastKnownPosition;
+
         this.navMesh.setAgentTarget(this.agentId, this.searchDestination);
     }
-
     private hasReachedLastKnownPosition(): boolean {
         if (!this.searchDestination) return false;
         const pos = this.navMesh.getAgentPosition(this.agentId);
         if (!pos) return false;
-        return Vector3.Distance(pos, this.searchDestination) < 1.5;  // ← era 0.5
+        return Vector3.Distance(pos, this.searchDestination) < 2.5;  // ← era 0.5
     }
 
 }

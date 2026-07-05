@@ -12,6 +12,7 @@ import { EventManager } from "@/game/eventManager/eventManager";
 import { cyborgConfig, meshMetadata } from "@/config/GameConfig";
 import { CyborgController } from "./CyborgController";
 import { ProjectileManager } from "../ProjectileManager";
+import { CyborgDebugger } from "@/debub/CyborgDebugger";
 
 export class CyborgMain implements IBaseEnemy {
 
@@ -23,7 +24,10 @@ export class CyborgMain implements IBaseEnemy {
     private shootingObserver: Observer<Scene> | null = null;
     private elapsed = 0;
     private projectileManager: ProjectileManager;
-    
+    private debugger: CyborgDebugger | null = null;
+    private readonly DEBUG = true;   // ← cambiar a false en producción
+
+
     constructor(
         private scene: Scene,
         private uniqueId: string,
@@ -32,6 +36,7 @@ export class CyborgMain implements IBaseEnemy {
         position: Vector3,
         private meshForPositionTrackName: string,
         private meshForRayCastDetectionName: string,
+
     ) {
         this.fsm = new CyborgFSM();
         this.body = new CyborgBody(scene, this.fsm, rootMesh, animations, uniqueId);
@@ -47,9 +52,14 @@ export class CyborgMain implements IBaseEnemy {
         );
 
         this.subscribeToHit();
-        this.projectileManager = new ProjectileManager(scene,'laser');
+        this.projectileManager = new ProjectileManager(scene, 'laser');
         this.setupShootingLoop();
 
+
+        // al final del constructor:
+        if (this.DEBUG) {
+            this.debugger = new CyborgDebugger(scene, this.fsm, this.controller);
+        }
     }
 
     stop(): void {
@@ -72,6 +82,7 @@ export class CyborgMain implements IBaseEnemy {
         this.controller.dispose();
         this.body.dispose();
         this.fsm.dispose();
+        this.debugger?.dispose();
     }
 
     // ─────────────────────────────────────────────
@@ -81,10 +92,10 @@ export class CyborgMain implements IBaseEnemy {
         this.hitObserver = this.eventManager.subscribe((event) => {
             if (event.type !== "enemy_damaged") return;
 
-            const data = event.data as { enemyClass: string; stationId: string, direction:Vector3 };
+            const data = event.data as { enemyClass: string; stationId: string, direction: Vector3 };
             if (data.enemyClass !== meshMetadata.enemyClasses.cyborg) return;
             if (data.stationId !== this.uniqueId) return;
-            this.controller.stopAgent();   
+            this.controller.stopAgent();
             this.fsm.savePreviousState();
             const cyborgForward = this.controller.getForward();
             const hitState = this.getNextHitReactionFromAngle(

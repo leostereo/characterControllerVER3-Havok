@@ -437,8 +437,10 @@ export const cyborgConfig = {
         coneAngle: Math.PI / 6,  // ← 30 grados
     },
     sweep: {
-        angle: Math.PI / 6,
+        angle: Math.PI / 6,   // 30° — patrolling/searching
+        intensiveAngle: Math.PI / 2,   // 90° — intensiveSearch
         speed: 1.2,
+        intensiveSpeed: 2.0,
     },
     tracking: {
         rate: 100,  // ms
@@ -452,6 +454,7 @@ export const cyborgConfig = {
         maxAcceleration: 4.0,
         collisionQueryRange: 0.5,
         separationWeight: 1.0,
+        searchOvershoot: 3.0,  // ← distancia extra más allá del último punto visto
     },
 } as const;
 
