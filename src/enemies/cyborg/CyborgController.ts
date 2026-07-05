@@ -150,6 +150,8 @@ export class CyborgController {
             this.scene.onBeforeRenderObservable.remove(this.renderObserver);
             this.renderObserver = null;
         }
+        this.fsm.setState('paused');
+        
     }
 
     stopAgent(): void {

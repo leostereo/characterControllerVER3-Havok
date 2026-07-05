@@ -20,7 +20,7 @@ export class CyborgFSM extends BaseStateMachine<CyborgState>
   implements ICyborgStateMachine {
 
   private previousState: CyborgState = "patrolling";
-  private health = 5;
+  private health = 3;
   private intensiveSearchTimer = 0;
   private intensiveSearchTimeout = 5000; // ← vendrá de gameConfig.cyborg
 
@@ -115,11 +115,9 @@ export class CyborgFSM extends BaseStateMachine<CyborgState>
       case "hit_reaction_forward":
       case "hit_reaction_left":
       case "hit_reaction_right":
-        this._isBlocking = true;
-        this.health -= 1;
-        break;
       case "defeated":
         this._isBlocking = true;
+        this.health -= 1;
         break;
       case "intensiveSearch":
         this.intensiveSearchTimer = 0;

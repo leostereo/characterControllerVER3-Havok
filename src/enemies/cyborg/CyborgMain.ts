@@ -25,7 +25,7 @@ export class CyborgMain implements IBaseEnemy {
     private elapsed = 0;
     private projectileManager: ProjectileManager;
     private debugger: CyborgDebugger | null = null;
-    private readonly DEBUG = true;   // ← cambiar a false en producción
+    private readonly DEBUG = false;   // ← cambiar a false en producción
 
 
     constructor(
@@ -63,7 +63,7 @@ export class CyborgMain implements IBaseEnemy {
     }
 
     stop(): void {
-        throw new Error("Method not implemented.");
+        this.controller.stop()
     }
 
     // ─────────────────────────────────────────────
@@ -97,13 +97,30 @@ export class CyborgMain implements IBaseEnemy {
             if (data.stationId !== this.uniqueId) return;
             this.controller.stopAgent();
             this.fsm.savePreviousState();
-            const cyborgForward = this.controller.getForward();
-            const hitState = this.getNextHitReactionFromAngle(
-                cyborgForward,
-                data.direction
-            );
+            const currentHealth = this.fsm.getHealth();
+            if (currentHealth === 1) {
+                this.fsm.setState('defeated');
+                this.emitCollapsedEvent();
+            }
+            if (currentHealth > 1) {
 
-            this.fsm.setState(hitState);
+                const cyborgForward = this.controller.getForward();
+                const hitState = this.getNextHitReactionFromAngle(
+                    cyborgForward,
+                    data.direction
+                );
+
+                this.fsm.setState(hitState);
+            }
+        });
+    }
+
+    private emitCollapsedEvent(): void {
+        this.eventManager.emit({
+            type: "enemy_destroyed",
+            source: "player1",
+            sourceType: "player",
+            data: { id: this.uniqueId },
         });
     }
 

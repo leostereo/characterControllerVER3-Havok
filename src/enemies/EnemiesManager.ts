@@ -125,6 +125,7 @@ export class EnemiesManager {
 
   public notifyGameOver(): void {
     this.sentinels.forEach((sentinel) => sentinel.stop())
+    this.cyborgs.forEach((cyborg) => cyborg.stop())
   }
 
 }
