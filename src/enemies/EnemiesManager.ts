@@ -28,8 +28,7 @@ export class EnemiesManager {
     this.h1 = new HighlightLayer("super_vision_hl", this.scene);
   }
 
-  spawnAll(): number {
-
+  async spawnAll(): Promise<number> {
     const areas = PlayGroundState.getInstance().getAreas();
     const { squares, rectangles, corridors } = classifyAreas(areas);
 
@@ -37,26 +36,36 @@ export class EnemiesManager {
       this.survillanceStations.push(new SurveillanceStation(this.scene, square.center, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "middle"))
     })
 
-    rectangles.forEach((rectangle) => {
+    for (const [index, rectangle] of rectangles.entries()) {
 
-      const sentinel = new SentinelMain(
-        this.scene,
-        rectangle.center,
-        playerConfig.player1.positionTrackeableMeshName,
-        playerConfig.player1.player1RaycastDetectableName,
-      );
-      sentinel.start();
-      this.sentinels.push(sentinel);
+      if (index % 2 === 0) {
+        const cyborg = await CyborgFactory.create(
+          this.scene,
+          rectangle.center,
+        );
+        cyborg.start();
+        this.cyborgs.push(cyborg);
+      }
+
+      if (index % 2 !== 0) {
+
+        const sentinel = new SentinelMain(
+          this.scene,
+          rectangle.center,
+          playerConfig.player1.positionTrackeableMeshName,
+          playerConfig.player1.player1RaycastDetectableName,
+        );
+        sentinel.start();
+        this.sentinels.push(sentinel);
+      }
 
       const { position } = getRectangleEnemyPosition(rectangle)
       this.survillanceStations.push(new SurveillanceStation(this.scene, position, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "highest"))
-    })
+    }
 
     corridors.forEach((corridor) => {
       this.corridorSurveillanceStations.push(new CorridorSurveillanceStation(this.scene, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, corridor))
     })
-
-    void this.spawnCyborgs();
 
     // capture zone
     this.scene.meshes
@@ -67,7 +76,11 @@ export class EnemiesManager {
       )
       .forEach(m => m.setEnabled(false));
 
-    return (this.survillanceStations.length + this.corridorSurveillanceStations.length + this.sentinels.length)
+    return (this.survillanceStations.length
+      + this.corridorSurveillanceStations.length
+      + this.sentinels.length
+      + this.cyborgs.length
+    )
 
   }
 
@@ -117,7 +130,7 @@ export class EnemiesManager {
     this.corridorSurveillanceStations = [];
     this.sentinels.forEach(e => e.dispose());
     this.sentinels = [];
-    this.cyborgs.forEach((cyb)=>cyb.dispose());
+    this.cyborgs.forEach((cyb) => cyb.dispose());
     this.cyborgs = [];
     this.setSuperVision(false);
     this.h1.dispose();

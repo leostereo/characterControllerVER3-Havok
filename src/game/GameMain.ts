@@ -72,7 +72,7 @@ export class GameMain {
 
     this.enemiesManager = new EnemiesManager(this.scene);
     await this.playGround.createNavMesh(this.scene);
-    this.totalEnemies = this.enemiesManager.spawnAll()
+    this.totalEnemies = await this.enemiesManager.spawnAll()
 
     const playerInitPosition = PlayGroundState.getInstance().getSpawnPoint();
 
@@ -209,7 +209,8 @@ export class GameMain {
       switch (kbInfo.event.key.toLowerCase()) {
         case 'h':   // ← tecla para toggle de controles
           this.hud?.toggleControls();
-          break;
+          console.log([...this.scene.onBeforeRenderObservable.observers]);          
+      break;
       }
     });
   }

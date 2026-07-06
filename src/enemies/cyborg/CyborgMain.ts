@@ -77,6 +77,7 @@ export class CyborgMain implements IBaseEnemy {
     dispose(): void {
         if (this.hitObserver) {
             this.eventManager.unsubscribe(this.hitObserver);
+            this.scene.onBeforeRenderObservable.remove(this.shootingObserver);
             this.hitObserver = null;
         }
         this.controller.dispose();
@@ -91,6 +92,8 @@ export class CyborgMain implements IBaseEnemy {
     private subscribeToHit(): void {
         this.hitObserver = this.eventManager.subscribe((event) => {
             if (event.type !== "enemy_damaged") return;
+
+            if (!this.isPossibleToHit()) return;
 
             const data = event.data as { enemyClass: string; stationId: string, direction: Vector3 };
             if (data.enemyClass !== meshMetadata.enemyClasses.cyborg) return;
@@ -113,6 +116,26 @@ export class CyborgMain implements IBaseEnemy {
                 this.fsm.setState(hitState);
             }
         });
+    }
+
+    private isPossibleToHit(): boolean {
+        const currentState = this.fsm.getState();
+        let canBeHited = true;
+        switch (currentState) {
+            case 'defeated':
+            case 'hit_reaction_back':
+            case 'hit_reaction_forward':
+            case 'hit_reaction_left':
+            case 'hit_reaction_right':
+                canBeHited = false;
+                break;
+
+            default:
+                break;
+        }
+
+        return canBeHited;
+
     }
 
     private emitCollapsedEvent(): void {
