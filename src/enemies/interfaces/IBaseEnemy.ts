@@ -2,5 +2,6 @@
 
 export interface IBaseEnemy {
   start(): void;
+  stop(): void;
   dispose(): void;
 }

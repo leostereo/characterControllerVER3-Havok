@@ -10,10 +10,10 @@ import {
     Ray,
 } from "@babylonjs/core";
 import type { IBaseController } from "../interfaces";
-import { VisionCone } from "./VisionCone";
 import { NavMeshService } from "@/playground/NavMeshService";
 import { meshNames, sentinelConfig } from "@/config/GameConfig";
 import type { SentinelFSM } from "./SentinelFSM";
+import { VisionCone } from "./VisionCone";
 
 // ─────────────────────────────────────────────
 //  CONFIG — vendrá de gameConfig.sentinel

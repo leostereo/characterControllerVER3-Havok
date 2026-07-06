@@ -105,20 +105,27 @@ export class NavMeshService {
         const agent = this.crowd.addAgent(
             { x: position.x, y: 0, z: position.z },
             {
-        radius: config.radius,
-        height: config.height,
-        maxAcceleration: config.maxAcceleration,
-        maxSpeed: config.maxSpeed,
-        collisionQueryRange: config.collisionQueryRange,
-        pathOptimizationRange: 0,
-          separationWeight: config.separationWeight,
-      }
-  );
+                radius: config.radius,
+                height: config.height,
+                maxAcceleration: config.maxAcceleration,
+                maxSpeed: config.maxSpeed,
+                collisionQueryRange: config.collisionQueryRange,
+                pathOptimizationRange: 0,
+                separationWeight: config.separationWeight,
+            }
+        );
 
-    const agentId = this.nextAgentId++;
-    this.agents.set(agentId, agent);
-    return agentId;
-}
+        const agentId = this.nextAgentId++;
+        this.agents.set(agentId, agent);
+        return agentId;
+    }
+
+    setAgentMaxSpeed(index: number, speed: number): void {
+        this.assertReady();
+        const agent = this.getAgent(index);
+        if (!agent) return;
+        agent.maxSpeed = speed;
+    }
 
     removeAgent(index: number): void {
         this.assertReady();
@@ -153,6 +160,29 @@ export class NavMeshService {
 
         const velocity = agent.velocity();
         return new Vector3(velocity.x, 0, velocity.z);
+    }
+
+    getAgentDirect(index: number): CrowdAgent | null {
+        return this.getAgent(index);
+    }
+
+    stopAgentImmediate(index: number): void {
+        const agent = this.getAgent(index);
+        if (!agent) return;
+        // agent.resetMoveTarget();                          // ← cancela el path
+        // agent.requestMoveVelocity({ x: 0, y: 0, z: 0 }); // ← velocidad a 0
+        const currentPosition = agent.position();
+        agent.teleport(currentPosition);
+
+    }
+
+    findClosestNavMeshPoint(position: Vector3): Vector3 | null {
+        this.assertReady();
+        const { success, point } = this.navMeshQuery.findClosestPoint(
+            { x: position.x, y: 0, z: position.z }
+        );
+        if (!success) return null;
+        return new Vector3(point.x, 0, point.z);
     }
 
     computePath(from: Vector3, to: Vector3): Vector3[] {

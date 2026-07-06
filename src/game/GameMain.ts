@@ -10,7 +10,7 @@ import { GameStateMachine } from "./stateMachines/GameStateMachine";
 import { GameController } from "./controllers/GameController";
 import { GameState } from "./types/GameState";
 import { PlayGroundState } from "@/playground/state/PlayGroundState";
-import { EnemiesSpawner } from "@/enemies/EnemiesSpawner";
+import { EnemiesManager } from "@/enemies/EnemiesManager";
 import { enemiesConfig, playerConfig } from "@/config/GameConfig";
 import { EventManager } from "./eventManager/eventManager";
 import { SoundFXManager } from "./audio/SoundFXManager";
@@ -20,7 +20,7 @@ export class GameMain {
   private stateMachine = new GameStateMachine();
   private controller: GameController;
   private player: Player | null = null;
-  private enemiesSpawner: EnemiesSpawner;
+  private enemiesManager: EnemiesManager;
   private playGround: PlayGround;
   private hud: HudControls | null = null;
   private _lastAssets: LoadedAssets;
@@ -28,7 +28,7 @@ export class GameMain {
 
   private lives = +playerConfig.initialLives;   // ← desde config
   private enemiesDown = 0;
-  private totalEnemies = 10;  // ← hardcodeado por ahora
+  private totalEnemies = 0;
 
   constructor(
     private scene: Scene,
@@ -56,7 +56,6 @@ export class GameMain {
     const characterMeshes = assets.meshes["characterTask"];
     const characterAnimations = assets.animations["characterTask"];
     const particleTexture = assets.textures["emiterTextureTask"];
-
     const soundFX = SoundFXManager.getInstance(this.scene);
 
     // clonar los binaries para que el original no se consuma
@@ -71,9 +70,9 @@ export class GameMain {
 
     this.playGround = new PlayGround(this.scene);
 
-    this.enemiesSpawner = new EnemiesSpawner(this.scene);
+    this.enemiesManager = new EnemiesManager(this.scene);
     await this.playGround.createNavMesh(this.scene);
-    this.totalEnemies = this.enemiesSpawner.spawnAll()
+    this.totalEnemies = await this.enemiesManager.spawnAll()
 
     const playerInitPosition = PlayGroundState.getInstance().getSpawnPoint();
 
@@ -179,34 +178,38 @@ export class GameMain {
       data: {},
     });
     
-    this.enemiesSpawner.notifyGameOver();
+    this.enemiesManager.notifyGameOver();
     this.scene.getMeshByName(playerConfig.player1.player1RaycastDetectableName)?.dispose();
     this.player?.setPlayerGameOver();
-    this._registerRestartListener();
   }
 
   private _onWin(): void {
     this.hud?.showWin();
-    this._registerRestartListener();
-  }
-
-  private _registerRestartListener(): void {
-    const obs = this.scene.onKeyboardObservable.add((kbInfo) => {
-      if (kbInfo.event.key.toLowerCase() === "r") {
-        this.scene.onKeyboardObservable.remove(obs);
-        void this._restartGame();
-      }
-    });
   }
 
   private _registerHudKeyListeners(): void {
     this.scene.onKeyboardObservable.add((kbInfo) => {
+
+      if (kbInfo.event.key === 'q') {
+        if (kbInfo.type === KeyboardEventTypes.KEYDOWN) {
+          this.enemiesManager.setSuperVision(true);
+        } else if (kbInfo.type === KeyboardEventTypes.KEYUP) {
+          this.enemiesManager.setSuperVision(false);
+        }
+      }
+
+      if(this.stateMachine.is(GameState.GAME_OVER) || this.stateMachine.is(GameState.WIN)){
+        if (kbInfo.event.key.toLowerCase() === "r") {
+          void this._restartGame();
+        }
+      }
+
       if (kbInfo.type !== KeyboardEventTypes.KEYDOWN) return;
 
       switch (kbInfo.event.key.toLowerCase()) {
         case 'h':   // ← tecla para toggle de controles
           this.hud?.toggleControls();
-          break;
+      break;
       }
     });
   }
@@ -223,7 +226,7 @@ export class GameMain {
 
     this.hud?.dispose();
     this.hud = null;
-    this.enemiesSpawner.dispatch();
+    this.enemiesManager.dispatch();
     this.playGround.dispatch();
     this.player?.dispatch();
     this.player = null;

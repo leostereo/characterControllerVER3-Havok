@@ -1,4 +1,4 @@
-import { Color3, HighlightLayer, KeyboardEventTypes, type KeyboardInfo, type Mesh, type Scene, Vector3 } from "@babylonjs/core";
+import { Color3, HighlightLayer, type Mesh, type Scene, Vector3 } from "@babylonjs/core";
 import { playerConfig } from "@/config/GameConfig";
 import { type FixedCanionEnemy } from "./fixedCannion/FixedCanionEnemy";
 import { SurveillanceStation } from "./surveillanceStation/SurveillanceStation";
@@ -7,35 +7,28 @@ import { classifyAreas } from "@/utils/ClassifyAreas";
 import { getRectangleEnemyPosition } from "@/utils/getRectangleEnemyPosition";
 import { CorridorSurveillanceStation } from "./corridorSurveillanceStation/CorridorSurveillanceStation";
 import { SentinelMain } from "./sentinelV1/SentinelMain";
+import { type CyborgMain } from "./cyborg/CyborgMain";
+import { CyborgFactory } from "./cyborg/CyborgFactory";
 
-export class EnemiesSpawner {
+export class EnemiesManager {
 
   private survillanceStations: SurveillanceStation[] = [];
   private corridorSurveillanceStations: CorridorSurveillanceStation[] = [];
   private fixedCanions: FixedCanionEnemy[] = [];
-  private sentinels: SentinelMain[] = [];  // ← nuevo
+  private sentinels: SentinelMain[] = [];
+  private cyborgs: CyborgMain[] = [];
+
   private superVisionActive = false;
   private h1: HighlightLayer;
 
   constructor(
-    private scene: Scene
+    private scene: Scene,
   ) {
-
-    scene.onKeyboardObservable.add((kbInfo: KeyboardInfo) => {
-      if (kbInfo.event.key === 'q') {
-        if (kbInfo.type === KeyboardEventTypes.KEYDOWN) {
-          this.setSuperVision(true);
-        } else if (kbInfo.type === KeyboardEventTypes.KEYUP) {
-          this.setSuperVision(false);
-        }
-      }
-    });
 
     this.h1 = new HighlightLayer("super_vision_hl", this.scene);
   }
 
-  spawnAll(): number {
-
+  async spawnAll(): Promise<number> {
     const areas = PlayGroundState.getInstance().getAreas();
     const { squares, rectangles, corridors } = classifyAreas(areas);
 
@@ -43,36 +36,64 @@ export class EnemiesSpawner {
       this.survillanceStations.push(new SurveillanceStation(this.scene, square.center, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "middle"))
     })
 
-    rectangles.forEach((rectangle) => {
+    for (const [index, rectangle] of rectangles.entries()) {
 
-      const sentinel = new SentinelMain(
-        this.scene,
-        rectangle.center,
-        playerConfig.player1.positionTrackeableMeshName,
-        playerConfig.player1.player1RaycastDetectableName,
-      );
-      sentinel.start();
-      this.sentinels.push(sentinel);
+      if (index % 2 === 0) {
+        const cyborg = await CyborgFactory.create(
+          this.scene,
+          rectangle.center,
+        );
+        cyborg.start();
+        this.cyborgs.push(cyborg);
+      }
+
+      if (index % 2 !== 0) {
+
+        const sentinel = new SentinelMain(
+          this.scene,
+          rectangle.center,
+          playerConfig.player1.positionTrackeableMeshName,
+          playerConfig.player1.player1RaycastDetectableName,
+        );
+        sentinel.start();
+        this.sentinels.push(sentinel);
+      }
 
       const { position } = getRectangleEnemyPosition(rectangle)
       this.survillanceStations.push(new SurveillanceStation(this.scene, position, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, "highest"))
-    })
+    }
 
     corridors.forEach((corridor) => {
       this.corridorSurveillanceStations.push(new CorridorSurveillanceStation(this.scene, playerConfig.player1.positionTrackeableMeshName, playerConfig.player1.player1RaycastDetectableName, corridor))
     })
 
+    // capture zone
     this.scene.meshes
       .filter(m =>
         m.name.startsWith("surveillance_projection_") ||
+        m.name.startsWith("cyborg_triangle_") ||
         m.name.startsWith("sentinel_triangle_")
       )
       .forEach(m => m.setEnabled(false));
 
-    return (this.survillanceStations.length + this.corridorSurveillanceStations.length + this.sentinels.length)
+    return (this.survillanceStations.length
+      + this.corridorSurveillanceStations.length
+      + this.sentinels.length
+      + this.cyborgs.length
+    )
 
   }
 
+  private async spawnCyborgs(): Promise<void> {
+    for (let i = 0; i < 1; i++) {
+      const cyborg = await CyborgFactory.create(
+        this.scene,
+        new Vector3(i * 3, 0, 5),
+      );
+      cyborg.start();
+      this.cyborgs.push(cyborg);
+    }
+  }
 
   spawnOne(): void {
     const sentinel = new SentinelMain(
@@ -85,10 +106,11 @@ export class EnemiesSpawner {
     this.sentinels.push(sentinel);
   }
 
-  private setSuperVision(active: boolean): void {
+  public setSuperVision(active: boolean): void {
     this.scene.meshes
       .filter(m =>
         m.name.startsWith("surveillance_projection_") ||
+        m.name.startsWith("cyborg_triangle_") ||
         m.name.startsWith("sentinel_triangle_")
       )
       .forEach(m => {
@@ -102,18 +124,21 @@ export class EnemiesSpawner {
   }
 
   public dispatch(): void {
-    this.survillanceStations.forEach(e => e.dispose());  
+    this.survillanceStations.forEach(e => e.dispose());
     this.survillanceStations = [];
-    this.corridorSurveillanceStations.forEach(e => e.dispose());  
+    this.corridorSurveillanceStations.forEach(e => e.dispose());
     this.corridorSurveillanceStations = [];
-    this.sentinels.forEach(e => e.dispose());              
+    this.sentinels.forEach(e => e.dispose());
     this.sentinels = [];
+    this.cyborgs.forEach((cyb) => cyb.dispose());
+    this.cyborgs = [];
     this.setSuperVision(false);
     this.h1.dispose();
   }
 
-  public notifyGameOver():void{
-    this.sentinels.forEach((sentinel)=>sentinel.stop())
+  public notifyGameOver(): void {
+    this.sentinels.forEach((sentinel) => sentinel.stop())
+    this.cyborgs.forEach((cyborg) => cyborg.stop())
   }
 
 }
