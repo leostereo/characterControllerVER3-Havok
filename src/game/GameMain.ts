@@ -209,7 +209,6 @@ export class GameMain {
       switch (kbInfo.event.key.toLowerCase()) {
         case 'h':   // ← tecla para toggle de controles
           this.hud?.toggleControls();
-          console.log([...this.scene.onBeforeRenderObservable.observers]);          
       break;
       }
     });
