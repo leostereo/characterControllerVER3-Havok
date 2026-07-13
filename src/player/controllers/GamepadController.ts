@@ -67,7 +67,7 @@ export class GamepadController {
     this.dispatcher.dispatch({ type: "run", value: rightTrigger > 0.5 });
 
     // ── Botones ──
-    this.handleButton(gp, 0,
+    this.handleButton(gp, 3,
       () => this.dispatcher.dispatch({ type: "action", value: "jump" }),
       () => this.dispatcher.dispatch({ type: "action", value: "none" }),
     );
@@ -85,7 +85,7 @@ export class GamepadController {
         this.dispatcher.dispatch({ type: "action", value: "none" });
       },
     );
-    this.handleButton(gp, 3,
+    this.handleButton(gp, 0,
       () => this.dispatcher.dispatch({ type: "superVision", value: true }),
       () => this.dispatcher.dispatch({ type: "superVision", value: false })
     );
