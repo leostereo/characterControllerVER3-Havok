@@ -31,7 +31,7 @@ export default class MainScene {
   private _loadAssets(): void {
     this.assetLoader.addDefaultTasks();
     this.assetLoader.load(
-      (assets) => this._onAssetsLoaded(assets),
+      (assets) => void this._onAssetsLoaded(assets),  // ← void para manejar async
       (remaining, total) => {
         const percent = ((total - remaining) / total) * 100;
         this.screenManager.setProgress(percent);
@@ -39,8 +39,12 @@ export default class MainScene {
     );
   }
 
-  private _onAssetsLoaded(assets: LoadedAssets): void {
+  private async _onAssetsLoaded(assets: LoadedAssets): Promise<void> {
     this.game = new GameMain(this.scene, this.engine, assets);
+
+    // esperar que el juego esté completamente inicializado
+    await this.game.ready();
+
     this.screenManager.showSplash();
     this._registerKeyObserver();
   }
@@ -54,19 +58,19 @@ export default class MainScene {
 
   }
 
-private _gameStart(): void {
-  // inicializar audio engine tras interacción del usuario
-  if (Engine.audioEngine) {
-    Engine.audioEngine.unlock();
+  private _gameStart(): void {
+    // inicializar audio engine tras interacción del usuario
+    if (Engine.audioEngine) {
+      Engine.audioEngine.unlock();
+    }
+    this.screenManager.hideLoadingScreen();
+    this.game?.start();
   }
-  this.screenManager.hideLoadingScreen();
-  this.game?.start();
-}
 
   private _disableNativeLoadingScreen(): void {
     this.engine.loadingScreen = {
-      displayLoadingUI: ():void => { },
-      hideLoadingUI: ():void => { },
+      displayLoadingUI: (): void => { },
+      hideLoadingUI: (): void => { },
       loadingUIText: "",
       loadingUIBackgroundColor: "",
     };

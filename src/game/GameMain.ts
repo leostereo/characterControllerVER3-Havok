@@ -28,6 +28,7 @@ export class GameMain {
   private _eventsObserver: ReturnType<typeof EventManager.prototype.subscribe> | null = null;
   private inputState: InputState = new InputState();
   private dispatcher: CommandDispatcher;
+  private _initPromise: Promise<void> | null = null;
 
   private lives = +playerConfig.initialLives;   // ← desde config
   private enemiesDown = 0;
@@ -41,7 +42,7 @@ export class GameMain {
     this.controller = new GameController(scene, engine, this.stateMachine);
 
     this._registerStateHandlers();
-    void this._initGame(assets);
+    this._initPromise = this._initGame(assets);  // ← guardar promesa
   }
 
   // ── API pública ───────────────────────────────────────────────
@@ -51,7 +52,9 @@ export class GameMain {
   resume(): void { this.controller.resume(); }
   gameOver(): void { this.controller.gameOver(); }
   getState(): GameState { return this.stateMachine.current; }
-
+  ready(): Promise<void> {
+    return this._initPromise ?? Promise.resolve();
+  }
   // ── Inicialización ────────────────────────────────────────────
 
   private async _initGame(assets: LoadedAssets): Promise<void> {
@@ -79,8 +82,8 @@ export class GameMain {
 
     this.dispatcher = new CommandDispatcher(this.inputState);
 
-    this.dispatcher.register("superVision", (active: boolean) => {
-      this.enemiesManager.setSuperVision(active);
+    this.dispatcher.register("superVision", (active: boolean | number | undefined) => {
+      this.enemiesManager.setSuperVision(active as boolean);
     });
 
     this.dispatcher.register("restart", () => {
