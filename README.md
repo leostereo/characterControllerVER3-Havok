@@ -84,6 +84,8 @@ animaciones de impacto segun direccion.
 
 Proximo proyecto.
 
+control dual: teclado + gamepad
+
 definir maquinas de estado al principio (game state)
     modo pausa ?? aqui no hay.
 

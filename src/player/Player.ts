@@ -1,17 +1,18 @@
 import { InputController } from "./controllers/InputController";
 import { PhysicController } from "./controllers/PhysicController";
 import { AnimationController } from "./controllers/AnimationController";
-import { InputState } from "./statemachines/InputState";
+import { type InputState } from "./statemachines/InputState";
 import { PhysicState } from "./statemachines/PhysicState";
 import { AnimationStateMachine } from "./statemachines/AnimationState";
 import type { Scene, Vector3, AbstractMesh, AnimationGroup, Observer } from "@babylonjs/core";
 import { CameraController } from "./controllers/CameraController";
 import { AnimationGroupsManager } from "./managers/AnimationGroupsManger";
 import { ThrowController } from "./controllers/ThrowController";
+import { type CommandDispatcher } from "@/input/CommandDispatcher";
+import { GamepadController } from "./controllers/GamepadController";
 
 export class Player {
   //state
-  private inputState = new InputState();
   private physicState = new PhysicState();
   private animationState = new AnimationStateMachine();
 
@@ -31,14 +32,16 @@ export class Player {
     startPosition: Vector3,
     mesh: AbstractMesh,
     animationGroups: AnimationGroup[] = [],
-    meshYOffset = 0
+    meshYOffset = 0,
+    inputState: InputState,        // ← nuevo
+    dispatcher: CommandDispatcher, // ← nuevo
   ) {
-      this.inputController = new InputController(this.inputState, this.animationState);
-      // this.particlesManager = new ParticlesManager(scene, particlesEmiterTexture)
-      this.physicController = new PhysicController(scene, startPosition, mesh, this.inputState, this.physicState, this.animationState);
-      this.animationGroupsManager = new AnimationGroupsManager(animationGroups, this.animationState);
-      this.animationController = new AnimationController(
-      this.inputState,
+    this.inputController = new InputController(dispatcher, this.animationState);
+    new GamepadController(dispatcher, this.animationState)
+    this.physicController = new PhysicController(scene, startPosition, mesh, inputState, this.physicState, this.animationState);
+    this.animationGroupsManager = new AnimationGroupsManager(animationGroups, this.animationState);
+    this.animationController = new AnimationController(
+      inputState,
       this.physicState,
       this.animationState,
       this.animationGroupsManager  // Cambiado
@@ -72,7 +75,7 @@ export class Player {
     });
   }
 
-  public setPlayerGameOver():void {
+  public setPlayerGameOver(): void {
     this.scene.onBeforeRenderObservable.remove(this.renderObserver);
     this.scene.animationGroups.forEach((ag) => ag.stop())
     this.animationController.gameOver();

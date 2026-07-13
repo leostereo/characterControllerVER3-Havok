@@ -14,7 +14,8 @@ import { EnemiesManager } from "@/enemies/EnemiesManager";
 import { enemiesConfig, playerConfig } from "@/config/GameConfig";
 import { EventManager } from "./eventManager/eventManager";
 import { SoundFXManager } from "./audio/SoundFXManager";
-import { KeyboardEventTypes } from "@babylonjs/core";
+import { InputState } from "@/player/statemachines/InputState";
+import { CommandDispatcher } from "@/input/CommandDispatcher";
 
 export class GameMain {
   private stateMachine = new GameStateMachine();
@@ -25,6 +26,9 @@ export class GameMain {
   private hud: HudControls | null = null;
   private _lastAssets: LoadedAssets;
   private _eventsObserver: ReturnType<typeof EventManager.prototype.subscribe> | null = null;
+  private inputState: InputState = new InputState();
+  private dispatcher: CommandDispatcher;
+  private _initPromise: Promise<void> | null = null;
 
   private lives = +playerConfig.initialLives;   // ← desde config
   private enemiesDown = 0;
@@ -38,7 +42,7 @@ export class GameMain {
     this.controller = new GameController(scene, engine, this.stateMachine);
 
     this._registerStateHandlers();
-    void this._initGame(assets);
+    this._initPromise = this._initGame(assets);  // ← guardar promesa
   }
 
   // ── API pública ───────────────────────────────────────────────
@@ -48,7 +52,9 @@ export class GameMain {
   resume(): void { this.controller.resume(); }
   gameOver(): void { this.controller.gameOver(); }
   getState(): GameState { return this.stateMachine.current; }
-
+  ready(): Promise<void> {
+    return this._initPromise ?? Promise.resolve();
+  }
   // ── Inicialización ────────────────────────────────────────────
 
   private async _initGame(assets: LoadedAssets): Promise<void> {
@@ -74,6 +80,24 @@ export class GameMain {
     await this.playGround.createNavMesh(this.scene);
     this.totalEnemies = await this.enemiesManager.spawnAll()
 
+    this.dispatcher = new CommandDispatcher(this.inputState);
+
+    this.dispatcher.register("superVision", (active: boolean | number | undefined) => {
+      this.enemiesManager.setSuperVision(active as boolean);
+    });
+
+    this.dispatcher.register("restart", () => {
+      if (this.stateMachine.is(GameState.GAME_OVER) ||
+        this.stateMachine.is(GameState.WIN)) {
+        void this._restartGame();
+      }
+    });
+
+    this.dispatcher.register("toggleControls", () => {
+      this.hud?.toggleControls();
+    });
+
+
     const playerInitPosition = PlayGroundState.getInstance().getSpawnPoint();
 
     if (characterMeshes?.length > 0 && this.player === null) {
@@ -82,7 +106,9 @@ export class GameMain {
         playerInitPosition,
         characterMeshes[0],
         characterAnimations,
-        -0.9
+        -0.9,
+        this.inputState,   // ← nuevo
+        this.dispatcher,   // ← nuevo
       );
     }
 
@@ -90,8 +116,6 @@ export class GameMain {
     this.hud.updateLives(this.lives);
     this.hud.updateEnemiesDown(this.enemiesDown, this.totalEnemies);
     this._subscribeToEvents();
-    this._registerHudKeyListeners();
-
     this.stateMachine.transition(GameState.READY);
   }
 
@@ -138,7 +162,7 @@ export class GameMain {
     }
     this.enemiesDown++;
     this.hud?.updateEnemiesDown(this.enemiesDown, this.totalEnemies);
-    this.hud?.addLogMessage(`enemy: ${enemyId} is down.`);  
+    this.hud?.addLogMessage(`enemy: ${enemyId} is down.`);
 
     if (this.enemiesDown >= this.totalEnemies) {
       this.stateMachine.transition(GameState.WIN);
@@ -177,7 +201,7 @@ export class GameMain {
       sourceType: "other",
       data: {},
     });
-    
+
     this.enemiesManager.notifyGameOver();
     this.scene.getMeshByName(playerConfig.player1.player1RaycastDetectableName)?.dispose();
     this.player?.setPlayerGameOver();
@@ -187,34 +211,9 @@ export class GameMain {
     this.hud?.showWin();
   }
 
-  private _registerHudKeyListeners(): void {
-    this.scene.onKeyboardObservable.add((kbInfo) => {
-
-      if (kbInfo.event.key === 'q') {
-        if (kbInfo.type === KeyboardEventTypes.KEYDOWN) {
-          this.enemiesManager.setSuperVision(true);
-        } else if (kbInfo.type === KeyboardEventTypes.KEYUP) {
-          this.enemiesManager.setSuperVision(false);
-        }
-      }
-
-      if(this.stateMachine.is(GameState.GAME_OVER) || this.stateMachine.is(GameState.WIN)){
-        if (kbInfo.event.key.toLowerCase() === "r") {
-          void this._restartGame();
-        }
-      }
-
-      if (kbInfo.type !== KeyboardEventTypes.KEYDOWN) return;
-
-      switch (kbInfo.event.key.toLowerCase()) {
-        case 'h':   // ← tecla para toggle de controles
-          this.hud?.toggleControls();
-      break;
-      }
-    });
-  }
-
   private async _restartGame(): Promise<void> {
+
+    this.inputState = new InputState();  // ← reset
     // limpiar observer de eventos
     EventManager.getInstance().clearAll();
     if (this._eventsObserver) {
