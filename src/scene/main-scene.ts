@@ -55,7 +55,22 @@ export default class MainScene {
       this._gameStart();
       this.scene.onKeyboardObservable.remove(this.keyBoardObserver);
     })
+    this._pollGamepadStart();
+  }
 
+  private gamepadPollId: number = 0;
+
+  private _pollGamepadStart(): void {
+    const check = (): void => {
+      const gp = navigator.getGamepads()[0];
+      if (gp?.buttons?.some(b => b.pressed)) {
+        this.scene.onKeyboardObservable.remove(this.keyBoardObserver);
+        this._gameStart();
+        return;
+      }
+      this.gamepadPollId = requestAnimationFrame(check);
+    };
+    this.gamepadPollId = requestAnimationFrame(check);
   }
 
   private _gameStart(): void {
