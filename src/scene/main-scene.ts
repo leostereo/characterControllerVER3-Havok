@@ -63,7 +63,7 @@ export default class MainScene {
   private _pollGamepadStart(): void {
     const check = (): void => {
       const gp = navigator.getGamepads()[0];
-      if (gp && gp.buttons.some(b => b.pressed)) {
+      if (gp?.buttons?.some(b => b.pressed)) {
         this.scene.onKeyboardObservable.remove(this.keyBoardObserver);
         this._gameStart();
         return;
