@@ -30,17 +30,21 @@ export class LoadingScreen {
       fontFamily: "monospace",
       color: "#e0e0e0",
       zIndex: "100",
+      overflow: "hidden",
+      boxSizing: "border-box",
+      padding: "16px",
     });
 
     // ── Título (siempre visible) ─────────────────────────────────
     const title = document.createElement("h1");
     title.textContent = "Space Freesbe";
     Object.assign(title.style, {
-      fontSize: "3.5rem",
-      letterSpacing: "0.5em",
+      fontSize: "clamp(1.6rem, 6vw, 3.5rem)",
+      letterSpacing: "clamp(0.15em, 2vw, 0.5em)",
       color: "#ffffff",
       margin: "0",
       textTransform: "uppercase",
+      textAlign: "center",
     });
 
     // ── Sección de progreso ─────────────────────────────────────
@@ -51,11 +55,13 @@ export class LoadingScreen {
       gap: "12px",
       opacity: "1",
       transition: "opacity 0.4s ease",
+      width: "100%",
+      maxWidth: "340px",
     });
 
     const track = document.createElement("div");
     Object.assign(track.style, {
-      width: "340px",
+      width: "100%",
       height: "4px",
       background: "#1e1e2e",
       borderRadius: "2px",
@@ -88,16 +94,20 @@ export class LoadingScreen {
       opacity: "0",
       transition: "opacity 0.4s ease",
       pointerEvents: "none",
+      width: "100%",
+      maxWidth: "100vw",
+      boxSizing: "border-box",
     });
 
     const grid = document.createElement("div");
     Object.assign(grid.style, {
       display: "grid",
       gridTemplateColumns: "auto auto",
-      gap: "10px 32px",
+      gap: "10px 24px",
       fontSize: "0.82rem",
-      minWidth: "320px",
+      width: "min(320px, 85vw)",
       alignContent: "center",
+      justifyContent: "center",
     });
 
     const controls = controlsConfig.keys;
@@ -125,10 +135,11 @@ export class LoadingScreen {
     const prompt = document.createElement("p");
     prompt.textContent = "PRESS ANY KEY OR BUTTON TO CONTINUE (or doble TAB)";
     Object.assign(prompt.style, {
-      fontSize: "0.75rem",
+      fontSize: "clamp(0.6rem, 1.8vw, 0.75rem)",
       letterSpacing: "0.3em",
       color: "#6c63ff",
       margin: "0",
+      textAlign: "center",
       animation: "blink 1.4s ease-in-out infinite",
     });
 
@@ -149,8 +160,12 @@ export class LoadingScreen {
     Object.assign(splashColumns.style, {
       display: "flex",
       flexDirection: "row",
-      gap: "72px", // más separación entre columnas
+      flexWrap: "wrap",
+      justifyContent: "center",
       alignItems: "center",
+      gap: "32px",
+      width: "100%",
+      maxWidth: "100%",
     });
 
     // Divisor visual sutil entre columnas
@@ -167,13 +182,9 @@ export class LoadingScreen {
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      width: "400px",
-      height: "260px",
-    });
-
-    Object.assign(svgWrap.style, {
-      width: "520px",
-      height: "260px",
+      width: "min(520px, 90vw)",
+      aspectRatio: "520 / 260",
+      height: "auto",
     });
 
     svgWrap.appendChild(this._buildGamepadSvg());
@@ -195,6 +206,7 @@ export class LoadingScreen {
     svg.setAttribute("viewBox", "0 0 520 260");
     svg.setAttribute("width", "100%");
     svg.setAttribute("height", "100%");
+    svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
     const colors = {
       body: "#14131f",

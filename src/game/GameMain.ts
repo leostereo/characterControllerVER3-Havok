@@ -134,6 +134,7 @@ export class GameMain {
     this._eventsObserver = em.subscribe((event) => {
       if (event.type === "player_damaged") this._handlePlayerDamage();
       if (event.type === "enemy_destroyed") this._handleEnemyDestroyed(event.data);
+      if (event.type === 'player_died') this.stateMachine.transition(GameState.GAME_OVER);
     });
   }
 

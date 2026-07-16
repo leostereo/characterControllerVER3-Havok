@@ -102,3 +102,6 @@ centralizar configuraciones (y eliminar todos los magic numbers)
 
 Preparar el modelo.(unificar)
 Sincronizar capsulas de raycas, movimiento , colision y sus centros y offsets.
+
+El juego debe evitar estados en que no se pueda volver.
+ejemplo caer indefinidamente de la plataforma.
