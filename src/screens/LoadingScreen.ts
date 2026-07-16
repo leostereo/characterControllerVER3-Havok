@@ -39,12 +39,15 @@ export class LoadingScreen {
     const title = document.createElement("h1");
     title.textContent = "Space Freesbe";
     Object.assign(title.style, {
-      fontSize: "clamp(1.6rem, 6vw, 3.5rem)",
-      letterSpacing: "clamp(0.15em, 2vw, 0.5em)",
+      fontSize: "clamp(1.4rem, 6vw, 3.5rem)",
+      letterSpacing: "clamp(0.1em, 1.5vw, 0.5em)",
       color: "#ffffff",
       margin: "0",
       textTransform: "uppercase",
       textAlign: "center",
+      width: "100%",
+      maxWidth: "100%",
+      boxSizing: "border-box",
     });
 
     // ── Sección de progreso ─────────────────────────────────────
@@ -191,8 +194,19 @@ export class LoadingScreen {
 
     splashColumns.append(grid, divider, svgWrap);
 
+    const headerWrap = document.createElement("div");
+    Object.assign(headerWrap.style, {
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      gap: "32px",
+      width: "100%",
+      boxSizing: "border-box",
+    });
+    headerWrap.append(title, this.progressWrap);
+
     this.splashWrap.append(splashColumns, prompt);
-    this.container.append(title, this.progressWrap, this.splashWrap);
+    this.container.append(headerWrap, this.splashWrap);
     document.body.appendChild(this.container);
 
     // ── Event listener para click (una sola vez) ─────────────────
