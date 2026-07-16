@@ -30,12 +30,17 @@ export class AnimationController {
         next = 'jumping'
       }
 
-      if (this.physicState.velocity._y < -3) {
+      const fallingVelocity = this.physicState.velocity._y;
+
+      if (fallingVelocity < -3) {
         next = 'falling_down';
       }
 
-      if (this.physicState.velocity._y < -15) {
+      if (fallingVelocity < -15) {
         next = 'falling_to_crash';
+        if(fallingVelocity < -100){
+          this.eventManager.emit({sourceType:'player', type:'player_died'})
+        }
       }
 
       if (this.inputState.action === 'throw' && this.animationState.current !== 'air_throwing_impulse_is_over') {
