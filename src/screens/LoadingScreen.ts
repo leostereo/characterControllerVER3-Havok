@@ -26,21 +26,22 @@ export class LoadingScreen {
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      gap: "32px",
+      gap: "clamp(8px, 3vh, 32px)",
       fontFamily: "monospace",
       color: "#e0e0e0",
       zIndex: "100",
-      overflow: "hidden",
+      overflowY: "auto",
+      overflowX: "hidden",
       boxSizing: "border-box",
-      padding: "16px",
+      padding: "12px 16px",
     });
 
     // ── Título (siempre visible) ─────────────────────────────────
     const title = document.createElement("h1");
     title.textContent = "Space Freesbe";
     Object.assign(title.style, {
-      fontSize: "clamp(1.4rem, 6vw, 3.5rem)",
-      letterSpacing: "clamp(0.1em, 1.5vw, 0.5em)",
+      fontSize: "clamp(1.1rem, min(6vw, 7vh), 3.5rem)",
+      letterSpacing: "clamp(0.08em, min(1.5vw, 1.5vh), 0.5em)",
       color: "#ffffff",
       margin: "0",
       textTransform: "uppercase",
