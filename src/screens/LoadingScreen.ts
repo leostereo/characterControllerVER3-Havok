@@ -2,6 +2,7 @@ import { controlsConfig } from "@/config/GameConfig";
 
 export class LoadingScreen {
   private container: HTMLDivElement;
+  private headerWrap: HTMLDivElement;
   private progressWrap: HTMLDivElement;
   private progressBar: HTMLDivElement;
   private percentLabel: HTMLSpanElement;
@@ -9,6 +10,7 @@ export class LoadingScreen {
 
   constructor() {
     this.container = document.createElement("div");
+    this.headerWrap = document.createElement("div");
     this.progressWrap = document.createElement("div");
     this.progressBar = document.createElement("div");
     this.percentLabel = document.createElement("span");
@@ -22,25 +24,32 @@ export class LoadingScreen {
       position: "fixed",
       inset: "0",
       background: "linear-gradient(160deg, #0a0a0f 60%, #12102a 100%)",
+      fontFamily: "monospace",
+      color: "#e0e0e0",
+      zIndex: "100",
+      overflow: "hidden",
+      boxSizing: "border-box",
+    });
+
+    // ── Header (título + progreso) — ocupa TODO el contenedor, centrado ──
+    Object.assign(this.headerWrap.style, {
+      position: "absolute",
+      inset: "0",
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      gap: "clamp(8px, 3vh, 32px)",
-      fontFamily: "monospace",
-      color: "#e0e0e0",
-      zIndex: "100",
-      overflowY: "auto",
-      overflowX: "hidden",
+      gap: "clamp(12px, 4vh, 32px)",
+      padding: "16px",
       boxSizing: "border-box",
-      padding: "12px 16px",
+      opacity: "1",
+      transition: "opacity 0.4s ease",
     });
 
-    // ── Título (siempre visible) ─────────────────────────────────
     const title = document.createElement("h1");
     title.textContent = "Space Freesbe";
     Object.assign(title.style, {
-      fontSize: "clamp(1.1rem, min(6vw, 7vh), 3.5rem)",
+      fontSize: "clamp(1.1rem, min(7vw, 8vh), 3.5rem)",
       letterSpacing: "clamp(0.08em, min(1.5vw, 1.5vh), 0.5em)",
       color: "#ffffff",
       margin: "0",
@@ -51,14 +60,11 @@ export class LoadingScreen {
       boxSizing: "border-box",
     });
 
-    // ── Sección de progreso ─────────────────────────────────────
     Object.assign(this.progressWrap.style, {
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
       gap: "12px",
-      opacity: "1",
-      transition: "opacity 0.4s ease",
       width: "100%",
       maxWidth: "340px",
     });
@@ -88,19 +94,22 @@ export class LoadingScreen {
 
     track.appendChild(this.progressBar);
     this.progressWrap.append(track, this.percentLabel);
+    this.headerWrap.append(title, this.progressWrap);
 
-    // ── Sección splash (controles + press any key) ──────────────
+    // ── Splash (controles + press any key) — también ocupa TODO el contenedor ──
     Object.assign(this.splashWrap.style, {
+      position: "absolute",
+      inset: "0",
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
-      gap: "24px",
+      justifyContent: "center",
+      gap: "clamp(12px, 3vh, 24px)",
+      padding: "16px",
+      boxSizing: "border-box",
       opacity: "0",
       transition: "opacity 0.4s ease",
       pointerEvents: "none",
-      width: "100%",
-      maxWidth: "100vw",
-      boxSizing: "border-box",
     });
 
     const grid = document.createElement("div");
@@ -195,19 +204,8 @@ export class LoadingScreen {
 
     splashColumns.append(grid, divider, svgWrap);
 
-    const headerWrap = document.createElement("div");
-    Object.assign(headerWrap.style, {
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      gap: "32px",
-      width: "100%",
-      boxSizing: "border-box",
-    });
-    headerWrap.append(title, this.progressWrap);
-
     this.splashWrap.append(splashColumns, prompt);
-    this.container.append(headerWrap, this.splashWrap);
+    this.container.append(this.headerWrap, this.splashWrap);
     document.body.appendChild(this.container);
 
     // ── Event listener para click (una sola vez) ─────────────────
@@ -233,8 +231,6 @@ export class LoadingScreen {
       textDim: "#8888a0",
     };
 
-    // Línea guía + etiqueta (uno o dos tramos rectos) para no escribir la
-    // función encima del control.
     const addLeader = (points: [number, number][]): void => {
       const line = document.createElementNS(svgNS, "polyline");
       line.setAttribute("points", points.map(([x, y]) => `${x},${y}`).join(" "));
@@ -262,7 +258,6 @@ export class LoadingScreen {
       svg.appendChild(t);
     };
 
-    // ── Cuerpo del control (forma tipo "mariposa" con dos lóbulos) ──
     const bodyPath = document.createElementNS(svgNS, "path");
     bodyPath.setAttribute(
       "d",
@@ -282,7 +277,6 @@ export class LoadingScreen {
     bodyPath.setAttribute("stroke-width", "2");
     svg.appendChild(bodyPath);
 
-    // ── Gatillos (LT / RT) ──
     const lt = document.createElementNS(svgNS, "rect");
     lt.setAttribute("x", "55");
     lt.setAttribute("y", "40");
@@ -306,7 +300,6 @@ export class LoadingScreen {
 
     addLabel(365, 34, "middle", "Run (R2)", colors.accent, 9);
 
-    // ── Stick izquierdo (movimiento), cerca del borde ──
     const stickCx = 95;
     const stickCy = 135;
 
@@ -328,7 +321,6 @@ export class LoadingScreen {
     stickInner.setAttribute("stroke-width", "2");
     svg.appendChild(stickInner);
 
-    // flechitas indicando ejes del stick
     const arrow = (dx: number, dy: number, rot: number): void => {
       const a = document.createElementNS(svgNS, "path");
       a.setAttribute("d", "M 0 -5 L 4 3 L -4 3 Z");
@@ -339,15 +331,14 @@ export class LoadingScreen {
       );
       svg.appendChild(a);
     };
-    arrow(0, -38, 0);    // arriba
-    arrow(0, 38, 180);   // abajo
-    arrow(-38, 0, -90);  // izquierda
-    arrow(38, 0, 90);    // derecha
+    arrow(0, -38, 0);
+    arrow(0, 38, 180);
+    arrow(-38, 0, -90);
+    arrow(38, 0, 90);
 
     addLeader([[stickCx, stickCy + 44], [stickCx, stickCy + 92]]);
     addLabel(stickCx, stickCy + 104, "middle", "Mover / Girar");
 
-    // ── Start: ícono triangular tipo "play", entre el stick y el botón 0 ──
     const startCx = 250;
     const startCy = 135;
 
@@ -366,12 +357,10 @@ export class LoadingScreen {
     addLeader([[startCx, startCy + 11], [startCx, startCy + 68]]);
     addLabel(startCx, startCy + 80, "middle", "Start", colors.accent, 9);
 
-    // ── Botones de acción (derecha, en rombo) ──
     const faceCx = 365;
     const faceCy = 135;
     const faceR = 34;
     const btnR = 12;
-    // Columna común donde alinean sus etiquetas Jump, Throw y Roll/Duck
     const FACE_LABEL_LINE_X = 450;
     const FACE_LABEL_X = 454;
 
@@ -396,8 +385,6 @@ export class LoadingScreen {
       svg.appendChild(c);
 
       if (b.dx < 0) {
-        // izquierda (SuperVision) → baja y luego dobla a la derecha,
-        // quedando debajo de la etiqueta de Throw, en la misma columna
         addLeader([
           [cx, cy + btnR],
           [cx, cy + btnR + 46],
@@ -405,8 +392,6 @@ export class LoadingScreen {
         ]);
         addLabel(FACE_LABEL_X, cy + btnR + 49, "start", b.label, colors.textDim, 9);
       } else {
-        // Jump, Throw y Roll/Duck → línea horizontal recta hasta una misma
-        // columna, para que las tres etiquetas queden alineadas entre sí
         const edgeX = cx + btnR;
         addLeader([[edgeX, cy], [FACE_LABEL_LINE_X, cy]]);
         addLabel(FACE_LABEL_X, cy + 3, "start", b.label, colors.textDim, 9);
@@ -431,11 +416,11 @@ export class LoadingScreen {
     this.percentLabel.textContent = `${Math.floor(clamped)}%`;
   }
 
-  // Fade out progreso → fade in controles
+  // Header (título + progreso) desaparece → quedan los controles
   showSplash(): void {
-    this.progressWrap.style.opacity = "0";
-    this.progressWrap.addEventListener("transitionend", () => {
-      this.progressWrap.style.display = "none";
+    this.headerWrap.style.opacity = "0";
+    this.headerWrap.addEventListener("transitionend", () => {
+      this.headerWrap.style.display = "none";
       this.splashWrap.style.opacity = "1";
     }, { once: true });
   }
