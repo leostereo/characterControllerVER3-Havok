@@ -54,7 +54,7 @@ export class WallsBuilder {
       safetyGroup.applyTransform(safetyResult.position, rotSteps);
       this.setupSafetyMesh(safetyGroup);
       if (safetyGroup.mesh) {
-        this.addPhysicsToMesh(safetyGroup.mesh);
+        //this.addPhysicsToMesh(safetyGroup.mesh);
       }
 
       const spawnPoint = safetyGroup.getSpawnPoint();
@@ -155,7 +155,7 @@ export class WallsBuilder {
 
   private addPhysics(group: WallGroup): void {
     if (!group.mesh) return;
-    this.addPhysicsToMesh(group.mesh);
+    //this.addPhysicsToMesh(group.mesh);
   }
 
   private setupSafetyMesh(group: SafetyPlaceWallGroup): void {
